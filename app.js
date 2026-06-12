@@ -164,7 +164,12 @@ function renderChecklist() {
     container.appendChild(div);
   });
 
+  // Aufzug-Nr. Feld nur bei Aufzug-Checkliste einblenden
+  const aufzugNrBox = document.getElementById('aufzug-nr-box');
+  aufzugNrBox.style.display = (currentBereich.liste === 'aufzug') ? 'block' : 'none';
+
   // Bemerkung & Unterschrift leeren
+  document.getElementById('aufzug-nr').value = '';
   document.getElementById('bemerkung').value = '';
   document.getElementById('pruefer-name').value = '';
   clearSignature();
@@ -271,6 +276,7 @@ async function generatePDF() {
   const now = new Date();
   const pruefer = document.getElementById('pruefer-name').value.trim();
   const bemerkung = document.getElementById('bemerkung').value.trim();
+  const aufzugNr = document.getElementById('aufzug-nr').value.trim();
 
   const PL = 15, PT = 15, PW = 180;
   let y = PT;
@@ -293,7 +299,13 @@ async function generatePDF() {
   doc.text(`Datum: ${formatDatum(now)}`, PL, y);
   doc.text(`KW ${getKW(now)}`, PL + 60, y);
   doc.text(`Prüfer: ${pruefer}`, PL + 100, y);
-  y += 8;
+  y += 6;
+  if (aufzugNr) {
+    doc.setFont('helvetica', 'bold');
+    doc.text(`Aufzug-Nr.: ${aufzugNr}`, PL, y);
+    doc.setFont('helvetica', 'normal');
+    y += 6;
+  }
   doc.setDrawColor(220, 220, 220); doc.line(PL, y, PL + PW, y);
   y += 6;
 
