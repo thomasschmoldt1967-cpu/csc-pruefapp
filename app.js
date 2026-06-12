@@ -11,6 +11,7 @@ let qrScanner        = null;
 let sigPad           = null;
 let isDrawing        = false;
 let lastX = 0, lastY = 0;
+let fotoListe        = [];   // Array von { dataUrl, name }
 
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', () => {
@@ -173,6 +174,48 @@ function renderChecklist() {
   document.getElementById('bemerkung').value = '';
   document.getElementById('pruefer-name').value = '';
   clearSignature();
+  // Fotos zurücksetzen
+  fotoListe = [];
+  document.getElementById('foto-vorschau').innerHTML = '';
+}
+
+// ===== FOTO-FUNKTION =====
+function fotoAufnehmen() {
+  document.getElementById('foto-input').click();
+}
+
+function fotoHinzufuegen(event) {
+  const files = event.target.files;
+  if (!files || files.length === 0) return;
+  const file = files[0];
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    const dataUrl = e.target.result;
+    const idx = fotoListe.length;
+    fotoListe.push({ dataUrl, name: file.name });
+    renderFotoVorschau(idx, dataUrl);
+  };
+  reader.readAsDataURL(file);
+  // Input zurücksetzen, damit dasselbe Foto erneut aufgenommen werden kann
+  event.target.value = '';
+}
+
+function renderFotoVorschau(idx, dataUrl) {
+  const container = document.getElementById('foto-vorschau');
+  const item = document.createElement('div');
+  item.className = 'foto-vorschau-item';
+  item.id = 'foto-item-' + idx;
+  item.innerHTML = `
+    <img src="${dataUrl}" alt="Foto ${idx + 1}">
+    <button class="foto-loeschen" onclick="fotoLoeschen(${idx})" title="Foto löschen">✕</button>
+  `;
+  container.appendChild(item);
+}
+
+function fotoLoeschen(idx) {
+  fotoListe[idx] = null;
+  const el = document.getElementById('foto-item-' + idx);
+  if (el) el.remove();
 }
 
 // ===== PRÜFUNG SETZEN =====
@@ -364,6 +407,31 @@ async function generatePDF() {
     doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(0);
     const lines = doc.splitTextToSize(bemerkung, PW);
     doc.text(lines, PL, y); y += lines.length * 5 + 6;
+  }
+
+  // Fotos
+  const aktiveFotos = fotoListe.filter(f => f !== null);
+  if (aktiveFotos.length > 0) {
+    if (y > 220) { doc.addPage(); y = PT; }
+    doc.setDrawColor(220, 220, 220); doc.line(PL, y, PL + PW, y); y += 6;
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(26, 58, 92);
+    doc.text('FOTOS', PL, y); y += 8;
+    const fotoW = 55, fotoH = 42, fotoGap = 5;
+    let col = 0;
+    for (const foto of aktiveFotos) {
+      if (y + fotoH > 275) { doc.addPage(); y = PT; col = 0; }
+      const x = PL + col * (fotoW + fotoGap);
+      try {
+        doc.addImage(foto.dataUrl, 'JPEG', x, y, fotoW, fotoH);
+      } catch(e) {
+        // JPEG fehlgeschlagen, PNG versuchen
+        doc.addImage(foto.dataUrl, 'PNG', x, y, fotoW, fotoH);
+      }
+      col++;
+      if (col >= 3) { col = 0; y += fotoH + fotoGap; }
+    }
+    if (col > 0) y += fotoH + fotoGap;
+    y += 4;
   }
 
   // Unterschrift

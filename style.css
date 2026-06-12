@@ -208,6 +208,62 @@ body {
 .toggle-btn.nok-btn.active { background: var(--danger);  border-color: var(--danger);  color: white; }
 .toggle-btn:active { transform: scale(0.93); }
 
+/* ===== FOTO-BUTTON ===== */
+.foto-bereich {
+  margin-top: 10px;
+}
+.btn-foto {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  width: 100%;
+  justify-content: center;
+}
+.btn-foto:active { opacity: 0.85; }
+.foto-vorschau {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+.foto-vorschau-item {
+  position: relative;
+  width: 80px;
+  height: 80px;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 2px solid var(--border);
+}
+.foto-vorschau-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.foto-loeschen {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  background: rgba(198,40,40,0.85);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 22px;
+  height: 22px;
+  font-size: 13px;
+  line-height: 22px;
+  text-align: center;
+  cursor: pointer;
+  padding: 0;
+}
+
 /* ===== BEMERKUNG & UNTERSCHRIFT ===== */
 .aufzug-nr-box, .bemerkung-box, .unterschrift-box, .pruefer-box {
   background: var(--card);

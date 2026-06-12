@@ -53,6 +53,13 @@
     <div class="bemerkung-box">
       <label>Bemerkungen / Mängel:</label>
       <textarea id="bemerkung" rows="3" placeholder="Optional: Mängel oder Hinweise eintragen..."></textarea>
+      <div class="foto-bereich">
+        <button class="btn-foto" onclick="fotoAufnehmen()">
+          <span class="icon">📷</span> Foto aufnehmen
+        </button>
+        <input type="file" id="foto-input" accept="image/*" capture="environment" style="display:none" onchange="fotoHinzufuegen(event)">
+        <div id="foto-vorschau" class="foto-vorschau"></div>
+      </div>
     </div>
     <div class="unterschrift-box">
       <label>Unterschrift Prüfer:</label>
