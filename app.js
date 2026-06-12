@@ -1,0 +1,493 @@
+/* ============================================================
+   CSC Prüf-App — Hauptlogik
+   ============================================================ */
+
+// ===== STATE =====
+let currentStandort  = null;
+let currentBereich   = null;
+let currentListe     = null;
+let pruefErgebnisse  = {};  // { punktId: 'ok' | 'nok' | null }
+let qrScanner        = null;
+let sigPad           = null;
+let isDrawing        = false;
+let lastX = 0, lastY = 0;
+
+// ===== INIT =====
+document.addEventListener('DOMContentLoaded', () => {
+  renderHome();
+  initSignaturePad();
+
+  // Service Worker registrieren
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('sw.js').catch(() => {});
+  }
+
+  // URL-Parameter: ?bereich=xxx (von QR-Code)
+  const params = new URLSearchParams(window.location.search);
+  const bereichId = params.get('bereich');
+  if (bereichId) openBereichById(bereichId);
+});
+
+// ===== SCREEN MANAGEMENT =====
+function showScreen(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+// ===== HOME RENDER =====
+function renderHome() {
+  const container = document.getElementById('standort-liste');
+  container.innerHTML = '';
+
+  APP_CONFIG.standorte.forEach(standort => {
+    const card = document.createElement('div');
+    card.className = 'standort-card';
+    card.innerHTML = `
+      <div class="standort-header" onclick="openStandort('${standort.id}')">
+        🏢 ${standort.name}
+      </div>
+    `;
+    // Direkt erste 3 Bereiche als Vorschau
+    const preview = document.createElement('div');
+    standort.bereiche.forEach(b => {
+      const item = document.createElement('div');
+      item.className = 'bereich-item';
+      item.onclick = () => openBereich(standort.id, b.id);
+      item.innerHTML = `
+        <div class="bereich-icon ${iconClass(b.liste)}">${listeIcon(b.liste)}</div>
+        <div class="bereich-info">
+          <div class="bereich-name">${b.name}</div>
+          <div class="bereich-liste-name">${listeTitel(b.liste)}</div>
+        </div>
+        <div class="bereich-arrow">›</div>
+      `;
+      preview.appendChild(item);
+    });
+    card.appendChild(preview);
+    container.appendChild(card);
+  });
+}
+
+function iconClass(liste) {
+  const map = { aufzug: 'icon-aufzug', brandschutztuer: 'icon-brandschutz', notbeleuchtung: 'icon-notbel' };
+  return map[liste] || 'icon-default';
+}
+function listeIcon(liste) {
+  const map = { aufzug: '🛗', brandschutztuer: '🚪', notbeleuchtung: '💡' };
+  return map[liste] || '📋';
+}
+function listeTitel(listeId) {
+  return APP_CONFIG.listen[listeId]?.titel || listeId;
+}
+
+// ===== STANDORT ÖFFNEN =====
+function openStandort(standortId) {
+  const standort = APP_CONFIG.standorte.find(s => s.id === standortId);
+  if (!standort) return;
+  currentStandort = standort;
+  document.getElementById('bereiche-titel').textContent = standort.name;
+  const container = document.getElementById('bereiche-liste');
+  container.innerHTML = '';
+  standort.bereiche.forEach(b => {
+    const item = document.createElement('div');
+    item.className = 'bereich-item';
+    item.onclick = () => openBereich(standortId, b.id);
+    item.innerHTML = `
+      <div class="bereich-icon ${iconClass(b.liste)}">${listeIcon(b.liste)}</div>
+      <div class="bereich-info">
+        <div class="bereich-name">${b.name}</div>
+        <div class="bereich-liste-name">${listeTitel(b.liste)}</div>
+      </div>
+      <div class="bereich-arrow">›</div>
+    `;
+    container.appendChild(item);
+  });
+  showScreen('bereiche');
+}
+
+// ===== BEREICH ÖFFNEN =====
+function openBereich(standortId, bereichId) {
+  const standort = APP_CONFIG.standorte.find(s => s.id === standortId);
+  const bereich  = standort?.bereiche.find(b => b.id === bereichId);
+  if (!bereich) return;
+  currentStandort = standort;
+  currentBereich  = bereich;
+  currentListe    = APP_CONFIG.listen[bereich.liste];
+  if (!currentListe) return;
+  pruefErgebnisse = {};
+  renderChecklist();
+  showScreen('checklist');
+}
+
+function openBereichById(bereichId) {
+  for (const standort of APP_CONFIG.standorte) {
+    const bereich = standort.bereiche.find(b => b.id === bereichId);
+    if (bereich) { openBereich(standort.id, bereichId); return; }
+  }
+}
+
+// ===== CHECKLISTE RENDERN =====
+function renderChecklist() {
+  const now = new Date();
+  document.getElementById('checklist-titel').textContent = currentListe.titel;
+
+  // Meta-Box
+  document.getElementById('checklist-meta').innerHTML = `
+    <div class="meta-standort">📍 ${currentStandort.name}</div>
+    <div class="meta-bereich">${currentBereich.name}</div>
+    <div class="meta-datum">📅 ${formatDatum(now)}</div>
+    <div class="meta-kw">KW ${getKW(now)} · ${currentListe.intervall}</div>
+  `;
+
+  // Abschnitte
+  const container = document.getElementById('checklist-abschnitte');
+  container.innerHTML = '';
+  currentListe.abschnitte.forEach(abschnitt => {
+    const div = document.createElement('div');
+    div.className = 'abschnitt';
+    div.innerHTML = `<div class="abschnitt-titel">${abschnitt.titel}</div>`;
+    abschnitt.punkte.forEach(punkt => {
+      pruefErgebnisse[punkt.id] = null;
+      const item = document.createElement('div');
+      item.className = 'pruef-item';
+      item.id = 'item-' + punkt.id;
+      item.innerHTML = `
+        <div class="pruef-text">${punkt.text}</div>
+        <div class="toggle-group">
+          <button class="toggle-btn ok-btn"  onclick="setPruefung('${punkt.id}','ok')"  title="i.O.">✓</button>
+          <button class="toggle-btn nok-btn" onclick="setPruefung('${punkt.id}','nok')" title="n.i.O.">✗</button>
+        </div>
+      `;
+      div.appendChild(item);
+    });
+    container.appendChild(div);
+  });
+
+  // Bemerkung & Unterschrift leeren
+  document.getElementById('bemerkung').value = '';
+  document.getElementById('pruefer-name').value = '';
+  clearSignature();
+}
+
+// ===== PRÜFUNG SETZEN =====
+function setPruefung(id, wert) {
+  pruefErgebnisse[id] = wert;
+  const item = document.getElementById('item-' + id);
+  item.classList.remove('checked', 'nok');
+  if (wert === 'ok')  item.classList.add('checked');
+  if (wert === 'nok') item.classList.add('nok');
+  // Buttons aktualisieren
+  const btns = item.querySelectorAll('.toggle-btn');
+  btns[0].classList.toggle('active', wert === 'ok');
+  btns[1].classList.toggle('active', wert === 'nok');
+}
+
+// ===== UNTERSCHRIFT PAD =====
+function initSignaturePad() {
+  const canvas = document.getElementById('sig-canvas');
+  const ctx = canvas.getContext('2d');
+
+  function getPos(e) {
+    const rect = canvas.getBoundingClientRect();
+    const scaleX = canvas.width  / rect.width;
+    const scaleY = canvas.height / rect.height;
+    const src = e.touches ? e.touches[0] : e;
+    return {
+      x: (src.clientX - rect.left) * scaleX,
+      y: (src.clientY - rect.top)  * scaleY
+    };
+  }
+  function resizeCanvas() {
+    const w = canvas.offsetWidth;
+    canvas.width  = w * (window.devicePixelRatio || 1);
+    canvas.height = 140 * (window.devicePixelRatio || 1);
+  }
+  resizeCanvas();
+
+  canvas.addEventListener('mousedown',  e => { isDrawing = true; const p = getPos(e); lastX = p.x; lastY = p.y; });
+  canvas.addEventListener('mousemove',  e => { if (!isDrawing) return; draw(ctx, getPos(e)); });
+  canvas.addEventListener('mouseup',    () => isDrawing = false);
+  canvas.addEventListener('touchstart', e => { e.preventDefault(); isDrawing = true; const p = getPos(e); lastX = p.x; lastY = p.y; }, { passive: false });
+  canvas.addEventListener('touchmove',  e => { e.preventDefault(); if (!isDrawing) return; draw(ctx, getPos(e)); }, { passive: false });
+  canvas.addEventListener('touchend',   () => isDrawing = false);
+
+  function draw(ctx, pos) {
+    ctx.beginPath();
+    ctx.moveTo(lastX, lastY);
+    ctx.lineTo(pos.x, pos.y);
+    ctx.strokeStyle = '#1a3a5c';
+    ctx.lineWidth = 2.5;
+    ctx.lineCap = 'round';
+    ctx.stroke();
+    lastX = pos.x; lastY = pos.y;
+  }
+  sigPad = { canvas, ctx };
+}
+
+function clearSignature() {
+  if (!sigPad) return;
+  sigPad.ctx.clearRect(0, 0, sigPad.canvas.width, sigPad.canvas.height);
+}
+
+function isSignatureEmpty() {
+  const data = sigPad.canvas.toDataURL();
+  // Leeres Canvas hat sehr kurze Data-URL
+  const empty = document.createElement('canvas');
+  empty.width  = sigPad.canvas.width;
+  empty.height = sigPad.canvas.height;
+  return data === empty.toDataURL();
+}
+
+// ===== PRÜFUNG ABSCHLIESSEN =====
+async function submitChecklist() {
+  // Validierung
+  const offene = Object.values(pruefErgebnisse).filter(v => v === null).length;
+  if (offene > 0) {
+    if (!confirm(`${offene} Prüfpunkt(e) noch nicht bewertet. Trotzdem fortfahren?`)) return;
+  }
+  if (!document.getElementById('pruefer-name').value.trim()) {
+    alert('Bitte Name des Prüfers eingeben.');
+    return;
+  }
+
+  showLoading(true);
+  try {
+    const pdfBlob = await generatePDF();
+    await uploadToDrive(pdfBlob);
+    showResult(true);
+  } catch (err) {
+    console.error(err);
+    showResult(false, err.message);
+  } finally {
+    showLoading(false);
+  }
+}
+
+// ===== PDF GENERIEREN =====
+async function generatePDF() {
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'mm', format: 'a4' });
+  const now = new Date();
+  const pruefer = document.getElementById('pruefer-name').value.trim();
+  const bemerkung = document.getElementById('bemerkung').value.trim();
+
+  const PL = 15, PT = 15, PW = 180;
+  let y = PT;
+
+  // Header
+  doc.setFillColor(26, 58, 92);
+  doc.rect(0, 0, 210, 28, 'F');
+  doc.setTextColor(255, 255, 255);
+  doc.setFontSize(18); doc.setFont('helvetica', 'bold');
+  doc.text('CSC Hannover', PL, 12);
+  doc.setFontSize(11); doc.setFont('helvetica', 'normal');
+  doc.text(currentListe.titel, PL, 20);
+  doc.text(`${currentStandort.name} · ${currentBereich.name}`, PL, 26);
+  y = 36;
+
+  // Meta
+  doc.setTextColor(0);
+  doc.setFontSize(10);
+  doc.setFont('helvetica', 'normal');
+  doc.text(`Datum: ${formatDatum(now)}`, PL, y);
+  doc.text(`KW ${getKW(now)}`, PL + 60, y);
+  doc.text(`Prüfer: ${pruefer}`, PL + 100, y);
+  y += 8;
+  doc.setDrawColor(220, 220, 220); doc.line(PL, y, PL + PW, y);
+  y += 6;
+
+  // Abschnitte & Prüfpunkte
+  currentListe.abschnitte.forEach(abschnitt => {
+    // Abschnittstitel
+    doc.setFillColor(238, 242, 247);
+    doc.rect(PL, y - 4, PW, 8, 'F');
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(10);
+    doc.setTextColor(26, 58, 92);
+    doc.text(abschnitt.titel.toUpperCase(), PL + 2, y + 1);
+    y += 9;
+
+    abschnitt.punkte.forEach(punkt => {
+      const ergebnis = pruefErgebnisse[punkt.id];
+      const ok  = ergebnis === 'ok';
+      const nok = ergebnis === 'nok';
+
+      if (y > 265) { doc.addPage(); y = PT; }
+
+      // Zeilenhintergrund
+      if (nok) { doc.setFillColor(255, 235, 235); doc.rect(PL, y - 4, PW, 8, 'F'); }
+      if (ok)  { doc.setFillColor(241, 248, 241); doc.rect(PL, y - 4, PW, 8, 'F'); }
+
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(0);
+      const lines = doc.splitTextToSize(punkt.text, PW - 24);
+      doc.text(lines, PL + 2, y);
+
+      // Status-Box
+      const statusX = PL + PW - 20;
+      if (ok) {
+        doc.setFillColor(46, 125, 50); doc.roundedRect(statusX, y - 4, 18, 7, 2, 2, 'F');
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(255, 255, 255);
+        doc.text('i.O.', statusX + 4, y + 1);
+      } else if (nok) {
+        doc.setFillColor(198, 40, 40); doc.roundedRect(statusX, y - 4, 18, 7, 2, 2, 'F');
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(255, 255, 255);
+        doc.text('n.i.O.', statusX + 2, y + 1);
+      } else {
+        doc.setDrawColor(180, 180, 180); doc.roundedRect(statusX, y - 4, 18, 7, 2, 2);
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(150, 150, 150);
+        doc.text('—', statusX + 7, y + 1);
+      }
+
+      y += Math.max(lines.length * 5, 8);
+    });
+    y += 4;
+  });
+
+  // Bemerkungen
+  if (bemerkung) {
+    if (y > 240) { doc.addPage(); y = PT; }
+    doc.setDrawColor(220, 220, 220); doc.line(PL, y, PL + PW, y); y += 6;
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(26, 58, 92);
+    doc.text('BEMERKUNGEN / MÄNGEL', PL, y); y += 6;
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(0);
+    const lines = doc.splitTextToSize(bemerkung, PW);
+    doc.text(lines, PL, y); y += lines.length * 5 + 6;
+  }
+
+  // Unterschrift
+  if (!isSignatureEmpty()) {
+    if (y > 240) { doc.addPage(); y = PT; }
+    doc.setDrawColor(220, 220, 220); doc.line(PL, y, PL + PW, y); y += 6;
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(26, 58, 92);
+    doc.text('UNTERSCHRIFT PRÜFER', PL, y); y += 4;
+    const sigData = sigPad.canvas.toDataURL('image/png');
+    doc.addImage(sigData, 'PNG', PL, y, 80, 25);
+    y += 28;
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(0);
+    doc.text(pruefer, PL, y);
+  }
+
+  // Footer
+  const pageCount = doc.getNumberOfPages();
+  for (let i = 1; i <= pageCount; i++) {
+    doc.setPage(i);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(150);
+    doc.text(`CSC Hannover · ${currentListe.titel} · ${formatDatum(now)}`, PL, 292);
+    doc.text(`Seite ${i} / ${pageCount}`, 195, 292, { align: 'right' });
+  }
+
+  return doc.output('blob');
+}
+
+// ===== GOOGLE DRIVE UPLOAD =====
+async function uploadToDrive(pdfBlob) {
+  const token = await getDriveToken();
+  if (!token) throw new Error('Kein Google Drive Token. Bitte in App-Einstellungen einrichten.');
+
+  const now = new Date();
+  const filename = `${formatDatumISO(now)}_${currentBereich.id}_KW${getKW(now)}.pdf`;
+
+  const metadata = {
+    name: filename,
+    parents: [APP_CONFIG.googleDriveFolderId]
+  };
+
+  const form = new FormData();
+  form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
+  form.append('file', pdfBlob);
+
+  const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+    method: 'POST',
+    headers: { Authorization: 'Bearer ' + token },
+    body: form
+  });
+
+  if (!res.ok) {
+    const err = await res.json();
+    throw new Error(err.error?.message || 'Upload fehlgeschlagen');
+  }
+  const result = await res.json();
+  console.log('Drive upload OK:', result.id);
+
+  // Auch lokal als Download anbieten
+  const url = URL.createObjectURL(pdfBlob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+
+  return result;
+}
+
+async function getDriveToken() {
+  return localStorage.getItem('drive_access_token') || null;
+}
+
+// ===== QR SCANNER =====
+function startQRScan() {
+  showScreen('qr');
+  qrScanner = new Html5Qrcode('qr-reader');
+  qrScanner.start(
+    { facingMode: 'environment' },
+    { fps: 10, qrbox: { width: 250, height: 250 } },
+    (decodedText) => {
+      stopQRScan();
+      handleQRResult(decodedText);
+    },
+    () => {}
+  ).catch(err => {
+    alert('Kamera konnte nicht gestartet werden: ' + err);
+    showScreen('home');
+  });
+}
+
+function stopQRScan() {
+  if (qrScanner) {
+    qrScanner.stop().catch(() => {});
+    qrScanner = null;
+  }
+  showScreen('home');
+}
+
+function handleQRResult(text) {
+  try {
+    const url = new URL(text);
+    const bereichId = url.searchParams.get('bereich');
+    if (bereichId) { openBereichById(bereichId); return; }
+  } catch {}
+  // Fallback: direkt als Bereich-ID behandeln
+  openBereichById(text);
+}
+
+// ===== RESULT =====
+function showResult(success, errMsg) {
+  const icon = document.getElementById('result-icon');
+  const text = document.getElementById('result-text');
+  const sub  = document.getElementById('result-sub');
+  if (success) {
+    icon.textContent = '✅';
+    text.textContent = 'Prüfung gespeichert!';
+    sub.textContent  = `PDF in Google Drive abgelegt · ${formatDatum(new Date())}`;
+  } else {
+    icon.textContent = '⚠️';
+    text.textContent = 'Fehler beim Hochladen';
+    sub.textContent  = errMsg || 'PDF wurde lokal heruntergeladen.';
+  }
+  showScreen('result');
+}
+
+// ===== LOADING =====
+function showLoading(visible) {
+  document.getElementById('loading').classList.toggle('hidden', !visible);
+}
+
+// ===== DATUM HELFER =====
+function formatDatum(d) {
+  return d.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' })
+       + ' ' + d.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+}
+function formatDatumISO(d) {
+  return d.toISOString().slice(0, 10);
+}
+function getKW(d) {
+  const oneJan = new Date(d.getFullYear(), 0, 1);
+  return Math.ceil((((d - oneJan) / 86400000) + oneJan.getDay() + 1) / 7);
+}
