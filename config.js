@@ -15,7 +15,7 @@ const APP_CONFIG = {
       id: "raschplatz5",
       name: "Raschplatz 5",
       bereiche: [
-        { id: "aufzug_1",         name: "Aufzug 1",                    liste: "aufzug" },
+        { id: "aufzug_1",         name: "Aufzug",                       liste: "aufzug" },
         { id: "bst_eg",           name: "Brandschutztür EG",            liste: "brandschutztuer" },
         { id: "bst_og1",          name: "Brandschutztür 1. OG",         liste: "brandschutztuer" },
         { id: "bst_og2",          name: "Brandschutztür 2. OG",         liste: "brandschutztuer" },
