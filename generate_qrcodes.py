@@ -10,7 +10,7 @@ from reportlab.lib.pagesizes import A4
 from reportlab.lib.units import mm
 import os, io
 
-BASE_URL = "https://csc-pruef.de"  # <- hier eure Domain eintragen
+BASE_URL = "https://thomasschmoldt1967-cpu.github.io/csc-pruefapp"
 
 bereiche = [
     # (bereich_id, standort_name, bereich_name, liste_name)
