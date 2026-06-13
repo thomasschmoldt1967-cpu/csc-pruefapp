@@ -26,6 +26,7 @@ const APP_CONFIG = {
         { id: "notbel_anliefeg",  name: "Notbeleuchtung Anlieferzone EG",liste: "notbeleuchtung" },
         { id: "notbel_keller",    name: "Notbeleuchtung Kellerbereich",  liste: "notbeleuchtung" },
         { id: "notbel_eingang",   name: "Notbeleuchtung Eingang",        liste: "notbeleuchtung" },
+        { id: "leiter_1",         name: "Leiter",                        liste: "leiterkontrolle" },
       ]
     }
     // Weiterer Standort: { id: "...", name: "...", bereiche: [...] }
@@ -125,8 +126,54 @@ const APP_CONFIG = {
           ]
         }
       ]
+    },
+
+    leiterkontrolle: {
+      titel: "Leiterkontrolle",
+      untertitel: "Regelmäßige Sicht- und Funktionskontrolle gemäß DGUV 208-016 (BGR 191)",
+      intervall: "Monatlich",
+      abschnitte: [
+        {
+          titel: "Holme / Schenkel",
+          punkte: [
+            { id: "l1", text: "Holme/Schenkel sind frei von Rissen, Verformungen und Korrosion." },
+            { id: "l2", text: "Keine Kerben, Einschnitte oder sonstige Beschädigungen der Holme." },
+          ]
+        },
+        {
+          titel: "Sprossen / Stufen",
+          punkte: [
+            { id: "l3", text: "Alle Sprossen/Stufen vorhanden, keine fehlenden oder gebrochenen." },
+            { id: "l4", text: "Sprossen/Stufen fest verankert, kein Wackeln oder Drehen." },
+            { id: "l5", text: "Trittflächen frei von Verunreinigungen (Öl, Farbe, Fett, Eis)." },
+          ]
+        },
+        {
+          titel: "Befestigungen & Verbindungen",
+          punkte: [
+            { id: "l6", text: "Schrauben und Bolzen vollständig vorhanden und fest angezogen." },
+            { id: "l7", text: "Gelenke zwischen Vorder- und Rückseite (Anlege-/Stehleiter) einwandfrei." },
+            { id: "l8", text: "Spreizesicherungen und Eckaussteifungen funktionsfähig." },
+          ]
+        },
+        {
+          titel: "Sicherheitseinrichtungen",
+          punkte: [
+            { id: "l9",  text: "Leiterfüße vorhanden und nicht abgenutzt (rutschsicherer Stand)." },
+            { id: "l10", text: "Führungsbügel und Klappen (falls vorhanden) einwandfrei." },
+            { id: "l11", text: "Verriegelungsschnapper (Stehleiter) rasten sicher ein." },
+            { id: "l12", text: "Sicherheitskennzeichnung (Inventar-Nr., Typenschild) lesbar vorhanden." },
+          ]
+        },
+        {
+          titel: "Gesamtzustand & Ergebnis",
+          punkte: [
+            { id: "l13", text: "Leiter insgesamt verwendungsfähig — keine Mängel erkennbar." },
+          ]
+        }
+      ]
     }
 
-    // Neue Liste hinzufügen: leiterkontrolle: { titel: "...", abschnitte: [...] }
+    // Neue Liste hinzufügen: { titel: "...", abschnitte: [...] }
   }
 };

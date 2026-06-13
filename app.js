@@ -71,11 +71,11 @@ function renderHome() {
 }
 
 function iconClass(liste) {
-  const map = { aufzug: 'icon-aufzug', brandschutztuer: 'icon-brandschutz', notbeleuchtung: 'icon-notbel' };
+  const map = { aufzug: 'icon-aufzug', brandschutztuer: 'icon-brandschutz', notbeleuchtung: 'icon-notbel', leiterkontrolle: 'icon-leiter' };
   return map[liste] || 'icon-default';
 }
 function listeIcon(liste) {
-  const map = { aufzug: '🛗', brandschutztuer: '🚪', notbeleuchtung: '💡' };
+  const map = { aufzug: '🛗', brandschutztuer: '🚪', notbeleuchtung: '💡', leiterkontrolle: '🪜' };
   return map[liste] || '📋';
 }
 function listeTitel(listeId) {
@@ -169,8 +169,14 @@ function renderChecklist() {
   const aufzugNrBox = document.getElementById('aufzug-nr-box');
   aufzugNrBox.style.display = (currentBereich.liste === 'aufzug') ? 'block' : 'none';
 
+  // Leiter-Felder nur bei Leiterkontrolle einblenden
+  const leiterFelderBox = document.getElementById('leiter-felder-box');
+  leiterFelderBox.style.display = (currentBereich.liste === 'leiterkontrolle') ? 'block' : 'none';
+
   // Bemerkung & Unterschrift leeren
   document.getElementById('aufzug-nr').value = '';
+  document.getElementById('leiter-standort').value = '';
+  document.getElementById('leiter-typ').value = '';
   document.getElementById('bemerkung').value = '';
   document.getElementById('pruefer-name').value = '';
   clearSignature();
@@ -320,6 +326,8 @@ async function generatePDF() {
   const pruefer = document.getElementById('pruefer-name').value.trim();
   const bemerkung = document.getElementById('bemerkung').value.trim();
   const aufzugNr = document.getElementById('aufzug-nr').value.trim();
+  const leiterStandort = document.getElementById('leiter-standort').value.trim();
+  const leiterTyp = document.getElementById('leiter-typ').value.trim();
 
   const PL = 15, PT = 15, PW = 180;
   let y = PT;
@@ -346,6 +354,18 @@ async function generatePDF() {
   if (aufzugNr) {
     doc.setFont('helvetica', 'bold');
     doc.text(`Aufzug-Nr.: ${aufzugNr}`, PL, y);
+    doc.setFont('helvetica', 'normal');
+    y += 6;
+  }
+  if (leiterStandort) {
+    doc.setFont('helvetica', 'bold');
+    doc.text(`Standort der Leiter: ${leiterStandort}`, PL, y);
+    doc.setFont('helvetica', 'normal');
+    y += 6;
+  }
+  if (leiterTyp) {
+    doc.setFont('helvetica', 'bold');
+    doc.text(`Leiter-Typ / Inventar-Nr.: ${leiterTyp}`, PL, y);
     doc.setFont('helvetica', 'normal');
     y += 6;
   }
