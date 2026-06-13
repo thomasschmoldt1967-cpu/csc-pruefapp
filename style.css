@@ -136,7 +136,9 @@ body {
 .icon-aufzug       { background: #e3f2fd; }
 .icon-brandschutz  { background: #fce4ec; }
 .icon-notbel       { background: #fff8e1; }
+.icon-leiter       { background: #e8f5e9; }
 .icon-default      { background: #f3e5f5; }
+.icon-gruppe       { background: #e8eaf6; font-size: 1.4rem; }
 .bereich-info { flex: 1; }
 .bereich-name { font-weight: 600; font-size: 15px; }
 .bereich-liste-name { font-size: 13px; color: var(--text-muted); margin-top: 2px; }

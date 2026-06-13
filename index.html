@@ -28,16 +28,25 @@
   </div>
 </div>
 
-<!-- ===== SCREEN 2: BEREICH WÄHLEN ===== -->
-<div id="screen-bereiche" class="screen">
+<!-- ===== SCREEN 2: GRUPPEN (Ordner-Ebene) ===== -->
+<div id="screen-gruppen" class="screen">
   <div class="header">
     <button class="btn-back" onclick="showScreen('home')">‹ Zurück</button>
+    <div class="header-title" id="gruppen-titel">Kategorien</div>
+  </div>
+  <div class="content" id="gruppen-liste"></div>
+</div>
+
+<!-- ===== SCREEN 3: BEREICHE (innerhalb einer Gruppe) ===== -->
+<div id="screen-bereiche" class="screen">
+  <div class="header">
+    <button class="btn-back" onclick="showScreen('gruppen')">‹ Zurück</button>
     <div class="header-title" id="bereiche-titel">Bereiche</div>
   </div>
   <div class="content" id="bereiche-liste"></div>
 </div>
 
-<!-- ===== SCREEN 3: CHECKLISTE ===== -->
+<!-- ===== SCREEN 4: CHECKLISTE ===== -->
 <div id="screen-checklist" class="screen">
   <div class="header">
     <button class="btn-back" onclick="showScreen('bereiche')">‹ Zurück</button>
@@ -84,7 +93,7 @@
   </div>
 </div>
 
-<!-- ===== SCREEN 4: QR SCANNER ===== -->
+<!-- ===== SCREEN 5: QR SCANNER ===== -->
 <div id="screen-qr" class="screen">
   <div class="header">
     <button class="btn-back" onclick="stopQRScan()">‹ Abbrechen</button>
@@ -96,7 +105,7 @@
   </div>
 </div>
 
-<!-- ===== SCREEN 5: ERGEBNIS ===== -->
+<!-- ===== SCREEN 6: ERGEBNIS ===== -->
 <div id="screen-result" class="screen">
   <div class="header">
     <button class="btn-back" onclick="showScreen('home')">‹ Home</button>

@@ -14,42 +14,71 @@ const APP_CONFIG = {
     {
       id: "raschplatz5",
       name: "Raschplatz 5",
-      bereiche: [
-        { id: "aufzug_1",         name: "Aufzug",                       liste: "aufzug" },
-        { id: "bst_eg",           name: "Brandschutztür EG",            liste: "brandschutztuer" },
-        { id: "bst_og1",          name: "Brandschutztür 1. OG",         liste: "brandschutztuer" },
-        { id: "bst_og2",          name: "Brandschutztür 2. OG",         liste: "brandschutztuer" },
-        { id: "bst_og3",          name: "Brandschutztür 3. OG",         liste: "brandschutztuer" },
-        { id: "bst_kg",           name: "Brandschutztür KG",            liste: "brandschutztuer" },
-        { id: "notbel_th01",      name: "Notbeleuchtung Treppenhaus 01", liste: "notbeleuchtung" },
-        { id: "notbel_th05",      name: "Notbeleuchtung Treppenhaus 05", liste: "notbeleuchtung" },
-        { id: "notbel_anliefeg",  name: "Notbeleuchtung Anlieferzone EG",liste: "notbeleuchtung" },
-        { id: "notbel_keller",    name: "Notbeleuchtung Kellerbereich",  liste: "notbeleuchtung" },
-        { id: "notbel_eingang",   name: "Notbeleuchtung Eingang",        liste: "notbeleuchtung" },
-        { id: "leiter_1",         name: "Leiter",                        liste: "leiterkontrolle" },
-        { id: "leiter_01",        name: "Leiter 01",                     liste: "leiterkontrolle" },
-        { id: "leiter_02",        name: "Leiter 02",                     liste: "leiterkontrolle" },
-        { id: "leiter_03",        name: "Leiter 03",                     liste: "leiterkontrolle" },
-        { id: "leiter_04",        name: "Leiter 04",                     liste: "leiterkontrolle" },
-        { id: "leiter_05",        name: "Leiter 05",                     liste: "leiterkontrolle" },
-        { id: "leiter_06",        name: "Leiter 06",                     liste: "leiterkontrolle" },
-        { id: "leiter_07",        name: "Leiter 07",                     liste: "leiterkontrolle" },
-        { id: "leiter_08",        name: "Leiter 08",                     liste: "leiterkontrolle" },
-        { id: "leiter_09",        name: "Leiter 09",                     liste: "leiterkontrolle" },
-        { id: "leiter_10",        name: "Leiter 10",                     liste: "leiterkontrolle" },
-        { id: "leiter_11",        name: "Leiter 11",                     liste: "leiterkontrolle" },
-        { id: "leiter_12",        name: "Leiter 12",                     liste: "leiterkontrolle" },
-        { id: "leiter_13",        name: "Leiter 13",                     liste: "leiterkontrolle" },
-        { id: "leiter_14",        name: "Leiter 14",                     liste: "leiterkontrolle" },
-        { id: "leiter_15",        name: "Leiter 15",                     liste: "leiterkontrolle" },
-        { id: "leiter_16",        name: "Leiter 16",                     liste: "leiterkontrolle" },
-        { id: "leiter_17",        name: "Leiter 17",                     liste: "leiterkontrolle" },
-        { id: "leiter_18",        name: "Leiter 18",                     liste: "leiterkontrolle" },
-        { id: "leiter_19",        name: "Leiter 19",                     liste: "leiterkontrolle" },
-        { id: "leiter_20",        name: "Leiter 20",                     liste: "leiterkontrolle" },
+
+      // Bereiche werden in Gruppen (Ordner) zusammengefasst
+      gruppen: [
+        {
+          id: "aufzug",
+          name: "Aufzug",
+          icon: "🛗",
+          bereiche: [
+            { id: "aufzug_1", name: "Aufzug", liste: "aufzug" },
+          ]
+        },
+        {
+          id: "brandschutz",
+          name: "Brandschutztüren",
+          icon: "🚪",
+          bereiche: [
+            { id: "bst_eg",  name: "Brandschutztür EG",     liste: "brandschutztuer" },
+            { id: "bst_og1", name: "Brandschutztür 1. OG",  liste: "brandschutztuer" },
+            { id: "bst_og2", name: "Brandschutztür 2. OG",  liste: "brandschutztuer" },
+            { id: "bst_og3", name: "Brandschutztür 3. OG",  liste: "brandschutztuer" },
+            { id: "bst_kg",  name: "Brandschutztür KG",     liste: "brandschutztuer" },
+          ]
+        },
+        {
+          id: "notbeleuchtung",
+          name: "Notbeleuchtung",
+          icon: "💡",
+          bereiche: [
+            { id: "notbel_th01",     name: "Treppenhaus 01",    liste: "notbeleuchtung" },
+            { id: "notbel_th05",     name: "Treppenhaus 05",    liste: "notbeleuchtung" },
+            { id: "notbel_anliefeg", name: "Anlieferzone EG",   liste: "notbeleuchtung" },
+            { id: "notbel_keller",   name: "Kellerbereich",     liste: "notbeleuchtung" },
+            { id: "notbel_eingang",  name: "Eingang",           liste: "notbeleuchtung" },
+          ]
+        },
+        {
+          id: "leitern",
+          name: "Leitern",
+          icon: "🪜",
+          bereiche: [
+            { id: "leiter_01", name: "Leiter 01", liste: "leiterkontrolle" },
+            { id: "leiter_02", name: "Leiter 02", liste: "leiterkontrolle" },
+            { id: "leiter_03", name: "Leiter 03", liste: "leiterkontrolle" },
+            { id: "leiter_04", name: "Leiter 04", liste: "leiterkontrolle" },
+            { id: "leiter_05", name: "Leiter 05", liste: "leiterkontrolle" },
+            { id: "leiter_06", name: "Leiter 06", liste: "leiterkontrolle" },
+            { id: "leiter_07", name: "Leiter 07", liste: "leiterkontrolle" },
+            { id: "leiter_08", name: "Leiter 08", liste: "leiterkontrolle" },
+            { id: "leiter_09", name: "Leiter 09", liste: "leiterkontrolle" },
+            { id: "leiter_10", name: "Leiter 10", liste: "leiterkontrolle" },
+            { id: "leiter_11", name: "Leiter 11", liste: "leiterkontrolle" },
+            { id: "leiter_12", name: "Leiter 12", liste: "leiterkontrolle" },
+            { id: "leiter_13", name: "Leiter 13", liste: "leiterkontrolle" },
+            { id: "leiter_14", name: "Leiter 14", liste: "leiterkontrolle" },
+            { id: "leiter_15", name: "Leiter 15", liste: "leiterkontrolle" },
+            { id: "leiter_16", name: "Leiter 16", liste: "leiterkontrolle" },
+            { id: "leiter_17", name: "Leiter 17", liste: "leiterkontrolle" },
+            { id: "leiter_18", name: "Leiter 18", liste: "leiterkontrolle" },
+            { id: "leiter_19", name: "Leiter 19", liste: "leiterkontrolle" },
+            { id: "leiter_20", name: "Leiter 20", liste: "leiterkontrolle" },
+          ]
+        },
       ]
     }
-    // Weiterer Standort: { id: "...", name: "...", bereiche: [...] }
+    // Weiterer Standort: { id: "...", name: "...", gruppen: [...] }
   ],
 
   listen: {

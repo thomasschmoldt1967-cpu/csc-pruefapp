@@ -4,6 +4,7 @@
 
 // ===== STATE =====
 let currentStandort  = null;
+let currentGruppe    = null;
 let currentBereich   = null;
 let currentListe     = null;
 let pruefErgebnisse  = {};  // { punktId: 'ok' | 'nok' | null }
@@ -49,17 +50,18 @@ function renderHome() {
         🏢 ${standort.name}
       </div>
     `;
-    // Direkt erste 3 Bereiche als Vorschau
+    // Gruppen als Ordner-Vorschau
     const preview = document.createElement('div');
-    standort.bereiche.forEach(b => {
+    const gruppen = standort.gruppen || [];
+    gruppen.forEach(g => {
       const item = document.createElement('div');
-      item.className = 'bereich-item';
-      item.onclick = () => openBereich(standort.id, b.id);
+      item.className = 'bereich-item gruppe-item';
+      item.onclick = () => openGruppe(standort.id, g.id);
       item.innerHTML = `
-        <div class="bereich-icon ${iconClass(b.liste)}">${listeIcon(b.liste)}</div>
+        <div class="bereich-icon icon-gruppe">${g.icon || '📁'}</div>
         <div class="bereich-info">
-          <div class="bereich-name">${b.name}</div>
-          <div class="bereich-liste-name">${listeTitel(b.liste)}</div>
+          <div class="bereich-name">${g.name}</div>
+          <div class="bereich-liste-name">${g.bereiche.length} Bereiche</div>
         </div>
         <div class="bereich-arrow">›</div>
       `;
@@ -82,18 +84,49 @@ function listeTitel(listeId) {
   return APP_CONFIG.listen[listeId]?.titel || listeId;
 }
 
-// ===== STANDORT ÖFFNEN =====
+// ===== STANDORT ÖFFNEN → zeigt Gruppen-Screen =====
 function openStandort(standortId) {
   const standort = APP_CONFIG.standorte.find(s => s.id === standortId);
   if (!standort) return;
   currentStandort = standort;
-  document.getElementById('bereiche-titel').textContent = standort.name;
+  document.getElementById('gruppen-titel').textContent = standort.name;
+  const container = document.getElementById('gruppen-liste');
+  container.innerHTML = '';
+
+  const gruppen = standort.gruppen || [];
+  gruppen.forEach(g => {
+    const item = document.createElement('div');
+    item.className = 'bereich-item gruppe-item';
+    item.onclick = () => openGruppe(standortId, g.id);
+    item.innerHTML = `
+      <div class="bereich-icon icon-gruppe">${g.icon || '📁'}</div>
+      <div class="bereich-info">
+        <div class="bereich-name">${g.name}</div>
+        <div class="bereich-liste-name">${g.bereiche.length} Bereiche</div>
+      </div>
+      <div class="bereich-arrow">›</div>
+    `;
+    container.appendChild(item);
+  });
+  showScreen('gruppen');
+}
+
+// ===== GRUPPE ÖFFNEN → zeigt Bereiche-Screen =====
+function openGruppe(standortId, gruppeId) {
+  const standort = APP_CONFIG.standorte.find(s => s.id === standortId);
+  const gruppe   = standort?.gruppen?.find(g => g.id === gruppeId);
+  if (!gruppe) return;
+  currentStandort = standort;
+  currentGruppe   = gruppe;
+
+  document.getElementById('bereiche-titel').textContent = `${gruppe.icon || ''} ${gruppe.name}`;
   const container = document.getElementById('bereiche-liste');
   container.innerHTML = '';
-  standort.bereiche.forEach(b => {
+
+  gruppe.bereiche.forEach(b => {
     const item = document.createElement('div');
     item.className = 'bereich-item';
-    item.onclick = () => openBereich(standortId, b.id);
+    item.onclick = () => openBereich(standortId, gruppeId, b.id);
     item.innerHTML = `
       <div class="bereich-icon ${iconClass(b.liste)}">${listeIcon(b.liste)}</div>
       <div class="bereich-info">
@@ -108,11 +141,13 @@ function openStandort(standortId) {
 }
 
 // ===== BEREICH ÖFFNEN =====
-function openBereich(standortId, bereichId) {
+function openBereich(standortId, gruppeId, bereichId) {
   const standort = APP_CONFIG.standorte.find(s => s.id === standortId);
-  const bereich  = standort?.bereiche.find(b => b.id === bereichId);
+  const gruppe   = standort?.gruppen?.find(g => g.id === gruppeId);
+  const bereich  = gruppe?.bereiche.find(b => b.id === bereichId);
   if (!bereich) return;
   currentStandort = standort;
+  currentGruppe   = gruppe;
   currentBereich  = bereich;
   currentListe    = APP_CONFIG.listen[bereich.liste];
   if (!currentListe) return;
@@ -121,10 +156,16 @@ function openBereich(standortId, bereichId) {
   showScreen('checklist');
 }
 
+// QR-Code: Bereich über ID finden (sucht in allen Gruppen aller Standorte)
 function openBereichById(bereichId) {
   for (const standort of APP_CONFIG.standorte) {
-    const bereich = standort.bereiche.find(b => b.id === bereichId);
-    if (bereich) { openBereich(standort.id, bereichId); return; }
+    for (const gruppe of (standort.gruppen || [])) {
+      const bereich = gruppe.bereiche.find(b => b.id === bereichId);
+      if (bereich) {
+        openBereich(standort.id, gruppe.id, bereichId);
+        return;
+      }
+    }
   }
 }
 
@@ -173,7 +214,7 @@ function renderChecklist() {
   const leiterFelderBox = document.getElementById('leiter-felder-box');
   leiterFelderBox.style.display = (currentBereich.liste === 'leiterkontrolle') ? 'block' : 'none';
 
-  // Bemerkung & Unterschrift leeren
+  // Felder leeren
   document.getElementById('aufzug-nr').value = '';
   document.getElementById('leiter-standort').value = '';
   document.getElementById('leiter-typ').value = '';
@@ -202,7 +243,6 @@ function fotoHinzufuegen(event) {
     renderFotoVorschau(idx, dataUrl);
   };
   reader.readAsDataURL(file);
-  // Input zurücksetzen, damit dasselbe Foto erneut aufgenommen werden kann
   event.target.value = '';
 }
 
@@ -231,7 +271,6 @@ function setPruefung(id, wert) {
   item.classList.remove('checked', 'nok');
   if (wert === 'ok')  item.classList.add('checked');
   if (wert === 'nok') item.classList.add('nok');
-  // Buttons aktualisieren
   const btns = item.querySelectorAll('.toggle-btn');
   btns[0].classList.toggle('active', wert === 'ok');
   btns[1].classList.toggle('active', wert === 'nok');
@@ -286,7 +325,6 @@ function clearSignature() {
 
 function isSignatureEmpty() {
   const data = sigPad.canvas.toDataURL();
-  // Leeres Canvas hat sehr kurze Data-URL
   const empty = document.createElement('canvas');
   empty.width  = sigPad.canvas.width;
   empty.height = sigPad.canvas.height;
@@ -295,7 +333,6 @@ function isSignatureEmpty() {
 
 // ===== PRÜFUNG ABSCHLIESSEN =====
 async function submitChecklist() {
-  // Validierung
   const offene = Object.values(pruefErgebnisse).filter(v => v === null).length;
   if (offene > 0) {
     if (!confirm(`${offene} Prüfpunkt(e) noch nicht bewertet. Trotzdem fortfahren?`)) return;
@@ -374,7 +411,6 @@ async function generatePDF() {
 
   // Abschnitte & Prüfpunkte
   currentListe.abschnitte.forEach(abschnitt => {
-    // Abschnittstitel
     doc.setFillColor(238, 242, 247);
     doc.rect(PL, y - 4, PW, 8, 'F');
     doc.setFont('helvetica', 'bold'); doc.setFontSize(10);
@@ -389,7 +425,6 @@ async function generatePDF() {
 
       if (y > 265) { doc.addPage(); y = PT; }
 
-      // Zeilenhintergrund
       if (nok) { doc.setFillColor(255, 235, 235); doc.rect(PL, y - 4, PW, 8, 'F'); }
       if (ok)  { doc.setFillColor(241, 248, 241); doc.rect(PL, y - 4, PW, 8, 'F'); }
 
@@ -397,7 +432,6 @@ async function generatePDF() {
       const lines = doc.splitTextToSize(punkt.text, PW - 24);
       doc.text(lines, PL + 2, y);
 
-      // Status-Box
       const statusX = PL + PW - 20;
       if (ok) {
         doc.setFillColor(46, 125, 50); doc.roundedRect(statusX, y - 4, 18, 7, 2, 2, 'F');
@@ -444,7 +478,6 @@ async function generatePDF() {
       try {
         doc.addImage(foto.dataUrl, 'JPEG', x, y, fotoW, fotoH);
       } catch(e) {
-        // JPEG fehlgeschlagen, PNG versuchen
         doc.addImage(foto.dataUrl, 'PNG', x, y, fotoW, fotoH);
       }
       col++;
@@ -553,7 +586,6 @@ function handleQRResult(text) {
     const bereichId = url.searchParams.get('bereich');
     if (bereichId) { openBereichById(bereichId); return; }
   } catch {}
-  // Fallback: direkt als Bereich-ID behandeln
   openBereichById(text);
 }
 
