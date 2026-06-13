@@ -452,24 +452,32 @@ async function generatePDF() {
     y += 4;
   });
 
-  // Bemerkungen
+  // Bemerkungen — immer anzeigen
+  if (y > 240) { doc.addPage(); y = PT; }
+  doc.setDrawColor(220, 220, 220); doc.line(PL, y, PL + PW, y); y += 6;
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(26, 58, 92);
+  doc.text('BEMERKUNGEN / MÄNGEL', PL, y); y += 6;
   if (bemerkung) {
-    if (y > 240) { doc.addPage(); y = PT; }
-    doc.setDrawColor(220, 220, 220); doc.line(PL, y, PL + PW, y); y += 6;
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(26, 58, 92);
-    doc.text('BEMERKUNGEN / MÄNGEL', PL, y); y += 6;
     doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(0);
     const lines = doc.splitTextToSize(bemerkung, PW);
-    doc.text(lines, PL, y); y += lines.length * 5 + 6;
+    doc.text(lines, PL, y); y += lines.length * 5 + 4;
+  } else {
+    // Leere Linie als Platzhalter
+    doc.setDrawColor(180, 180, 180);
+    doc.line(PL, y + 4, PL + PW, y + 4);
+    y += 10;
+    doc.line(PL, y + 4, PL + PW, y + 4);
+    y += 10;
   }
+  y += 4;
 
-  // Fotos
+  // Fotos — immer anzeigen
   const aktiveFotos = fotoListe.filter(f => f !== null);
+  if (y > 220) { doc.addPage(); y = PT; }
+  doc.setDrawColor(220, 220, 220); doc.line(PL, y, PL + PW, y); y += 6;
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(26, 58, 92);
+  doc.text('FOTOS', PL, y); y += 8;
   if (aktiveFotos.length > 0) {
-    if (y > 220) { doc.addPage(); y = PT; }
-    doc.setDrawColor(220, 220, 220); doc.line(PL, y, PL + PW, y); y += 6;
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(26, 58, 92);
-    doc.text('FOTOS', PL, y); y += 8;
     const fotoW = 55, fotoH = 42, fotoGap = 5;
     let col = 0;
     for (const foto of aktiveFotos) {
@@ -485,20 +493,36 @@ async function generatePDF() {
     }
     if (col > 0) y += fotoH + fotoGap;
     y += 4;
+  } else {
+    // Platzhalter-Rahmen für Fotos
+    doc.setDrawColor(180, 180, 180); doc.setFillColor(245, 245, 245);
+    doc.rect(PL, y, 55, 42, 'FD');
+    doc.rect(PL + 60, y, 55, 42, 'FD');
+    doc.rect(PL + 120, y, 55, 42, 'FD');
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(180, 180, 180);
+    doc.text('Foto 1', PL + 20, y + 23);
+    doc.text('Foto 2', PL + 80, y + 23);
+    doc.text('Foto 3', PL + 140, y + 23);
+    y += 50;
   }
 
-  // Unterschrift
+  // Unterschrift — immer anzeigen
+  if (y > 240) { doc.addPage(); y = PT; }
+  doc.setDrawColor(220, 220, 220); doc.line(PL, y, PL + PW, y); y += 6;
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(26, 58, 92);
+  doc.text('UNTERSCHRIFT PRÜFER', PL, y); y += 4;
   if (!isSignatureEmpty()) {
-    if (y > 240) { doc.addPage(); y = PT; }
-    doc.setDrawColor(220, 220, 220); doc.line(PL, y, PL + PW, y); y += 6;
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(26, 58, 92);
-    doc.text('UNTERSCHRIFT PRÜFER', PL, y); y += 4;
     const sigData = sigPad.canvas.toDataURL('image/png');
     doc.addImage(sigData, 'PNG', PL, y, 80, 25);
     y += 28;
-    doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(0);
-    doc.text(pruefer, PL, y);
+  } else {
+    // Leere Unterschriftslinie
+    doc.setDrawColor(100, 100, 100);
+    doc.line(PL, y + 20, PL + 80, y + 20);
+    y += 28;
   }
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(0);
+  doc.text(pruefer || '___________________________', PL, y);
 
   // Footer
   const pageCount = doc.getNumberOfPages();
