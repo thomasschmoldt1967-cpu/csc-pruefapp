@@ -1,5 +1,5 @@
-const CACHE = 'csc-pruef-v7';
-const ASSETS = ['./index.html','./style.css','./app.js','./config.js','./manifest.json'];
+const CACHE = 'csc-pruef-v8';
+const ASSETS = ['./index.html','./style.css','./app.js','./config.js','./manifest.json','./logo.png'];
 
 // Install: neuen Cache befüllen
 self.addEventListener('install', e => {
