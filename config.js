@@ -7,8 +7,16 @@ const APP_CONFIG = {
   firma: "CSC Hannover",
   version: "1.0.0",
 
-  // Google Drive Folder-ID (wo PDFs abgelegt werden)
-  googleDriveFolderId: "YOUR_FOLDER_ID_HERE",
+  // Google Drive Folder-ID (wo PDFs abgelegt werden) — Hauptordner
+  googleDriveFolderId: "1PendBTPwGultV9MzKcRoBoKfqUYXBVn3",
+
+  // Unterordner je Prüfungstyp (in Dokumentenablage/csc-pruefapp/)
+  googleDriveUnterordner: {
+    aufzug:           "11VQSlyrlb4AoJd0-mla_MXqMSlpB0IYw",
+    brandschutztuer:  "1gzXpsDtFatEjQqxmpoPWyhyI0LoRBzvx",
+    notbeleuchtung:   "1ZnXMl4vCNsYrbdu2i3d2_kKgYrkN6Fps",
+    leiterkontrolle:  "1iwyyDvyFTl0Jz2wTlfNQkgNRqDHt1oZ-",
+  },
 
   standorte: [
     {

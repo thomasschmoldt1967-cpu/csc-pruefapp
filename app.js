@@ -520,9 +520,13 @@ async function uploadToDrive(pdfBlob) {
   const now = new Date();
   const filename = `${formatDatumISO(now)}_${currentBereich.id}_KW${getKW(now)}.pdf`;
 
+  // Unterordner je Prüfungstyp wählen, Fallback auf Hauptordner
+  const unterordner = APP_CONFIG.googleDriveUnterordner || {};
+  const folderId = unterordner[currentBereich.liste] || APP_CONFIG.googleDriveFolderId;
+
   const metadata = {
     name: filename,
-    parents: [APP_CONFIG.googleDriveFolderId]
+    parents: [folderId]
   };
 
   const form = new FormData();
