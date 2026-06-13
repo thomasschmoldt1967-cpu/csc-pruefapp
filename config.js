@@ -21,7 +21,7 @@ const APP_CONFIG = {
   standorte: [
     {
       id: "raschplatz5",
-      name: "Raschplatz 5",
+      name: "Prüfungen",
 
       // Bereiche werden in Gruppen (Ordner) zusammengefasst
       gruppen: [

@@ -1,4 +1,4 @@
-const CACHE = 'csc-pruef-v6';
+const CACHE = 'csc-pruef-v7';
 const ASSETS = ['./index.html','./style.css','./app.js','./config.js','./manifest.json'];
 
 // Install: neuen Cache befüllen
