@@ -554,6 +554,20 @@ async function uploadToDrive(pdfBlob) {
 }
 
 async function getDriveToken() {
+  // Automatischer Token von GitHub Pages (alle 45 Min erneuert, Base64-kodiert)
+  try {
+    const res = await fetch('https://thomasschmoldt1967-cpu.github.io/csc-pruefapp/token.json?t=' + Date.now());
+    if (res.ok) {
+      const data = await res.json();
+      if (data.t) {
+        // Dekodieren: Base64 → umgekehrter String → Token
+        const decoded = atob(data.t).split('').reverse().join('');
+        return decoded;
+      }
+    }
+  } catch (e) {
+    // Fallback auf localStorage
+  }
   return localStorage.getItem('drive_access_token') || null;
 }
 
