@@ -176,7 +176,6 @@ function renderChecklist() {
 
   // Meta-Box
   document.getElementById('checklist-meta').innerHTML = `
-    <div class="meta-standort">📍 ${currentStandort.name}</div>
     <div class="meta-bereich">${currentBereich.name}</div>
     <div class="meta-datum">📅 ${formatDatum(now)}</div>
     <div class="meta-kw">KW ${getKW(now)} · ${currentListe.intervall}</div>
@@ -214,9 +213,9 @@ function renderChecklist() {
   const leiterFelderBox = document.getElementById('leiter-felder-box');
   leiterFelderBox.style.display = (currentBereich.liste === 'leiterkontrolle') ? 'block' : 'none';
 
-  // Felder leeren
+  // Felder leeren / Standardwerte setzen
+  document.getElementById('formular-standort').value = 'Raschplatz 5';
   document.getElementById('aufzug-nr').value = '';
-  document.getElementById('leiter-standort').value = 'Hannover';
   document.getElementById('leiter-typ').value = '';
   document.getElementById('bemerkung').value = '';
   document.getElementById('pruefer-name').value = '';
@@ -362,8 +361,8 @@ async function generatePDF() {
   const now = new Date();
   const pruefer = document.getElementById('pruefer-name').value.trim();
   const bemerkung = document.getElementById('bemerkung').value.trim();
+  const formularStandort = document.getElementById('formular-standort').value.trim();
   const aufzugNr = document.getElementById('aufzug-nr').value.trim();
-  const leiterStandort = document.getElementById('leiter-standort').value.trim();
   const leiterTyp = document.getElementById('leiter-typ').value.trim();
 
   const PL = 15, PT = 15, PW = 180;
@@ -388,15 +387,15 @@ async function generatePDF() {
   doc.text(`KW ${getKW(now)}`, PL + 60, y);
   doc.text(`Prüfer: ${pruefer}`, PL + 100, y);
   y += 6;
-  if (aufzugNr) {
+  if (formularStandort) {
     doc.setFont('helvetica', 'bold');
-    doc.text(`Aufzug-Nr.: ${aufzugNr}`, PL, y);
+    doc.text(`Standort: ${formularStandort}`, PL, y);
     doc.setFont('helvetica', 'normal');
     y += 6;
   }
-  if (leiterStandort) {
+  if (aufzugNr) {
     doc.setFont('helvetica', 'bold');
-    doc.text(`Standort der Leiter: ${leiterStandort}`, PL, y);
+    doc.text(`Aufzug-Nr.: ${aufzugNr}`, PL, y);
     doc.setFont('helvetica', 'normal');
     y += 6;
   }
