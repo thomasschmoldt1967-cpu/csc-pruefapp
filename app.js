@@ -89,7 +89,7 @@ function openStandort(standortId) {
   const standort = APP_CONFIG.standorte.find(s => s.id === standortId);
   if (!standort) return;
   currentStandort = standort;
-  document.getElementById('gruppen-titel').textContent = standort.name;
+  document.getElementById('gruppen-titel').textContent = 'Prüfungen';
   const container = document.getElementById('gruppen-liste');
   container.innerHTML = '';
 
