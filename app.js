@@ -309,7 +309,7 @@ function initSignaturePad() {
     ctx.beginPath();
     ctx.moveTo(lastX, lastY);
     ctx.lineTo(pos.x, pos.y);
-    ctx.strokeStyle = '#1a3a5c';
+    ctx.strokeStyle = '#0047CC';
     ctx.lineWidth = 2.5;
     ctx.lineCap = 'round';
     ctx.stroke();
