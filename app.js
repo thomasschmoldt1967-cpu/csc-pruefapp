@@ -216,7 +216,7 @@ function renderChecklist() {
 
   // Felder leeren
   document.getElementById('aufzug-nr').value = '';
-  document.getElementById('leiter-standort').value = '';
+  document.getElementById('leiter-standort').value = 'Hannover';
   document.getElementById('leiter-typ').value = '';
   document.getElementById('bemerkung').value = '';
   document.getElementById('pruefer-name').value = '';
