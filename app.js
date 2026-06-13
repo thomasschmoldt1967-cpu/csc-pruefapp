@@ -300,9 +300,9 @@ function initSignaturePad() {
   canvas.addEventListener('mousedown',  e => { isDrawing = true; const p = getPos(e); lastX = p.x; lastY = p.y; });
   canvas.addEventListener('mousemove',  e => { if (!isDrawing) return; draw(ctx, getPos(e)); });
   canvas.addEventListener('mouseup',    () => isDrawing = false);
-  canvas.addEventListener('touchstart', e => { e.preventDefault(); isDrawing = true; const p = getPos(e); lastX = p.x; lastY = p.y; }, { passive: false });
-  canvas.addEventListener('touchmove',  e => { e.preventDefault(); if (!isDrawing) return; draw(ctx, getPos(e)); }, { passive: false });
-  canvas.addEventListener('touchend',   () => isDrawing = false);
+  canvas.addEventListener('touchstart', e => { e.preventDefault(); e.stopPropagation(); isDrawing = true; const p = getPos(e); lastX = p.x; lastY = p.y; }, { passive: false });
+  canvas.addEventListener('touchmove',  e => { e.preventDefault(); e.stopPropagation(); if (!isDrawing) return; draw(ctx, getPos(e)); }, { passive: false });
+  canvas.addEventListener('touchend',   e => { e.stopPropagation(); isDrawing = false; });
 
   function draw(ctx, pos) {
     ctx.beginPath();
