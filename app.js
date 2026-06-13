@@ -17,7 +17,6 @@ let fotoListe        = [];   // Array von { dataUrl, name }
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', () => {
   renderHome();
-  initSignaturePad();
 
   // Service Worker registrieren
   if ('serviceWorker' in navigator) {
@@ -154,6 +153,8 @@ function openBereich(standortId, gruppeId, bereichId) {
   pruefErgebnisse = {};
   renderChecklist();
   showScreen('checklist');
+  // Canvas erst nach showScreen initialisieren — vorher ist offsetWidth = 0
+  initSignaturePad();
 }
 
 // QR-Code: Bereich über ID finden (sucht in allen Gruppen aller Standorte)
