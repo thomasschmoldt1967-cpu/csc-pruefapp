@@ -289,6 +289,28 @@ body {
   margin-bottom: 8px;
   color: var(--primary);
 }
+.pruefer-buttons {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+.btn-pruefer {
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 10px;
+  padding: 14px 8px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  text-align: center;
+  line-height: 1.2;
+}
+.btn-pruefer.active {
+  background: #1a5276;
+  box-shadow: 0 0 0 3px #aed6f1;
+}
 textarea {
   width: 100%;
   border: 1px solid var(--border);

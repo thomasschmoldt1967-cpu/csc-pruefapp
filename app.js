@@ -331,6 +331,14 @@ function isSignatureEmpty() {
   return data === empty.toDataURL();
 }
 
+// ===== PRÜFER AUSWÄHLEN =====
+function selectPruefer(name) {
+  document.getElementById('pruefer-name').value = name;
+  document.querySelectorAll('.btn-pruefer').forEach(b => {
+    b.classList.toggle('active', b.textContent === name);
+  });
+}
+
 // ===== PRÜFUNG ABSCHLIESSEN =====
 async function submitChecklist() {
   const offene = Object.values(pruefErgebnisse).filter(v => v === null).length;

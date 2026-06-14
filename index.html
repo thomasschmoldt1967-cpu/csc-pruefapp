@@ -88,13 +88,13 @@
     </div>
     <div class="pruefer-box">
       <label>Name Prüfer:</label>
-      <input type="text" id="pruefer-name" placeholder="Vor- und Nachname" list="pruefer-liste" autocomplete="name">
-      <datalist id="pruefer-liste">
-        <option value="Thomas Schmoldt">
-        <option value="Klaus Strack">
-        <option value="Katharina Schmoldt">
-        <option value="Fabian Romeike">
-      </datalist>
+      <div class="pruefer-buttons">
+        <button type="button" class="btn-pruefer" onclick="selectPruefer('Thomas Schmoldt')">Thomas Schmoldt</button>
+        <button type="button" class="btn-pruefer" onclick="selectPruefer('Klaus Strack')">Klaus Strack</button>
+        <button type="button" class="btn-pruefer" onclick="selectPruefer('Katharina Schmoldt')">Katharina Schmoldt</button>
+        <button type="button" class="btn-pruefer" onclick="selectPruefer('Fabian Romeike')">Fabian Romeike</button>
+      </div>
+      <input type="text" id="pruefer-name" placeholder="Oder Namen eingeben…" autocomplete="name">
     </div>
     <button class="btn-primary btn-submit" onclick="submitChecklist()">
       <span class="icon">✅</span> Prüfung abschließen &amp; PDF speichern
