@@ -88,7 +88,12 @@
     </div>
     <div class="pruefer-box">
       <label>Name Prüfer:</label>
-      <input type="text" id="pruefer-name" placeholder="Vor- und Nachname">
+      <input type="text" id="pruefer-name" placeholder="Vor- und Nachname" list="pruefer-liste" autocomplete="off">
+      <datalist id="pruefer-liste">
+        <option value="Thomas Schmoldt">
+        <option value="Tim Schmoldt">
+        <option value="Max Mustermann">
+      </datalist>
     </div>
     <button class="btn-primary btn-submit" onclick="submitChecklist()">
       <span class="icon">✅</span> Prüfung abschließen &amp; PDF speichern
