@@ -226,7 +226,7 @@ function renderChecklist() {
   document.getElementById('pruefer-name').placeholder = isGFB ? 'Name Aufsichtsführender …' : 'Oder Namen eingeben …';
 
   // Unterschrift-Box bei GFB ausblenden (Unterschrift kommt auf Seite 12 der Unterweisungsliste)
-  document.getElementById('unterschrift-label-box').style.display = isGFB ? 'none' : 'block';
+  document.getElementById('unterschrift-label-box').style.display = 'block';
 
   // Mitarbeiterliste nur bei GFB
   document.getElementById('gfb-ma-box').style.display = isGFB ? 'block' : 'none';
@@ -1306,12 +1306,12 @@ async function generatePDF() {
     doc.setFont('helvetica', 'bold'); doc.text('3', PL+44, y);
     doc.setFont('helvetica', 'normal'); doc.text(`Datum: ${formatDatum(now).split(' ')[0]}`, PL+100, y); y += 10;
 
-    // Unterschrift Unterweisender (Hauptunterschrift aus App)
+    // Unterschrift Unterweisender — aus dem Unterschriftsfeld der App
     if (!isSignatureEmpty()) {
       const sigData = sigPad.canvas.toDataURL('image/png');
       doc.addImage(sigData, 'PNG', PL, y, 70, 20); y += 22;
     } else {
-      doc.setDrawColor(100); doc.line(PL, y+18, PL+70, y+18); y += 22;
+      doc.setDrawColor(100); doc.line(PL, y + 18, PL + 70, y + 18); y += 22;
     }
     doc.setFontSize(8); doc.setTextColor(100,100,100);
     doc.text('Unterschrift des Unterweisenden', PL, y); y += 6;
@@ -1323,7 +1323,7 @@ async function generatePDF() {
     doc.setTextColor(0); y += 10;
   }
 
-  // Unterschrift Prüfer — nur bei normalen Prüflisten (nicht GFB)
+  // Unterschrift Prüfer / Aufsichtsführender — immer im PDF
   if (!isGFBpdf) {
     if (y > 240) { doc.addPage(); y = PT; }
     doc.setDrawColor(220, 220, 220); doc.line(PL, y, PL + PW, y); y += 6;
