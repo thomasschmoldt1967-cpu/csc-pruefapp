@@ -230,6 +230,22 @@ function renderChecklist() {
   document.getElementById('gfb-ma-liste').innerHTML = '';
   gfbMitarbeiter = [];
 
+  // Prüfer-Buttons je nach Typ anpassen
+  const prueferButtons = document.querySelector('.pruefer-buttons');
+  if (isGFB) {
+    prueferButtons.innerHTML = `
+      <button type="button" class="btn-pruefer" onclick="selectPruefer('Thomas Schmoldt')">Thomas Schmoldt</button>
+      <button type="button" class="btn-pruefer" onclick="selectPruefer('Fabian Romeike')">Fabian Romeike</button>
+    `;
+  } else {
+    prueferButtons.innerHTML = `
+      <button type="button" class="btn-pruefer" onclick="selectPruefer('Thomas Schmoldt')">Thomas Schmoldt</button>
+      <button type="button" class="btn-pruefer" onclick="selectPruefer('Klaus Strack')">Klaus Strack</button>
+      <button type="button" class="btn-pruefer" onclick="selectPruefer('Katharina Schmoldt')">Katharina Schmoldt</button>
+      <button type="button" class="btn-pruefer" onclick="selectPruefer('Fabian Romeike')">Fabian Romeike</button>
+    `;
+  }
+
   // Felder leeren / Standardwerte setzen
   document.getElementById('formular-standort').value = 'Raschplatz 5';
   document.getElementById('aufzug-nr').value = '';
@@ -593,130 +609,400 @@ async function generatePDF() {
   if (y > 240) { doc.addPage(); y = PT; }
   doc.setDrawColor(220, 220, 220); doc.line(PL, y, PL + PW, y); y += 6;
 
-  // ===== GFB: Betriebsanweisung + Rettungsplan als PDF-Seiten =====
+  // ===== GFB: Rettungsplan + Betriebsanweisung SZP + PSAgA als eigene Seiten =====
   const isGFBpdf = (currentBereich.liste === 'gfb_szp' || currentBereich.liste === 'gfb_glasreinigung');
   if (isGFBpdf) {
-    // ---- Seite: Betriebsanweisung SZP ----
-    doc.addPage(); y = PT;
-    doc.setFillColor(26, 58, 92);
-    doc.rect(0, 0, 210, 22, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(14); doc.setFont('helvetica', 'bold');
-    doc.text('BETRIEBSANWEISUNG', PL, 10);
-    doc.setFontSize(10); doc.setFont('helvetica', 'normal');
-    doc.text(currentBereich.liste === 'gfb_szp'
-      ? 'Seilzugangs- und Positionierungstechniken (SZP) – Rope Access'
-      : 'Glasreinigung / Fassadenreinigung', PL, 18);
-    y = 30;
-    doc.setTextColor(0);
 
-    const ba = currentBereich.liste === 'gfb_szp' ? [
-      ['Anwendungsbereich', 'Gilt für alle MA, die SZP/Rope Access anwenden. SZP kommt zum Einsatz, wenn Gerüst oder Hebebühne unwirtschaftlich/nicht möglich sind. Gilt gem. DIN EN 363, FISAT, TRBS 2121 Teil 3, BGR 198.'],
-      ['Gefahren', '⚠ Absturz aus der Höhe (tödlich)\n⚠ Pendelsturz – Anprallen an feste Gegenstände\n⚠ Hängetrauma (orthostatischer Schock) – bereits nach wenigen Minuten lebensbedrohlich\n⚠ Falsche Benutzung Auffangsystem / Anschlageinrichtung\n⚠ Versagen von Ankerpunkten\n⚠ Materialfall: Werkzeuge können auf Personen fallen'],
-      ['Schutzmaßnahmen', '✔ Personen müssen körperlich und geistig geeignet sein\n✔ Keine Arbeit unter Einfluss von Alkohol, Drogen oder Medikamenten\n✔ Mind. 2 ausgebildete SZP-Mitarbeiter (Level 1) auf jeder Baustelle\n✔ Aufsicht durch SZP-Level-3-Aufsichtsführenden\n✔ Trag- und Sicherungsseil an je 2 unabhängigen Ankerpunkten\n✔ Ankerpunkte Sichtprüfung (Tragkraft mind. 12 kN / 1.200 kg)\n✔ Buddy-Check vor jeder Besteigung\n✔ Werkzeuge gegen Herabfallen sichern (Lanyards)'],
-      ['Erste Hilfe / Notfall', 'NOTRUF 112\n▶ Ruhe bewahren – Eigensicherung beachten\n▶ Rettung nach UNTEN (Rettungsplan SZP beachten)\n▶ Notruf: WER? WAS? WO? WIE VIELE?\n▶ Rettung aus hängender Situation innerhalb 15–20 Min. (Hängetrauma!)\n▶ Auch ohne äußere Verletzung: Arzt aufsuchen\n▶ Unfälle sofort dem Aufsichtsführenden und der BG melden'],
-      ['Prüfung & Unterweisung', '◉ Sichtprüfung vor, nach und während jeder Benutzung\n◉ Sachkundigenprüfung nach DGUV 312-906 alle 12 Monate\n◉ Mind. FISAT Level 1 erforderlich (bestandene Prüfung + Kursnachweis)\n◉ Wiederholungsunterweisung alle 12 Monate\n◉ Gültiger Erste-Hilfe-Kurs (mind. 8 Std.)\n◉ Material in nicht einwandfreiem Zustand sofort aussondern'],
-    ] : [
-      ['Anwendungsbereich', 'Gilt für alle Mitarbeiter bei Glasreinigung und Fassadenreinigung gem. ArbSchG § 5.'],
-      ['Gefahren', '⚠ Absturz aus der Höhe\n⚠ Rutsch- und Stolpergefahr (nasse Flächen)\n⚠ Glasbruch / scharfe Kanten\n⚠ Chemische Gefährdung durch Reinigungsmittel\n⚠ Elektrische Gefährdung im Nassbereich'],
-      ['Schutzmaßnahmen', '✔ PSAgA tragen ab 3 m vor Absturzkante\n✔ Geeignetes Schuhwerk (rutschsicher)\n✔ Chemikalienschutzhandschuhe und Schutzbrille\n✔ Sicherheitsdatenblätter bekannt und vorhanden\n✔ Arbeitsbereich absperren (Absperrband + Schilder)\n✔ Lanyards für Werkzeuge verwenden'],
-      ['Erste Hilfe / Notfall', 'NOTRUF 112\n▶ Ruhe bewahren – Eigensicherung beachten\n▶ Notruf: WER? WAS? WO? WIE VIELE?\n▶ Erste-Hilfe-Maßnahmen einleiten\n▶ Arbeitsunfälle sofort dem Aufsichtsführenden und der BG melden'],
-    ];
+    // Hilfsfunktion: Seitenheader wie im Original
+    function gfbHeader(doc, untertitel) {
+      doc.setFillColor(26, 58, 92);
+      doc.rect(0, 0, 210, 22, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFontSize(14); doc.setFont('helvetica', 'bold');
+      doc.text('GEFÄHRDUNGSBEURTEILUNG', PL, 10);
+      doc.setFontSize(9); doc.setFont('helvetica', 'normal');
+      doc.text(untertitel, PL, 17);
+      doc.setFontSize(8);
+      doc.text('Erstellt gemäß ArbSchG § 5 / DGUV Vorschrift 1 § 3 / DIN EN 363', PL, 21);
+      doc.setTextColor(0);
+    }
 
-    ba.forEach(([titel, inhalt]) => {
-      if (y > 255) { doc.addPage(); y = PT; }
+    // Hilfsfunktion: Abschnittstitel wie im Original
+    function gfbAbschnitt(doc, nr, titel, y) {
       doc.setFillColor(238, 242, 247);
-      doc.rect(PL, y - 4, PW, 8, 'F');
+      doc.rect(PL, y - 3, PW, 8, 'F');
       doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(26, 58, 92);
-      doc.text(titel.toUpperCase(), PL + 2, y + 1);
-      y += 10;
+      doc.text(`${nr}  ${titel}`, PL + 2, y + 3);
+      doc.setTextColor(0);
+      return y + 11;
+    }
+
+    // Hilfsfunktion: Aufzählung mit Symbol
+    function gfbListe(doc, items, symbol, y) {
       doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(0);
-      const lines = doc.splitTextToSize(inhalt, PW - 4);
-      doc.text(lines, PL + 2, y);
-      y += lines.length * 5 + 6;
-    });
-
-    // ---- Seite: Rettungsplan ----
-    doc.addPage(); y = PT;
-    doc.setFillColor(180, 0, 0);
-    doc.rect(0, 0, 210, 22, 'F');
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(14); doc.setFont('helvetica', 'bold');
-    doc.text('⚠  RETTUNGSPLAN  ⚠', PL, 10);
-    doc.setFontSize(10); doc.setFont('helvetica', 'normal');
-    if (currentBereich.liste === 'gfb_szp') {
-      doc.text('Seilzugangs- und Positionierungstechnik (SZP) – Rettung nach UNTEN', PL, 18);
-    } else {
-      doc.text('Glasreinigung – Notfallplan', PL, 18);
+      items.forEach(text => {
+        if (y > 270) { doc.addPage(); y = PT + 8; }
+        const lines = doc.splitTextToSize(text, PW - 12);
+        doc.text(symbol, PL + 2, y);
+        doc.text(lines, PL + 8, y);
+        y += lines.length * 5 + 2;
+      });
+      return y + 4;
     }
-    y = 30; doc.setTextColor(0);
-
-    // Notruf-Box
-    doc.setFillColor(255, 230, 230);
-    doc.rect(PL, y, PW, 14, 'F');
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(16); doc.setTextColor(180, 0, 0);
-    doc.text('NOTRUF 112 – Feuerwehr / Rettungsdienst', PL + PW/2, y + 9, { align: 'center' });
-    y += 20; doc.setTextColor(0);
 
     if (currentBereich.liste === 'gfb_szp') {
-      doc.setFillColor(255, 245, 220);
-      doc.rect(PL, y, PW, 10, 'F');
-      doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(180, 80, 0);
-      doc.text('RETTUNG MUSS INNERHALB VON 15 MINUTEN ERFOLGEN! (Hängetrauma-Risiko!)', PL + 2, y + 7);
-      y += 16; doc.setTextColor(0);
 
-      const rettung = [
-        ['Gefährdungen & Maßnahmen',
-          '⚠ Hängetrauma: Rettung < 20 Min. – gut angepasster Gurt – Beinschlaufen entlasten\n' +
-          '⚠ Absturz des Retters: PSA in Rückhaltefunktion, Seillänge kurz halten\n' +
-          '⚠ Ankerpunktversagen bei 2 Personen: geeigneten AP wählen, separaten AP für Rettungsgerät'],
-        ['Erforderliches Rettungsgerät',
-          '✔ Abseilgerät + mitlaufendes Sicherungsgerät (Zulassung 2 Personen)\n' +
-          '✔ Kantenschutz\n✔ Erste-Hilfe-Verbandskasten\n✔ Sachkundigenprüfung durchgeführt'],
-        ['Durchführung – Schritt für Schritt',
-          '1. Teampartner sichert sich selbst – Kontakt zum Abgestürzten aufnehmen. Verletzungen feststellen, beruhigen!\n' +
-          '2. NOTRUF 112 absetzen: WER? WAS? WO? WIE VIELE?\n' +
-          '3. Geeigneten Anschlagpunkt für Rettungsgerät wählen (separat von Arbeitsseilen).\n' +
-          '4. Kantenschutz anbringen – Eigensicherung beachten!\n' +
-          '5. Verletzte Person mit 2 Abseilgeräten am Ankerpunkt anschlagen.\n' +
-          '6. Abgestürzten kontrolliert nach UNTEN zum Boden abseilen.\n' +
-          '7. Hindernisse im Abseilweg prüfen!\n' +
-          '8. Übernahme der verletzten Person aus dem geöffneten System (Bodennähe) mit 2 Personen.\n' +
-          '9. Erste-Hilfe-Maßnahmen einleiten.\n' +
-          '10. Auf Notarzt warten – auch ohne äußere Verletzungszeichen ärztlich untersuchen.'],
+      // ══════════════════════════════════════
+      // SEITE: RETTUNGSPLAN (wie Seite 6 im Original)
+      // ══════════════════════════════════════
+      doc.addPage(); y = PT;
+      gfbHeader(doc, 'Seilunterstützte Zugangs- und Positionierungstechniken (SZP) / PSAgA');
+      y = 26;
+
+      // Titel Rettungsplan
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(16); doc.setTextColor(200, 0, 0);
+      doc.text('⚠  RETTUNGSPLAN  ⚠', 105, y + 8, { align: 'center' });
+      y += 14;
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(26, 58, 92);
+      doc.text('Seilzugangs- und Positionierungstechnik (SZP) – Rettung nach UNTEN', 105, y, { align: 'center' });
+      y += 6;
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(80, 80, 80);
+      doc.text('Gemäß DGUV Vorschrift 1  •  DIN EN 363  •  FISAT-Richtlinien', 105, y, { align: 'center' });
+      y += 8;
+
+      // Notruf-Box
+      doc.setFillColor(200, 0, 0);
+      doc.rect(PL, y, 55, 18, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(10);
+      doc.text('NOTRUF', PL + 27, y + 7, { align: 'center' });
+      doc.setFontSize(16);
+      doc.text('112', PL + 27, y + 15, { align: 'center' });
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
+      doc.text('Feuerwehr / Rettungsdienst', PL + 27, y + 20, { align: 'center' });
+
+      // Hängetrauma-Warnung rechts
+      doc.setFillColor(255, 240, 180);
+      doc.rect(PL + 60, y, PW - 60, 18, 'F');
+      doc.setTextColor(150, 60, 0);
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(10);
+      doc.text('RETTUNG MUSS INNERHALB', PL + 62, y + 7);
+      doc.setFontSize(11);
+      doc.text('VON 15 MINUTEN ERFOLGEN!', PL + 62, y + 13);
+      doc.setFontSize(8); doc.setFont('helvetica', 'normal');
+      doc.text('(Hängetrauma-Risiko!)', PL + 62, y + 18);
+      y += 24;
+      doc.setTextColor(0);
+
+      // Zweispaltig: Gefährdungen | Rettungsgerät
+      const colW = (PW - 4) / 2;
+      const col1x = PL, col2x = PL + colW + 4;
+
+      // Spaltenheader
+      doc.setFillColor(26, 58, 92);
+      doc.rect(col1x, y, colW, 7, 'F');
+      doc.rect(col2x, y, colW, 7, 'F');
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(255, 255, 255);
+      doc.text('GEFÄHRDUNGEN & MASSNAHMEN', col1x + 2, y + 5);
+      doc.text('ERFORDERLICHES RETTUNGSGERÄT', col2x + 2, y + 5);
+      y += 10; doc.setTextColor(0);
+
+      const gefItems = [
+        'Hängetrauma: Rettung < 20 Min. – gut angepasster Gurt – Beinschlaufen entlasten – Beine bewegen lassen',
+        'Absturz des Retters: PSA in Rückhaltefunktion, Seillänge kurz halten',
+        'Ankerpunktversagen bei 2 Personen: Geeigneten AP wählen, separaten AP für Rettungsgerät vorsehen',
       ];
-      rettung.forEach(([titel, inhalt]) => {
-        if (y > 255) { doc.addPage(); y = PT; }
-        doc.setFillColor(238, 242, 247);
-        doc.rect(PL, y - 4, PW, 8, 'F');
-        doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(26, 58, 92);
-        doc.text(titel.toUpperCase(), PL + 2, y + 1);
-        y += 10;
-        doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(0);
-        const lines = doc.splitTextToSize(inhalt, PW - 4);
-        doc.text(lines, PL + 2, y);
-        y += lines.length * 5 + 6;
-      });
-    } else {
-      // Glasreinigung Rettungsplan (kürzer)
-      const rettungGlas = [
-        '1. Ruhe bewahren – Überblick verschaffen – Eigensicherung beachten.',
-        '2. NOTRUF 112: WER? WAS? WO? WIE VIELE?',
-        '3. Absturz: Rettung gem. Rettungsplan (nach UNTEN wenn möglich).',
-        '4. Erste-Hilfe-Maßnahmen einleiten.',
-        '5. Bei Verletzung durch Chemikalien: Sicherheitsdatenblatt dem Notarzt zeigen.',
-        '6. Auch ohne äußere Verletzungszeichen: Arzt aufsuchen.',
-        '7. Arbeitsunfälle sofort dem Aufsichtsführenden und der BG melden.',
+      const retItems = [
+        'Abseilgerät + mitlaufendes Sicherungsgerät (Zulassung 2 Personen)',
+        'Kantenschutz',
+        'Erste-Hilfe-Verbandskasten',
+        'Sachkundigenprüfung durchgeführt',
+        'Rettung durch Teampartner',
       ];
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(0);
-      rettungGlas.forEach(zeile => {
-        const lines = doc.splitTextToSize(zeile, PW - 4);
-        doc.text(lines, PL + 2, y);
-        y += lines.length * 6 + 2;
+
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
+      let y1 = y, y2 = y;
+      gefItems.forEach(t => {
+        const lines = doc.splitTextToSize('⚠  ' + t, colW - 4);
+        doc.text(lines, col1x + 2, y1);
+        y1 += lines.length * 4.5 + 2;
       });
-    }
-    y += 6;
-  }
+      retItems.forEach(t => {
+        const lines = doc.splitTextToSize('✔  ' + t, colW - 4);
+        doc.text(lines, col2x + 2, y2);
+        y2 += lines.length * 4.5 + 2;
+      });
+      y = Math.max(y1, y2) + 6;
+
+      // Durchführung Schritt für Schritt
+      doc.setFillColor(26, 58, 92);
+      doc.rect(PL, y, PW, 7, 'F');
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(255, 255, 255);
+      doc.text('DURCHFÜHRUNG DER RETTUNG – SCHRITT FÜR SCHRITT:', PL + 2, y + 5);
+      y += 10; doc.setTextColor(0);
+
+      const schritte = [
+        'Teampartner (MA 1) sichert sich selbst – Verbindungsmittel am eigenen Gurt kurz einstellen – und nimmt Kontakt zum Abgestürzten auf. Verletzungen feststellen, beruhigen!',
+        'NOTRUF 112 absetzen! Meldung: WER? WAS ist passiert? WO genau? WIE VIELE Verletzte?',
+        'Geeigneten Anschlagpunkt für das Rettungsgerät auswählen (vorzugsweise separat von den Arbeitsseilen).',
+        'Kantenschutz anbringen falls notwendig – dabei Eigensicherung beachten!',
+        'Verletzte Person so anschlagen (2 Abseilgeräte am Ankerpunkt), dass ein Ablassen (vom Abseilpunkt aus) möglich ist.',
+        'Abgestürzten aus hängender Position kontrolliert nach UNTEN zum Boden abseilen.',
+        'Vor dem Abseilen: Hindernisse im Abseilweg prüfen!',
+        'Übernahme der verletzten Person aus dem geöffneten System (Bodennähe) mit zwei Personen.',
+        'Erste-Hilfe-Maßnahmen einleiten – je nach Verletzung handeln.',
+        'Auf den Notarzt warten – auch ohne äußere Verletzungszeichen ärztlich untersuchen lassen (Hängetrauma möglich)!',
+      ];
+
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
+      schritte.forEach((s, i) => {
+        if (y > 268) { doc.addPage(); y = PT + 8; }
+        const lines = doc.splitTextToSize(s, PW - 12);
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
+        doc.text(String(i + 1), PL + 2, y);
+        doc.setFont('helvetica', 'normal');
+        doc.text(lines, PL + 8, y);
+        y += lines.length * 5 + 2;
+      });
+
+      // Felder-Box unten (Objekt, Ansprechpartner etc.)
+      y += 4;
+      if (y > 240) { doc.addPage(); y = PT + 8; }
+      doc.setDrawColor(180, 180, 180);
+      doc.rect(PL, y, PW, 28, 'S');
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(26, 58, 92);
+      doc.text('Objekt / Einsatzort:', PL + 2, y + 5);
+      doc.text('Ansprechpartner vor Ort:', PL + 2, y + 12);
+      doc.text('Betrieb. Notfallnummer:', PL + 2, y + 19);
+      doc.text('Nächstes Krankenhaus:', col2x, y + 5);
+      doc.text('Ersthelfer vor Ort:', col2x, y + 12);
+      doc.text('Sammelplatz Evakuierung:', col2x, y + 19);
+      doc.setFont('helvetica', 'normal'); doc.setTextColor(0);
+      if (gfbObjekt) doc.text(gfbObjekt, PL + 40, y + 5);
+      if (gfbAnsprechpartner) doc.text(gfbAnsprechpartner, PL + 48, y + 12);
+      doc.text('Alle MA aus SZP', col2x + 32, y + 12);
+      doc.text('Laut Plan im Objekt', col2x + 48, y + 19);
+      y += 32;
+
+      // ══════════════════════════════════════
+      // SEITE: BETRIEBSANWEISUNG SZP (Seite 7–8 Original)
+      // ══════════════════════════════════════
+      doc.addPage(); y = PT;
+      gfbHeader(doc, 'Seilunterstützte Zugangs- und Positionierungstechniken (SZP) / PSAgA');
+      y = 28;
+
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(14); doc.setTextColor(26, 58, 92);
+      doc.text('Seilzugangs- und Positionierungstechniken (SZP)', PL, y); y += 6;
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(60, 60, 60);
+      doc.text('Seilunterstützte Zugangs- und Positionierungstechniken – Rope Access', PL, y); y += 8;
+      doc.setTextColor(0);
+
+      y = gfbAbschnitt(doc, '1', 'ANWENDUNGSBEREICH', y);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
+      const aw1 = doc.splitTextToSize('Diese Betriebsanweisung gilt für alle Mitarbeiter, die Seilzugangs- und Positionierungstechniken (SZP / Rope Access) anwenden. SZP kommt zum Einsatz, wenn aufgrund der Gefährdungsbeurteilung andere Zugangsverfahren (Gerüst, Hebebühne) unwirtschaftlich oder nicht möglich sind. Gilt gemäß DIN EN 363, FISAT-Richtlinien, TRBS 2121 Teil 3, BGR 198.', PW - 4);
+      doc.text(aw1, PL + 2, y); y += aw1.length * 5 + 6;
+
+      y = gfbAbschnitt(doc, '2', 'GEFAHREN FÜR MENSCH UND UMWELT', y);
+      y = gfbListe(doc, [
+        'Absturz oder Herausfallen aus der Höhe – tödliche Verletzungsgefahr',
+        'Pendelsturz – Anprallen an feste Gegenstände beim Abweichen vom Ablot',
+        'Hängetrauma (orthostatischer Schock) – bereits nach wenigen Minuten lebensbedrohlich',
+        'Falsche Benutzung des Auffangsystems oder Anschlageinrichtung',
+        'Versagen von Ankerpunkten – unzureichende Tragfähigkeit oder Prüfung',
+        'Materialfall: Werkzeuge oder Arbeitsmittel können auf Personen darunter fallen',
+      ], '⚠', y);
+
+      y = gfbAbschnitt(doc, '3', 'SCHUTZMASSNAHMEN UND VERHALTENSREGELN', y);
+      y = gfbListe(doc, [
+        'Personen müssen körperlich und geistig für SZP geeignet sein – ärztliches Attest empfohlen',
+        'Personen unter Einfluss von Alkohol, Drogen oder beeinträchtigenden Medikamenten dürfen NICHT eingesetzt werden',
+        'Mindestens 2 ausgebildete SZP-Mitarbeiter (Level 1 mind.) auf jeder Baustelle',
+        'Jeder Einsatz durch SZP-Level-3-Aufsichtsführenden überwachen lassen – Anweisungen Folge leisten!',
+        'Trag- und Sicherungsseil an je ZWEI voneinander unabhängigen Ankerpunkten anschlagen',
+        'Ankerpunkte vor Nutzung Sichtprüfung durchführen (Tragkraft mind. 12 kN / 1.200 kg)',
+        'Buddy-Check vor jeder Besteigung: Gurt, Knoten, Geräte gegenseitig überprüfen',
+        'Sicht- und Rufkontakt im Team jederzeit gewährleisten',
+        'Werkzeuge und Arbeitsmittel gegen Herabfallen sichern (Lanyards, Werkzeugpouches)',
+        'Schutzhelm für alle Personen im Gefahrenbereich – Sicherheitsschuhe S3 Pflicht',
+        'Absperrung des Arbeitsbereichs: Absperrband + Hinweisschilder + Bodenpersonal',
+        'Nur geprüfte, zugelassene Ausrüstung verwenden – Sachkundigenprüfung 1× jährlich',
+        'Pendelbogen vor dem Abseilen prüfen – sichere Abseilroute festlegen',
+        'PSAgA vor Gefahrstoffen, extremen Temperaturen und mechanischer Beschädigung schützen',
+      ], '✔', y);
+
+      if (y > 240) { doc.addPage(); y = PT + 8; gfbHeader(doc, 'Seilunterstützte Zugangs- und Positionierungstechniken (SZP) / PSAgA'); y = 28; }
+      y = gfbAbschnitt(doc, '4', 'VERHALTEN BEI STÖRUNGEN UND MÄNGELN', y);
+      y = gfbListe(doc, [
+        'Jeden Mangel an Seilen, Geräten oder Ankerpunkten vor Benutzung dem Vorgesetzten melden',
+        'Gefahrenbereich sofort verlassen bei erkennbaren Mängeln oder veränderten Bedingungen',
+        'Ausrüstung NICHT benutzen, wenn: Funktionsweise beeinträchtigt / nach Sturz / Beschädigungen sichtbar',
+        'Nach einem Sturz: gesamte PSAgA außer Betrieb nehmen – Sachkundige Prüfung vor Wiederverwendung!',
+        'Bei Wetteränderung (Wind, Eis, Gewitter): Arbeiten sofort einstellen und sicher abseilen',
+      ], '', y);
+
+      if (y > 220) { doc.addPage(); y = PT + 8; gfbHeader(doc, 'Seilunterstützte Zugangs- und Positionierungstechniken (SZP) / PSAgA'); y = 28; }
+      y = gfbAbschnitt(doc, '5', 'ERSTE HILFE UND VERHALTEN IM NOTFALL', y);
+      // Notruf-Box klein
+      doc.setFillColor(200, 0, 0); doc.rect(PL, y, 30, 14, 'F');
+      doc.setTextColor(255, 255, 255); doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
+      doc.text('NOTRUF', PL + 15, y + 5, { align: 'center' });
+      doc.setFontSize(14); doc.text('112', PL + 15, y + 12, { align: 'center' });
+      doc.setTextColor(0); doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
+      const notfallItems = [
+        'Ruhe bewahren – Überblick verschaffen – Eigensicherung beachten',
+        'Rettung gemäß Rettungsplan SZP (Rettung grundsätzlich nach UNTEN zum Boden)',
+        'Notruf 112 absetzen: WER? WAS? WO? WIE VIELE?',
+        'Erste-Hilfe-Maßnahmen einleiten',
+        'Rettung aus hängender Situation innerhalb 15–20 Minuten (Hängetrauma!)',
+        'Auch ohne äußere Verletzungszeichen: ärztliche Untersuchung veranlassen!',
+        'Arbeitsunfälle und Beinaheunfälle umgehend dem Aufsichtsführenden und der BG melden',
+      ];
+      let ny = y + 4;
+      notfallItems.forEach(t => {
+        const lines = doc.splitTextToSize('▶  ' + t, PW - 38);
+        doc.text(lines, PL + 34, ny); ny += lines.length * 5 + 1;
+      });
+      y = Math.max(y + 16, ny) + 4;
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(8);
+      doc.text('Ersthelfer: Alle MA    Telefon: Im Handy eingetragen', PL + 2, y);
+      y += 5;
+      doc.setFont('helvetica', 'normal');
+      doc.text('Verbandskasten: Am Einsatzort', PL + 2, y); y += 8;
+
+      y = gfbAbschnitt(doc, '6', 'INSTANDHALTUNG, PRÜFUNG UND UNTERWEISUNG', y);
+      y = gfbListe(doc, [
+        'Vor, nach und während jeder Benutzung: Sichtprüfung aller Ausrüstungsgegenstände',
+        'Sachkundigenprüfung nach DGUV Grundsatz 312-906 alle 12 Monate',
+        'Jeder SZP-Anwender: mind. FISAT Level 1 (bestandene Prüfung) + gültiger Kursnachweis',
+        'Für horizontale Zugangsverfahren: FISAT Level 2 erforderlich',
+        'Aufsichtsführende in SZP: FISAT Level 3 oder gleichwertig',
+        'Wiederholungsunterweisung gemäß TRBS 2121 Teil 3 und FISAT – alle 12 Monate',
+        'Jeder Anwender: gültiger Erste-Hilfe-Kurs (mind. 8 Stunden)',
+        'Material in nicht einwandfreiem Zustand sofort aussondern und kennzeichnen',
+        'Unterweisungsnachweise und Prüfprotokolle mind. 2 Jahre aufbewahren',
+      ], '◉', y);
+
+      // Freigabe / Unterschrift Betriebsanweisung SZP
+      if (y > 240) { doc.addPage(); y = PT + 8; }
+      y = gfbAbschnitt(doc, '7', 'FREIGABE / UNTERSCHRIFTEN', y);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
+      doc.text(`Datum: ${formatDatum(now).split(' ')[0]}`, PL + 2, y); y += 5;
+      doc.text('Nächster Überprüfungstermin: (1 Jahr)', PL + 2, y); y += 8;
+      doc.setDrawColor(100); doc.line(PL, y + 12, PL + 70, y + 12);
+      doc.setFontSize(8);
+      doc.text('Unterschrift Unternehmer / Geschäftsleitung', PL, y + 15); y += 20;
+      doc.setFontSize(8); doc.setTextColor(80, 80, 80);
+      doc.text('Diese Betriebsanweisung ist gemäß ArbSchG § 9 und BetrSichV auszuhängen.', PL, y);
+      y += 5;
+      doc.text('Sie ist vor jedem Einsatz zu lesen und einzuhalten. Bei Rückfragen Vorgesetzten ansprechen.', PL, y);
+      y += 10; doc.setTextColor(0);
+
+      // ══════════════════════════════════════
+      // SEITE: BETRIEBSANWEISUNG PSAgA (Seite 9–10 Original)
+      // ══════════════════════════════════════
+      doc.addPage(); y = PT;
+      gfbHeader(doc, 'Seilunterstützte Zugangs- und Positionierungstechniken (SZP) / PSAgA');
+      y = 28;
+
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(14); doc.setTextColor(26, 58, 92);
+      doc.text('PSA gegen Absturz (PSAgA)', PL, y); y += 6;
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(60, 60, 60);
+      doc.text('Persönliche Schutzausrüstung gegen Absturz – Auffanggurt, Verbindungsmittel, Auffangsystem', PL, y); y += 8;
+      doc.setTextColor(0);
+
+      y = gfbAbschnitt(doc, '1', 'ANWENDUNGSBEREICH', y);
+      const aw2 = doc.splitTextToSize('Diese Betriebsanweisung gilt für alle Mitarbeiter, die PSA gegen Absturz (PSAgA) verwenden. PSAgA kommt zum Einsatz, wenn aufgrund einer Gefährdungsbeurteilung Absturzgefahren vorliegen und bauliche oder technische Schutzmaßnahmen nicht ausreichend sind. Gilt für Rückhalte-, Arbeitspositionierungs- und Auffangsysteme gemäß DIN EN 358, DIN EN 361, DIN EN 363.', PW - 4);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
+      doc.text(aw2, PL + 2, y); y += aw2.length * 5 + 6;
+
+      y = gfbAbschnitt(doc, '2', 'GEFAHREN FÜR MENSCH UND UMWELT', y);
+      y = gfbListe(doc, [
+        'Absturz aus der Höhe – tödliche Verletzungsgefahr',
+        'Pendelsturz – Anprallen an feste Gegenstände',
+        'Hängetrauma (orthostatischer Schock) – bereits nach wenigen Minuten lebensbedrohlich',
+        'Materialversagen durch falsche Benutzung, fehlende Prüfung oder Beschädigung',
+        'Versagen des Anschlagpunktes – ungeprüfte oder ungeeignete Ankerpunkte',
+        'Veränderte oder manipulierte Ausrüstung – nie eigenmächtig verändern!',
+      ], '⚠', y);
+
+      y = gfbAbschnitt(doc, '3', 'SCHUTZMASSNAHMEN UND VERHALTENSREGELN', y);
+      y = gfbListe(doc, [
+        'Personen müssen körperlich und geistig für diese Tätigkeiten geeignet sein (ärztliches Attest empfohlen)',
+        'Personen unter Einfluss von Alkohol, Drogen oder beeinträchtigenden Medikamenten dürfen nicht eingesetzt werden',
+        'Gurtpflicht ab 3 m vor der Absturzkante – Anschlagen an geeigneten Haltepunkten (mind. 12 kN)',
+        'Nur geprüfte, zugelassene PSAgA in betriebssicherem Zustand verwenden (Sachkundigenprüfung 1× jährlich)',
+        'Vor jeder Benutzung Sichtprüfung aller Ausrüstungsgegenstände durchführen',
+        'Buddy-Check: Gegenseitige Überprüfung von Gurt, Verbindungsmittel und Ankerpunkt',
+        'Mindestens 2 Personen auf jeder Baustelle – Teamarbeit, Sicht- und Rufkontakt halten',
+        'Jegliche Arbeiten durch anwesende Aufsichtsperson (SZP Level 3 / FISAT) überwachen lassen',
+        'Anweisungen der Aufsichtsperson sind Folge zu leisten!',
+        'Absperrungen zum Schutz Dritter errichten (Absperrband + Hinweisschilder)',
+        'Zusätzliche PSA je nach Tätigkeit tragen (Helm, S3-Schuhe, Schutzhandschuhe)',
+        'PSAgA vor Gefahrstoffen schützen: keine Säuren, Laugen, Öle, Lösungsmittel',
+        'PSAgA nicht Temperaturen unter -10 °C (Kunststoff) oder über 60 °C (Textilfasern) aussetzen',
+        'Lagerung: freihängend, trocken, dunkel, getrennt von Chemikalien und Werkzeugen',
+      ], '✔', y);
+
+      if (y > 230) { doc.addPage(); y = PT + 8; gfbHeader(doc, 'Seilunterstützte Zugangs- und Positionierungstechniken (SZP) / PSAgA'); y = 28; }
+      y = gfbAbschnitt(doc, '4', 'VERHALTEN BEI STÖRUNGEN UND MÄNGELN', y);
+      y = gfbListe(doc, [
+        'Jeden Mangel an der PSAgA vor Nutzung dem Vorgesetzten melden',
+        'Gefahrenbereich sofort verlassen bei erkennbaren Mängeln oder unsicheren Bedingungen',
+        'PSAgA NICHT benutzen wenn: Funktionsweise beeinträchtigt / nach Sturz beansprucht / Beschädigungen sichtbar',
+        'Nach einem Absturz: PSAgA außer Betrieb nehmen – Sachkundige Prüfung vor Wiederverwendung!',
+        'PSAgA erst wieder benutzen, wenn Sachkundiger sie geprüft und freigegeben hat',
+      ], '', y);
+
+      if (y > 220) { doc.addPage(); y = PT + 8; gfbHeader(doc, 'Seilunterstützte Zugangs- und Positionierungstechniken (SZP) / PSAgA'); y = 28; }
+      y = gfbAbschnitt(doc, '5', 'ERSTE HILFE UND VERHALTEN IM NOTFALL', y);
+      doc.setFillColor(200, 0, 0); doc.rect(PL, y, 30, 14, 'F');
+      doc.setTextColor(255, 255, 255); doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
+      doc.text('NOTRUF', PL + 15, y + 5, { align: 'center' });
+      doc.setFontSize(14); doc.text('112', PL + 15, y + 12, { align: 'center' });
+      doc.setTextColor(0); doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
+      let ny2 = y + 4;
+      [
+        'Ruhe bewahren – Überblick verschaffen',
+        'Rettung gemäß Notfall-/Rettungsplan (Rettung nach UNTEN)',
+        'Notruf 112 absetzen: WER? WAS? WO? WIE VIELE?',
+        'Erste-Hilfe-Maßnahmen einleiten',
+        'Rettung aus hängender Situation innerhalb 15–20 Minuten (Hängetrauma!)',
+        'Auch ohne äußere Verletzungszeichen: Arzt aufsuchen!',
+        'Arbeitsunfälle und Beinaheunfälle sofort dem Aufsichtsführenden und der BG melden',
+      ].forEach(t => {
+        const lines = doc.splitTextToSize('▶  ' + t, PW - 38);
+        doc.text(lines, PL + 34, ny2); ny2 += lines.length * 5 + 1;
+      });
+      y = Math.max(y + 16, ny2) + 4;
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(8);
+      doc.text('Ersthelfer: Alle MA aus SZP   Telefon: bekannt / Handyeintrag', PL + 2, y); y += 5;
+      doc.setFont('helvetica', 'normal'); doc.text('Verbandskasten: Am Einsatzort', PL + 2, y); y += 8;
+
+      y = gfbAbschnitt(doc, '6', 'INSTANDHALTUNG, PRÜFUNG UND UNTERWEISUNG', y);
+      y = gfbListe(doc, [
+        'Vor, nach und während jeder Benutzung: Sichtprüfung des eingesetzten Materials',
+        'Sachkundigenprüfung gemäß DGUV Grundsatz 312-906 alle 12 Monate durch Sachkundige',
+        'Material in nicht einwandfreiem Zustand sofort aussondern und kennzeichnen',
+        'Unterweisung gemäß BGR 198 vor jedem Einsatz und mindestens 1× jährlich',
+        'Jeder Anwender benötigt einen gültigen Erste-Hilfe-Kurs (mind. 8 Stunden)',
+        'Prüfprotokoll und Unterweisungsnachweis aufbewahren (mind. 2 Jahre)',
+      ], '◉', y);
+
+      if (y > 240) { doc.addPage(); y = PT + 8; }
+      y = gfbAbschnitt(doc, '7', 'FREIGABE / UNTERSCHRIFTEN', y);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
+      doc.text(`Datum: ${formatDatum(now).split(' ')[0]}`, PL + 2, y); y += 5;
+      doc.text('Nächster Überprüfungstermin: (1 Jahr)', PL + 2, y); y += 8;
+      doc.setDrawColor(100); doc.line(PL, y + 12, PL + 70, y + 12);
+      doc.setFontSize(8);
+      doc.text('Unterschrift Unternehmer / Geschäftsleitung', PL, y + 15); y += 20;
+      doc.setFontSize(8); doc.setTextColor(80, 80, 80);
+      doc.text('Diese Betriebsanweisung ist gemäß ArbSchG § 9 und BetrSichV auszuhängen.', PL, y); y += 5;
+      doc.text('Sie ist vor jedem Einsatz zu lesen und einzuhalten. Bei Rückfragen Vorgesetzten ansprechen.', PL, y);
+      y += 10; doc.setTextColor(0);
+
+    } // end gfb_szp
+  } // end isGFBpdf
 
   // Unterschrift Aufsichtsführender / Prüfer
   const sigLabel = isGFBpdf ? 'UNTERSCHRIFT AUFSICHTSFÜHRENDER' : 'UNTERSCHRIFT PRÜFER';
