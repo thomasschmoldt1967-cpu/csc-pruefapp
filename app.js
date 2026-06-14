@@ -689,8 +689,7 @@ async function generatePDF() {
     // Felder-Tabelle 2-spaltig wie Original
     const nfFelder = [
       ['Notruf:', '112 (Feuerwehr / Rettungsdienst)', 'Polizei:', '110'],
-      ['Betriebsinterne Notfallnummer:', '', 'Nächster Arzt / Krankenhaus:', ''],
-      ['Sammelplatz bei Evakuierung:', 'Laut Plan und Hinweise im Objekt', 'Erste-Hilfe-Material vorhanden:', 'Ja  ☑   Nein  ☐'],
+      ['Sammelplatz bei Evakuierung:', 'Laut Plan und Hinweise im Objekt', 'Erste-Hilfe-Material vorhanden:', 'Ja x   Nein  '],
     ];
     nfFelder.forEach(([l1, v1, l2, v2]) => {
       doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(26, 58, 92);
@@ -1107,7 +1106,7 @@ async function generatePDF() {
       y = gfbListe(doc, [
         'Jeden Mangel an der PSAgA vor Nutzung dem Vorgesetzten melden',
         'Gefahrenbereich sofort verlassen bei erkennbaren Mängeln oder unsicheren Bedingungen',
-        'PSAgA NICHT benutzen wenn: Funktionsweise beeinträchtigt / nach Sturz beansprucht / Beschädigungen sichtbar',
+        'PSAgA NICHT benutzen und weitere Benutzung ausschließen wenn: Funktionsweise beeinträchtigt ist / sie durch einen Sturz beansprucht wurde / Beschädigungen sichtbar sind',
         'Nach einem Absturz: PSAgA außer Betrieb nehmen – Sachkundige Prüfung vor Wiederverwendung!',
         'PSAgA erst wieder benutzen, wenn Sachkundiger sie geprüft und freigegeben hat',
       ], '', y);
@@ -1234,7 +1233,7 @@ async function generatePDF() {
       'Weitere Schutzkleidung wird entsprechend der Arbeiten bereitgestellt',
       'Absperrung des Arbeitsbereichs durch Absperrband und Hinweisschilder',
       'Werkzeuge und Arbeitsmittel gegen Herabfallen sichern (Lanyards, Werkzeugpouches)',
-      'Kommunikation: Kommunikationsregeln und -mittel festgelegt und bekannt',
+      'Kommunikation: Kommunikationsregeln und mittel festgelegt und bekannt',
       'Verhalten bei Unterbrechung der Arbeiten: Arbeitsmittel sichern, alle Beteiligten informieren',
       'Notrufnummern und betriebsinterne Notfallnummer bekannt (112 / 110)',
       'Sammelplatz und Evakuierungsplan bekannt',
