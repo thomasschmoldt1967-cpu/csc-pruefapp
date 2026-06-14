@@ -16,6 +16,8 @@ const APP_CONFIG = {
     brandschutztuer:  "1gzXpsDtFatEjQqxmpoPWyhyI0LoRBzvx",
     notbeleuchtung:   "1ZnXMl4vCNsYrbdu2i3d2_kKgYrkN6Fps",
     leiterkontrolle:  "1iwyyDvyFTl0Jz2wTlfNQkgNRqDHt1oZ-",
+    gfb_szp:          "1PendBTPwGultV9MzKcRoBoKfqUYXBVn3",  // Hauptordner vorerst
+    gfb_glasreinigung:"1PendBTPwGultV9MzKcRoBoKfqUYXBVn3",  // Hauptordner vorerst
   },
 
   standorte: [
@@ -85,7 +87,31 @@ const APP_CONFIG = {
           ]
         },
       ]
-    }
+    },
+    // ===== GFU: Gefährdungsbeurteilungen =====
+    {
+      id: "gfu",
+      name: "Gefährdungsbeurteilungen",
+      gruppen: [
+        {
+          id: "gfu_szp",
+          name: "SZP – Seil-Zugangs-Technik",
+          icon: "🧗",
+          bereiche: [
+            { id: "gfb_szp_neu", name: "Neue GFB erstellen", liste: "gfb_szp" },
+          ]
+        },
+        {
+          id: "gfu_glas",
+          name: "Glasreinigung",
+          icon: "🪟",
+          bereiche: [
+            { id: "gfb_glas_neu", name: "Neue GFB erstellen", liste: "gfb_glasreinigung" },
+          ]
+        },
+      ]
+    },
+
     // Weiterer Standort: { id: "...", name: "...", gruppen: [...] }
   ],
 
@@ -229,8 +255,204 @@ const APP_CONFIG = {
           ]
         }
       ]
-    }
+    },
 
     // Neue Liste hinzufügen: { titel: "...", abschnitte: [...] }
+
+    // ===== GFB SZP: Gefährdungsbeurteilung Seil-Zugangs-Technik =====
+    gfb_szp: {
+      titel: "Gefährdungsbeurteilung SZP",
+      untertitel: "Seilunterstützte Zugangs- und Positionierungstechniken (SZP) / PSAgA",
+      intervall: "Je Einsatz",
+      abschnitte: [
+        {
+          titel: "1 – Mechanische Gefährdungen",
+          punkte: [
+            { id: "szp_1_1", text: "1.1 Ungeschützte bewegte Maschinenteile — Im Arbeitsbereich sichern." },
+            { id: "szp_1_2", text: "1.2 Teile mit gefährlichen Oberflächen (Kanten, Spitzen) — Schutzhandschuhe, Sicherheitsschuhe S3." },
+            { id: "szp_1_3", text: "1.3 Bewegte Transportmittel / Arbeitsmittel — Im Arbeitsbereich sichern." },
+            { id: "szp_1_4", text: "1.4 Unkontrolliert bewegte Teile — Im Arbeitsbereich sichern." },
+            { id: "szp_1_5", text: "1.5 Sturz, Ausrutschen, Stolpern, Umknicken — PSAgA im Gefahrenbereich tragen; Arbeitsbereich sichern." },
+            { id: "szp_1_6", text: "1.6 Absturz (Höhenarbeiten mit SZP) — PSAgA (Gurt, Trag- und Sicherungsseil); Gurtpflicht ab 3 m vor Absturzkante." },
+            { id: "szp_1_7", text: "1.7 Weitere mechanische Gefährdungen — geprüft." },
+          ]
+        },
+        {
+          titel: "2 – Elektrische Gefährdungen",
+          punkte: [
+            { id: "szp_2_1", text: "2.1 Elektrischer Schlag / Stromschlag — Freischalten durch Fachkraft, gegen Wiedereinschalten sichern." },
+            { id: "szp_2_2", text: "2.2 Lichtbögen — Freischalten durch Fachkraft, gegen Wiedereinschalten sichern." },
+            { id: "szp_2_3", text: "2.3 Elektrostatische Aufladungen — geprüft." },
+            { id: "szp_2_4", text: "2.4 Weitere elektrische Gefährdungen — geprüft." },
+          ]
+        },
+        {
+          titel: "3 – Gefahrstoffe",
+          punkte: [
+            { id: "szp_3_1", text: "3.1 Hautkontakt mit Gefahrstoffen — Schutzkleidung anpassen und tragen (ggf. Einweganzug + Maske)." },
+            { id: "szp_3_2", text: "3.2 Einatmen von Gefahrstoffen — Schutzkleidung anpassen und tragen (ggf. Einweganzug + Maske)." },
+          ]
+        },
+        {
+          titel: "4 – Biologische Arbeitsstoffe",
+          punkte: [
+            { id: "szp_4_1", text: "4.1 Infektionsgefahr — Einhaltung der aktuellen Hygiene- und Schutzvorschriften." },
+            { id: "szp_4_2", text: "4.2 Toxische Wirkungen von Biostoffen — Klärung und Abstimmung mit Ansprechpartner vor Ort." },
+            { id: "szp_4_3", text: "4.3 Weitere Gefährdungen durch biologische Stoffe — Klärung und Abstimmung vor Ort." },
+          ]
+        },
+        {
+          titel: "5 – Brand- und Explosionsgefährdungen",
+          punkte: [
+            { id: "szp_5_1", text: "5.1 Brennbare Stoffe / Materialien — Klärung und Abstimmung mit Ansprechpartner vor Ort." },
+            { id: "szp_5_2", text: "5.2 Explosionsfähige Atmosphäre — Klärung und Abstimmung vor Ort." },
+            { id: "szp_5_3", text: "5.3 Explosivstoffe — Klärung und Abstimmung vor Ort." },
+            { id: "szp_5_4", text: "5.4 Weitere Gefährdungen — Klärung und Abstimmung vor Ort." },
+          ]
+        },
+        {
+          titel: "6 – Thermische Gefährdungen",
+          punkte: [
+            { id: "szp_6_1", text: "6.1 Heiße Medien / Oberflächen — Körper- und Materialschutz (Information AG)." },
+            { id: "szp_6_2", text: "6.2 Kalte Medien / Oberflächen — Körper- und Materialschutz." },
+            { id: "szp_6_3", text: "6.3 Weitere thermische Gefährdungen — geprüft." },
+          ]
+        },
+        {
+          titel: "7 – Physikalische Einwirkungen",
+          punkte: [
+            { id: "szp_7_1", text: "7.1 Lärm — Hörschutz tragen." },
+            { id: "szp_7_2", text: "7.2 Ultraschall — geprüft." },
+            { id: "szp_7_3", text: "7.3 Ganzkörper-Vibration — geprüft." },
+            { id: "szp_7_4", text: "7.4 Hand-Arm-Vibration — geprüft." },
+            { id: "szp_7_5", text: "7.5 Nicht ionisierende Strahlung (UV, Laser) — Schutzbrille tragen." },
+            { id: "szp_7_6", text: "7.6 Ionisierende Strahlung — geprüft." },
+            { id: "szp_7_7", text: "7.7 Weitere physikalische Einwirkungen — geprüft." },
+          ]
+        },
+        {
+          titel: "8 – Arbeitsumgebungsbedingungen",
+          punkte: [
+            { id: "szp_8_1", text: "8.1 Hitze, Kälte, unzureichende Lüftung — Ausreichend trinken, witterungsgerechte Kleidung, Pausenregelung." },
+            { id: "szp_8_2", text: "8.2 Beleuchtung / Sichtverhältnisse — Abstimmung mit Ansprechpartner; ggf. Zusatzbeleuchtung." },
+            { id: "szp_8_3", text: "8.3 Ersticken (Atmosphäre), Ertrinken — Freimessen." },
+            { id: "szp_8_6", text: "8.6 Weitere Gefährdungen (eingeschränkter Zugang) — PSAgA einsetzen; Ankerpunkte vorab prüfen." },
+          ]
+        },
+        {
+          titel: "9 – Physische Belastungen",
+          punkte: [
+            { id: "szp_9_1", text: "9.1 Heben und Tragen schwerer Lasten — geprüft." },
+            { id: "szp_9_2", text: "9.2 Einseitige Körperbewegungen / Haltungsarbeit — Pausenregelung beachten; ggf. Ausgleichsübungen." },
+            { id: "szp_9_3", text: "9.3 Zwangshaltungen — geprüft." },
+            { id: "szp_9_4", text: "9.4 Statische und dynamische Arbeit — geprüft." },
+            { id: "szp_9_5", text: "9.5 Weitere physische Belastungen — geprüft." },
+          ]
+        },
+        {
+          titel: "10 – Psychische Belastungen",
+          punkte: [
+            { id: "szp_10_1", text: "10.1 Unzureichend gestaltete Arbeitsaufgabe — geprüft." },
+            { id: "szp_10_2", text: "10.2 Arbeit unter hohem Zeitdruck — geprüft." },
+            { id: "szp_10_3", text: "10.3 Erschwerte soziale Kontakte / Isolation — geprüft." },
+            { id: "szp_10_4", text: "10.4 Ungünstige Arbeitsbedingungen — Teilweise gebückte Haltung; regelmäßige Pausen." },
+            { id: "szp_10_5", text: "10.5 Weitere psychische Belastungen — geprüft." },
+          ]
+        },
+        {
+          titel: "11 – Sonstige Gefährdungen",
+          punkte: [
+            { id: "szp_11_1", text: "11.1 Zutritt Dritter / unbefugter Personen — Arbeitsbereich durch Absperrband und Hinweisschilder sichern." },
+            { id: "szp_11_2", text: "11.2 Tiere (Bisse, Stiche) — geprüft." },
+            { id: "szp_11_3", text: "11.3 Pflanzen — geprüft." },
+            { id: "szp_11_4", text: "11.4 Weitere Gefährdungen (Ankerpunkte) — Ankerpunkte vor Gebrauch Sichtprüfung durchführen." },
+          ]
+        },
+        {
+          titel: "Notfall & Rettung — Freigabe",
+          punkte: [
+            { id: "szp_nf_1", text: "Notfallplan bekannt: Rettung grundsätzlich nach UNTEN zum Boden (Hängetrauma-Risiko < 15 Min.)." },
+            { id: "szp_nf_2", text: "Notruf 112 bekannt. Nächsten Arzt / Krankenhaus notiert." },
+            { id: "szp_nf_3", text: "Erste-Hilfe-Material am Einsatzort vorhanden." },
+            { id: "szp_nf_4", text: "Buddy-Check durchgeführt: Gurt, Knoten, Geräte gegenseitig geprüft." },
+            { id: "szp_nf_5", text: "Ankerpunkte Sichtprüfung durchgeführt (mind. 12 kN / 1.200 kg)." },
+            { id: "szp_nf_6", text: "Trag- und Sicherungsseil an je 2 unabhängigen Ankerpunkten angeschlagen." },
+            { id: "szp_nf_7", text: "Arbeitsbereich abgesperrt (Absperrband + Hinweisschilder)." },
+            { id: "szp_nf_8", text: "Werkzeuge gegen Herunterfallen gesichert (Lanyards, Werkzeugpouches)." },
+          ]
+        },
+      ]
+    },
+
+    // ===== GFB Glasreinigung =====
+    gfb_glasreinigung: {
+      titel: "Gefährdungsbeurteilung Glasreinigung",
+      untertitel: "Glasreinigung / Fassadenreinigung gemäß ArbSchG § 5",
+      intervall: "Je Einsatz",
+      abschnitte: [
+        {
+          titel: "1 – Mechanische Gefährdungen",
+          punkte: [
+            { id: "glas_1_1", text: "1.1 Absturzgefahr — PSAgA tragen; Gurtpflicht ab 3 m vor Absturzkante." },
+            { id: "glas_1_2", text: "1.2 Rutsch- und Stolpergefahr (nasse Flächen) — Geeignetes Schuhwerk, Arbeitsbereich sichern." },
+            { id: "glas_1_3", text: "1.3 Glasbruch / scharfe Kanten — Schutzhandschuhe tragen." },
+            { id: "glas_1_4", text: "1.4 Herunterfallende Gegenstände / Werkzeuge — Lanyards verwenden; Bereich absperren." },
+          ]
+        },
+        {
+          titel: "2 – Gefahrstoffe / Reinigungsmittel",
+          punkte: [
+            { id: "glas_2_1", text: "2.1 Hautkontakt mit Reinigungsmitteln — Chemikalienschutzhandschuhe tragen." },
+            { id: "glas_2_2", text: "2.2 Einatmen von Reinigungsmitteldämpfen — Für ausreichend Belüftung sorgen." },
+            { id: "glas_2_3", text: "2.3 Augenkontakt mit Reinigungsmitteln — Schutzbrille tragen." },
+            { id: "glas_2_4", text: "2.4 Sicherheitsdatenblätter der verwendeten Reinigungsmittel bekannt und vorhanden." },
+          ]
+        },
+        {
+          titel: "3 – Elektrische Gefährdungen",
+          punkte: [
+            { id: "glas_3_1", text: "3.1 Elektrische Anlagen / Steckdosen im Nassbereich — Abstand halten; ggf. abkleben." },
+            { id: "glas_3_2", text: "3.2 Elektrisch betriebene Reinigungsgeräte (Wasser) — Nur für Nassbereich geeignete Geräte verwenden." },
+          ]
+        },
+        {
+          titel: "4 – Arbeitsumgebung",
+          punkte: [
+            { id: "glas_4_1", text: "4.1 Hitze / UV-Belastung bei Außenarbeiten — Sonnenschutz, ausreichend trinken, Pausen." },
+            { id: "glas_4_2", text: "4.2 Kälte / Eis / Glätte — Witterungsgerechte Kleidung; ggf. Arbeitsunterbrechung." },
+            { id: "glas_4_3", text: "4.3 Lärm (Maschinen) — Hörschutz tragen bei maschineller Reinigung." },
+            { id: "glas_4_4", text: "4.4 Sichtverhältnisse / Blendung — Sonnenblende / Schutzbrille." },
+          ]
+        },
+        {
+          titel: "5 – Physische Belastungen",
+          punkte: [
+            { id: "glas_5_1", text: "5.1 Überkopfarbeiten / Zwangshaltungen — Regelmäßige Pausen; Haltungswechsel." },
+            { id: "glas_5_2", text: "5.2 Heben und Tragen von Ausrüstung / Leitern — Rückengerechtes Heben, ggf. zweite Person." },
+            { id: "glas_5_3", text: "5.3 Wiederholende Bewegungen — Pausen einhalten; Ausgleichsübungen." },
+          ]
+        },
+        {
+          titel: "6 – Verkehr & Dritte",
+          punkte: [
+            { id: "glas_6_1", text: "6.1 Fußgänger / Fahrzeuge im Bereich — Arbeitsbereich absperren (Absperrband + Schilder)." },
+            { id: "glas_6_2", text: "6.2 Unbefugter Zutritt zum Arbeitsbereich — Bereich kennzeichnen und überwachen." },
+          ]
+        },
+        {
+          titel: "7 – Freigabe & Kontrolle",
+          punkte: [
+            { id: "glas_7_1", text: "PSAgA vollständig und geprüft (Sachkundigenprüfung aktuell)." },
+            { id: "glas_7_2", text: "Leitern / Arbeitsmittel auf Betriebssicherheit geprüft." },
+            { id: "glas_7_3", text: "Reinigungsmittel korrekt etikettiert und sicher gelagert." },
+            { id: "glas_7_4", text: "Erste-Hilfe-Material am Einsatzort vorhanden." },
+            { id: "glas_7_5", text: "Alle Mitarbeiter über Gefährdungen unterwiesen (Unterweisungsnachweis vorhanden)." },
+            { id: "glas_7_6", text: "Arbeitsbereich nach Abschluss gesichert und geräumt." },
+          ]
+        },
+      ]
+    },
+
+
   }
 };

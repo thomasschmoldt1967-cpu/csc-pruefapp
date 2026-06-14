@@ -72,11 +72,11 @@ function renderHome() {
 }
 
 function iconClass(liste) {
-  const map = { aufzug: 'icon-aufzug', brandschutztuer: 'icon-brandschutz', notbeleuchtung: 'icon-notbel', leiterkontrolle: 'icon-leiter' };
+  const map = { aufzug: 'icon-aufzug', brandschutztuer: 'icon-brandschutz', notbeleuchtung: 'icon-notbel', leiterkontrolle: 'icon-leiter', gfb_szp: 'icon-gruppe', gfb_glasreinigung: 'icon-gruppe' };
   return map[liste] || 'icon-default';
 }
 function listeIcon(liste) {
-  const map = { aufzug: '🛗', brandschutztuer: '🚪', notbeleuchtung: '💡', leiterkontrolle: '🪜' };
+  const map = { aufzug: '🛗', brandschutztuer: '🚪', notbeleuchtung: '💡', leiterkontrolle: '🪜', gfb_szp: '🧗', gfb_glasreinigung: '🪟' };
   return map[liste] || '📋';
 }
 function listeTitel(listeId) {
@@ -214,10 +214,18 @@ function renderChecklist() {
   const leiterFelderBox = document.getElementById('leiter-felder-box');
   leiterFelderBox.style.display = (currentBereich.liste === 'leiterkontrolle') ? 'block' : 'none';
 
+  // GFB-Felder nur bei Gefährdungsbeurteilungen einblenden
+  const gfbFelderBox = document.getElementById('gfb-felder-box');
+  const isGFB = (currentBereich.liste === 'gfb_szp' || currentBereich.liste === 'gfb_glasreinigung');
+  gfbFelderBox.style.display = isGFB ? 'block' : 'none';
+
   // Felder leeren / Standardwerte setzen
   document.getElementById('formular-standort').value = 'Raschplatz 5';
   document.getElementById('aufzug-nr').value = '';
   document.getElementById('leiter-typ').value = '';
+  document.getElementById('gfb-objekt').value = '';
+  document.getElementById('gfb-auftraggeber').value = '';
+  document.getElementById('gfb-ansprechpartner').value = '';
   document.getElementById('bemerkung').value = '';
   document.getElementById('pruefer-name').value = '';
   clearSignature();
@@ -373,6 +381,9 @@ async function generatePDF() {
   const formularStandort = document.getElementById('formular-standort').value.trim();
   const aufzugNr = document.getElementById('aufzug-nr').value.trim();
   const leiterTyp = document.getElementById('leiter-typ').value.trim();
+  const gfbObjekt = document.getElementById('gfb-objekt').value.trim();
+  const gfbAuftraggeber = document.getElementById('gfb-auftraggeber').value.trim();
+  const gfbAnsprechpartner = document.getElementById('gfb-ansprechpartner').value.trim();
 
   const PL = 15, PT = 15, PW = 180;
   let y = PT;
@@ -411,6 +422,24 @@ async function generatePDF() {
   if (leiterTyp) {
     doc.setFont('helvetica', 'bold');
     doc.text(`Leiter-Typ / Inventar-Nr.: ${leiterTyp}`, PL, y);
+    doc.setFont('helvetica', 'normal');
+    y += 6;
+  }
+  if (gfbObjekt) {
+    doc.setFont('helvetica', 'bold');
+    doc.text(`Objekt / Einsatzort: ${gfbObjekt}`, PL, y);
+    doc.setFont('helvetica', 'normal');
+    y += 6;
+  }
+  if (gfbAuftraggeber) {
+    doc.setFont('helvetica', 'bold');
+    doc.text(`Auftraggeber / Kunde: ${gfbAuftraggeber}`, PL, y);
+    doc.setFont('helvetica', 'normal');
+    y += 6;
+  }
+  if (gfbAnsprechpartner) {
+    doc.setFont('helvetica', 'bold');
+    doc.text(`Ansprechpartner vor Ort: ${gfbAnsprechpartner}`, PL, y);
     doc.setFont('helvetica', 'normal');
     y += 6;
   }
