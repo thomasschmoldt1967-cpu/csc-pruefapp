@@ -709,34 +709,7 @@ async function generatePDF() {
     const rvLines = doc.splitTextToSize('Rettung einer verletzten/hängenden Person grundsätzlich nach UNTEN zum Boden. Rettungsplan aushängen. Alle Teammitglieder kennen den Plan.', PW-4);
     doc.text(rvLines, PL+2, y); y += rvLines.length*5 + 8;
 
-    // Abschnitt 5: Freigabe und Unterschriften (wie Seite 5 im Original)
-    doc.setFillColor(238, 242, 247); doc.rect(PL, y-3, PW, 8, 'F');
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(26, 58, 92);
-    doc.text('5  FREIGABE UND UNTERSCHRIFTEN', PL+2, y+3); y += 12; doc.setTextColor(0);
-
-    const freiCols = ['Erstellt durch', 'Geprüft durch', 'Freigegeben durch'];
-    const freiW = PW / 3;
-    freiCols.forEach((titel, i) => {
-      const fx = PL + i * freiW;
-      doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(26, 58, 92);
-      doc.text(titel, fx+2, y);
-    });
-    y += 7;
-    freiCols.forEach((_, i) => {
-      const fx = PL + i * freiW;
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(0);
-      doc.text('Name: Thomas Schmoldt', fx+2, y);
-      doc.text('Funktion: Aufsichtsführender Höhenarbeiter Level 3', fx+2, y+5, { maxWidth: freiW-4 });
-      doc.text(`Datum: ${formatDatum(now).split(' ')[0]}`, fx+2, y+14);
-      doc.setFontSize(8); doc.setTextColor(100,100,100);
-      doc.text('Unterschrift', fx+2, y+22);
-      doc.setDrawColor(120); doc.line(fx+2, y+30, fx+freiW-4, y+30);
-    });
-    y += 36;
-
-    doc.setFontSize(8); doc.setTextColor(80,80,80);
-    const hinweis = doc.splitTextToSize('Dieses Dokument ist gemäß ArbSchG aufzubewahren und bei Bedarf der zuständigen Behörde vorzulegen. Die Gefährdungsbeurteilung ist bei wesentlichen Änderungen der Arbeitsbedingungen zu aktualisieren.', PW);
-    doc.text(hinweis, PL, y); y += hinweis.length*4+6; doc.setTextColor(0);
+    // Abschnitt 5: Freigabe und Unterschriften ENTFERNT (rot markiert)
   }
 
   // Fotos — nur wenn vorhanden
@@ -923,24 +896,7 @@ async function generatePDF() {
         y += lines.length * 5 + 2;
       });
 
-      // Felder-Box unten (Objekt, Ansprechpartner etc.)
-      y += 4;
-      if (y > 240) { doc.addPage(); y = PT + 8; }
-      doc.setDrawColor(180, 180, 180);
-      doc.rect(PL, y, PW, 28, 'S');
-      doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(26, 58, 92);
-      doc.text('Objekt / Einsatzort:', PL + 2, y + 5);
-      doc.text('Ansprechpartner vor Ort:', PL + 2, y + 12);
-      doc.text('Betrieb. Notfallnummer:', PL + 2, y + 19);
-      doc.text('Nächstes Krankenhaus:', col2x, y + 5);
-      doc.text('Ersthelfer vor Ort:', col2x, y + 12);
-      doc.text('Sammelplatz Evakuierung:', col2x, y + 19);
-      doc.setFont('helvetica', 'normal'); doc.setTextColor(0);
-      if (gfbObjekt) doc.text(gfbObjekt, PL + 40, y + 5);
-      if (gfbAnsprechpartner) doc.text(gfbAnsprechpartner, PL + 48, y + 12);
-      doc.text('Alle MA aus SZP', col2x + 32, y + 12);
-      doc.text('Laut Plan im Objekt', col2x + 48, y + 19);
-      y += 32;
+      // Felder-Box unten ENTFERNT (rot markiert)
 
       // ══════════════════════════════════════
       // SEITE: BETRIEBSANWEISUNG SZP (Seite 7–8 Original)
@@ -1040,20 +996,7 @@ async function generatePDF() {
         'Unterweisungsnachweise und Prüfprotokolle mind. 2 Jahre aufbewahren',
       ], '◉', y);
 
-      // Freigabe / Unterschrift Betriebsanweisung SZP
-      if (y > 240) { doc.addPage(); y = PT + 8; }
-      y = gfbAbschnitt(doc, '7', 'FREIGABE / UNTERSCHRIFTEN', y);
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
-      doc.text(`Datum: ${formatDatum(now).split(' ')[0]}`, PL + 2, y); y += 5;
-      doc.text('Nächster Überprüfungstermin: (1 Jahr)', PL + 2, y); y += 8;
-      doc.setDrawColor(100); doc.line(PL, y + 12, PL + 70, y + 12);
-      doc.setFontSize(8);
-      doc.text('Unterschrift Unternehmer / Geschäftsleitung', PL, y + 15); y += 20;
-      doc.setFontSize(8); doc.setTextColor(80, 80, 80);
-      doc.text('Diese Betriebsanweisung ist gemäß ArbSchG § 9 und BetrSichV auszuhängen.', PL, y);
-      y += 5;
-      doc.text('Sie ist vor jedem Einsatz zu lesen und einzuhalten. Bei Rückfragen Vorgesetzten ansprechen.', PL, y);
-      y += 10; doc.setTextColor(0);
+      // Abschnitt 7 BA SZP ENTFERNT (rot markiert)
 
       // ══════════════════════════════════════
       // SEITE: BETRIEBSANWEISUNG PSAgA (Seite 9–10 Original)
@@ -1146,18 +1089,7 @@ async function generatePDF() {
         'Prüfprotokoll und Unterweisungsnachweis aufbewahren (mind. 2 Jahre)',
       ], '◉', y);
 
-      if (y > 240) { doc.addPage(); y = PT + 8; }
-      y = gfbAbschnitt(doc, '7', 'FREIGABE / UNTERSCHRIFTEN', y);
-      doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
-      doc.text(`Datum: ${formatDatum(now).split(' ')[0]}`, PL + 2, y); y += 5;
-      doc.text('Nächster Überprüfungstermin: (1 Jahr)', PL + 2, y); y += 8;
-      doc.setDrawColor(100); doc.line(PL, y + 12, PL + 70, y + 12);
-      doc.setFontSize(8);
-      doc.text('Unterschrift Unternehmer / Geschäftsleitung', PL, y + 15); y += 20;
-      doc.setFontSize(8); doc.setTextColor(80, 80, 80);
-      doc.text('Diese Betriebsanweisung ist gemäß ArbSchG § 9 und BetrSichV auszuhängen.', PL, y); y += 5;
-      doc.text('Sie ist vor jedem Einsatz zu lesen und einzuhalten. Bei Rückfragen Vorgesetzten ansprechen.', PL, y);
-      y += 10; doc.setTextColor(0);
+      // Abschnitt 7 BA PSAgA ENTFERNT (rot markiert)
 
     } // end gfb_szp
   } // end isGFBpdf
