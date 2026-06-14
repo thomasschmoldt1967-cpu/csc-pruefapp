@@ -87,15 +87,15 @@
         <div id="foto-vorschau" class="foto-vorschau"></div>
       </div>
     </div>
-    <div class="unterschrift-box">
-      <label>Unterschrift Prüfer:</label>
+    <div class="unterschrift-box" id="unterschrift-label-box">
+      <label id="unterschrift-label">Unterschrift Prüfer:</label>
       <div id="sig-container">
         <canvas id="sig-canvas"></canvas>
         <button class="btn-secondary btn-sig-clear" onclick="clearSignature()">✕ Löschen</button>
       </div>
     </div>
     <div class="pruefer-box">
-      <label>Name Prüfer:</label>
+      <label id="pruefer-label">Name Prüfer:</label>
       <div class="pruefer-buttons">
         <button type="button" class="btn-pruefer" onclick="selectPruefer('Thomas Schmoldt')">Thomas Schmoldt</button>
         <button type="button" class="btn-pruefer" onclick="selectPruefer('Klaus Strack')">Klaus Strack</button>
@@ -103,6 +103,14 @@
         <button type="button" class="btn-pruefer" onclick="selectPruefer('Fabian Romeike')">Fabian Romeike</button>
       </div>
       <input type="text" id="pruefer-name" placeholder="Oder Namen eingeben…" autocomplete="name">
+    </div>
+    <!-- Mitarbeiterliste — nur bei GFB -->
+    <div id="gfb-ma-box" style="display:none">
+      <div class="gfb-ma-header">
+        <label>Mitarbeiter-Unterschriften:</label>
+        <button type="button" class="btn-secondary btn-ma-add" onclick="gfbMaHinzufuegen()">+ Mitarbeiter hinzufügen</button>
+      </div>
+      <div id="gfb-ma-liste"></div>
     </div>
     <button class="btn-primary btn-submit" onclick="submitChecklist()">
       <span class="icon">✅</span> Prüfung abschließen &amp; PDF speichern

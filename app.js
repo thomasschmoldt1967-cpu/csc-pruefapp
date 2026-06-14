@@ -13,6 +13,7 @@ let sigPad           = null;
 let isDrawing        = false;
 let lastX = 0, lastY = 0;
 let fotoListe        = [];   // Array von { dataUrl, name }
+let gfbMitarbeiter   = [];   // Array von { name, sigCanvas }
 
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', () => {
@@ -219,6 +220,16 @@ function renderChecklist() {
   const isGFB = (currentBereich.liste === 'gfb_szp' || currentBereich.liste === 'gfb_glasreinigung');
   gfbFelderBox.style.display = isGFB ? 'block' : 'none';
 
+  // Labels Unterschrift / Name je nach Typ anpassen
+  document.getElementById('unterschrift-label').textContent = isGFB ? 'Unterschrift Aufsichtsführender:' : 'Unterschrift Prüfer:';
+  document.getElementById('pruefer-label').textContent = isGFB ? 'Name Aufsichtsführender:' : 'Name Prüfer:';
+  document.getElementById('pruefer-name').placeholder = isGFB ? 'Name Aufsichtsführender …' : 'Oder Namen eingeben …';
+
+  // Mitarbeiterliste nur bei GFB
+  document.getElementById('gfb-ma-box').style.display = isGFB ? 'block' : 'none';
+  document.getElementById('gfb-ma-liste').innerHTML = '';
+  gfbMitarbeiter = [];
+
   // Felder leeren / Standardwerte setzen
   document.getElementById('formular-standort').value = 'Raschplatz 5';
   document.getElementById('aufzug-nr').value = '';
@@ -345,6 +356,60 @@ function selectPruefer(name) {
   document.querySelectorAll('.btn-pruefer').forEach(b => {
     b.classList.toggle('active', b.textContent === name);
   });
+}
+
+// ===== GFB MITARBEITER =====
+function gfbMaHinzufuegen() {
+  const idx = gfbMitarbeiter.length;
+  gfbMitarbeiter.push({ name: '', sigCanvas: null });
+
+  const container = document.getElementById('gfb-ma-liste');
+  const div = document.createElement('div');
+  div.className = 'gfb-ma-eintrag';
+  div.id = 'gfb-ma-' + idx;
+  div.innerHTML = `
+    <input type="text" id="gfb-ma-name-${idx}" placeholder="Name Mitarbeiter …" autocomplete="name"
+      oninput="gfbMitarbeiter[${idx}].name = this.value">
+    <div class="gfb-ma-sig-label">Unterschrift:</div>
+    <div class="gfb-ma-sig-wrap">
+      <canvas id="gfb-ma-canvas-${idx}" height="80"></canvas>
+      <button type="button" class="btn-secondary gfb-ma-loeschen" onclick="gfbMaLoeschen(${idx})">✕ Entfernen</button>
+    </div>
+    <button type="button" class="btn-secondary btn-ma-sig-clear" onclick="gfbMaSigClear(${idx})">✕ Signatur löschen</button>
+  `;
+  container.appendChild(div);
+
+  // Canvas initialisieren
+  const canvas = document.getElementById('gfb-ma-canvas-' + idx);
+  const ctx = canvas.getContext('2d');
+  canvas.width = canvas.offsetWidth * (window.devicePixelRatio || 1);
+  canvas.height = 80 * (window.devicePixelRatio || 1);
+  gfbMitarbeiter[idx].sigCanvas = canvas;
+
+  let drawing = false, lx = 0, ly = 0;
+  function getP(e) {
+    const r = canvas.getBoundingClientRect();
+    const sx = canvas.width / r.width, sy = canvas.height / r.height;
+    const src = e.touches ? e.touches[0] : e;
+    return { x: (src.clientX - r.left) * sx, y: (src.clientY - r.top) * sy };
+  }
+  canvas.addEventListener('mousedown',  e => { drawing = true; const p = getP(e); lx = p.x; ly = p.y; });
+  canvas.addEventListener('mousemove',  e => { if (!drawing) return; const p = getP(e); ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(p.x, p.y); ctx.strokeStyle = '#0047CC'; ctx.lineWidth = 2.5; ctx.lineCap = 'round'; ctx.stroke(); lx = p.x; ly = p.y; });
+  canvas.addEventListener('mouseup',    () => drawing = false);
+  canvas.addEventListener('touchstart', e => { e.preventDefault(); e.stopPropagation(); drawing = true; const p = getP(e); lx = p.x; ly = p.y; }, { passive: false });
+  canvas.addEventListener('touchmove',  e => { e.preventDefault(); e.stopPropagation(); if (!drawing) return; const p = getP(e); ctx.beginPath(); ctx.moveTo(lx, ly); ctx.lineTo(p.x, p.y); ctx.strokeStyle = '#0047CC'; ctx.lineWidth = 2.5; ctx.lineCap = 'round'; ctx.stroke(); lx = p.x; ly = p.y; }, { passive: false });
+  canvas.addEventListener('touchend',   e => { e.stopPropagation(); drawing = false; });
+}
+
+function gfbMaLoeschen(idx) {
+  gfbMitarbeiter[idx] = null;
+  const el = document.getElementById('gfb-ma-' + idx);
+  if (el) el.remove();
+}
+
+function gfbMaSigClear(idx) {
+  const canvas = document.getElementById('gfb-ma-canvas-' + idx);
+  if (canvas) canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
 }
 
 // ===== PRÜFUNG ABSCHLIESSEN =====
@@ -527,8 +592,138 @@ async function generatePDF() {
   // Unterschrift — immer anzeigen
   if (y > 240) { doc.addPage(); y = PT; }
   doc.setDrawColor(220, 220, 220); doc.line(PL, y, PL + PW, y); y += 6;
+
+  // ===== GFB: Betriebsanweisung + Rettungsplan als PDF-Seiten =====
+  const isGFBpdf = (currentBereich.liste === 'gfb_szp' || currentBereich.liste === 'gfb_glasreinigung');
+  if (isGFBpdf) {
+    // ---- Seite: Betriebsanweisung SZP ----
+    doc.addPage(); y = PT;
+    doc.setFillColor(26, 58, 92);
+    doc.rect(0, 0, 210, 22, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(14); doc.setFont('helvetica', 'bold');
+    doc.text('BETRIEBSANWEISUNG', PL, 10);
+    doc.setFontSize(10); doc.setFont('helvetica', 'normal');
+    doc.text(currentBereich.liste === 'gfb_szp'
+      ? 'Seilzugangs- und Positionierungstechniken (SZP) – Rope Access'
+      : 'Glasreinigung / Fassadenreinigung', PL, 18);
+    y = 30;
+    doc.setTextColor(0);
+
+    const ba = currentBereich.liste === 'gfb_szp' ? [
+      ['Anwendungsbereich', 'Gilt für alle MA, die SZP/Rope Access anwenden. SZP kommt zum Einsatz, wenn Gerüst oder Hebebühne unwirtschaftlich/nicht möglich sind. Gilt gem. DIN EN 363, FISAT, TRBS 2121 Teil 3, BGR 198.'],
+      ['Gefahren', '⚠ Absturz aus der Höhe (tödlich)\n⚠ Pendelsturz – Anprallen an feste Gegenstände\n⚠ Hängetrauma (orthostatischer Schock) – bereits nach wenigen Minuten lebensbedrohlich\n⚠ Falsche Benutzung Auffangsystem / Anschlageinrichtung\n⚠ Versagen von Ankerpunkten\n⚠ Materialfall: Werkzeuge können auf Personen fallen'],
+      ['Schutzmaßnahmen', '✔ Personen müssen körperlich und geistig geeignet sein\n✔ Keine Arbeit unter Einfluss von Alkohol, Drogen oder Medikamenten\n✔ Mind. 2 ausgebildete SZP-Mitarbeiter (Level 1) auf jeder Baustelle\n✔ Aufsicht durch SZP-Level-3-Aufsichtsführenden\n✔ Trag- und Sicherungsseil an je 2 unabhängigen Ankerpunkten\n✔ Ankerpunkte Sichtprüfung (Tragkraft mind. 12 kN / 1.200 kg)\n✔ Buddy-Check vor jeder Besteigung\n✔ Werkzeuge gegen Herabfallen sichern (Lanyards)'],
+      ['Erste Hilfe / Notfall', 'NOTRUF 112\n▶ Ruhe bewahren – Eigensicherung beachten\n▶ Rettung nach UNTEN (Rettungsplan SZP beachten)\n▶ Notruf: WER? WAS? WO? WIE VIELE?\n▶ Rettung aus hängender Situation innerhalb 15–20 Min. (Hängetrauma!)\n▶ Auch ohne äußere Verletzung: Arzt aufsuchen\n▶ Unfälle sofort dem Aufsichtsführenden und der BG melden'],
+      ['Prüfung & Unterweisung', '◉ Sichtprüfung vor, nach und während jeder Benutzung\n◉ Sachkundigenprüfung nach DGUV 312-906 alle 12 Monate\n◉ Mind. FISAT Level 1 erforderlich (bestandene Prüfung + Kursnachweis)\n◉ Wiederholungsunterweisung alle 12 Monate\n◉ Gültiger Erste-Hilfe-Kurs (mind. 8 Std.)\n◉ Material in nicht einwandfreiem Zustand sofort aussondern'],
+    ] : [
+      ['Anwendungsbereich', 'Gilt für alle Mitarbeiter bei Glasreinigung und Fassadenreinigung gem. ArbSchG § 5.'],
+      ['Gefahren', '⚠ Absturz aus der Höhe\n⚠ Rutsch- und Stolpergefahr (nasse Flächen)\n⚠ Glasbruch / scharfe Kanten\n⚠ Chemische Gefährdung durch Reinigungsmittel\n⚠ Elektrische Gefährdung im Nassbereich'],
+      ['Schutzmaßnahmen', '✔ PSAgA tragen ab 3 m vor Absturzkante\n✔ Geeignetes Schuhwerk (rutschsicher)\n✔ Chemikalienschutzhandschuhe und Schutzbrille\n✔ Sicherheitsdatenblätter bekannt und vorhanden\n✔ Arbeitsbereich absperren (Absperrband + Schilder)\n✔ Lanyards für Werkzeuge verwenden'],
+      ['Erste Hilfe / Notfall', 'NOTRUF 112\n▶ Ruhe bewahren – Eigensicherung beachten\n▶ Notruf: WER? WAS? WO? WIE VIELE?\n▶ Erste-Hilfe-Maßnahmen einleiten\n▶ Arbeitsunfälle sofort dem Aufsichtsführenden und der BG melden'],
+    ];
+
+    ba.forEach(([titel, inhalt]) => {
+      if (y > 255) { doc.addPage(); y = PT; }
+      doc.setFillColor(238, 242, 247);
+      doc.rect(PL, y - 4, PW, 8, 'F');
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(26, 58, 92);
+      doc.text(titel.toUpperCase(), PL + 2, y + 1);
+      y += 10;
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(0);
+      const lines = doc.splitTextToSize(inhalt, PW - 4);
+      doc.text(lines, PL + 2, y);
+      y += lines.length * 5 + 6;
+    });
+
+    // ---- Seite: Rettungsplan ----
+    doc.addPage(); y = PT;
+    doc.setFillColor(180, 0, 0);
+    doc.rect(0, 0, 210, 22, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(14); doc.setFont('helvetica', 'bold');
+    doc.text('⚠  RETTUNGSPLAN  ⚠', PL, 10);
+    doc.setFontSize(10); doc.setFont('helvetica', 'normal');
+    if (currentBereich.liste === 'gfb_szp') {
+      doc.text('Seilzugangs- und Positionierungstechnik (SZP) – Rettung nach UNTEN', PL, 18);
+    } else {
+      doc.text('Glasreinigung – Notfallplan', PL, 18);
+    }
+    y = 30; doc.setTextColor(0);
+
+    // Notruf-Box
+    doc.setFillColor(255, 230, 230);
+    doc.rect(PL, y, PW, 14, 'F');
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(16); doc.setTextColor(180, 0, 0);
+    doc.text('NOTRUF 112 – Feuerwehr / Rettungsdienst', PL + PW/2, y + 9, { align: 'center' });
+    y += 20; doc.setTextColor(0);
+
+    if (currentBereich.liste === 'gfb_szp') {
+      doc.setFillColor(255, 245, 220);
+      doc.rect(PL, y, PW, 10, 'F');
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(180, 80, 0);
+      doc.text('RETTUNG MUSS INNERHALB VON 15 MINUTEN ERFOLGEN! (Hängetrauma-Risiko!)', PL + 2, y + 7);
+      y += 16; doc.setTextColor(0);
+
+      const rettung = [
+        ['Gefährdungen & Maßnahmen',
+          '⚠ Hängetrauma: Rettung < 20 Min. – gut angepasster Gurt – Beinschlaufen entlasten\n' +
+          '⚠ Absturz des Retters: PSA in Rückhaltefunktion, Seillänge kurz halten\n' +
+          '⚠ Ankerpunktversagen bei 2 Personen: geeigneten AP wählen, separaten AP für Rettungsgerät'],
+        ['Erforderliches Rettungsgerät',
+          '✔ Abseilgerät + mitlaufendes Sicherungsgerät (Zulassung 2 Personen)\n' +
+          '✔ Kantenschutz\n✔ Erste-Hilfe-Verbandskasten\n✔ Sachkundigenprüfung durchgeführt'],
+        ['Durchführung – Schritt für Schritt',
+          '1. Teampartner sichert sich selbst – Kontakt zum Abgestürzten aufnehmen. Verletzungen feststellen, beruhigen!\n' +
+          '2. NOTRUF 112 absetzen: WER? WAS? WO? WIE VIELE?\n' +
+          '3. Geeigneten Anschlagpunkt für Rettungsgerät wählen (separat von Arbeitsseilen).\n' +
+          '4. Kantenschutz anbringen – Eigensicherung beachten!\n' +
+          '5. Verletzte Person mit 2 Abseilgeräten am Ankerpunkt anschlagen.\n' +
+          '6. Abgestürzten kontrolliert nach UNTEN zum Boden abseilen.\n' +
+          '7. Hindernisse im Abseilweg prüfen!\n' +
+          '8. Übernahme der verletzten Person aus dem geöffneten System (Bodennähe) mit 2 Personen.\n' +
+          '9. Erste-Hilfe-Maßnahmen einleiten.\n' +
+          '10. Auf Notarzt warten – auch ohne äußere Verletzungszeichen ärztlich untersuchen.'],
+      ];
+      rettung.forEach(([titel, inhalt]) => {
+        if (y > 255) { doc.addPage(); y = PT; }
+        doc.setFillColor(238, 242, 247);
+        doc.rect(PL, y - 4, PW, 8, 'F');
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(26, 58, 92);
+        doc.text(titel.toUpperCase(), PL + 2, y + 1);
+        y += 10;
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(0);
+        const lines = doc.splitTextToSize(inhalt, PW - 4);
+        doc.text(lines, PL + 2, y);
+        y += lines.length * 5 + 6;
+      });
+    } else {
+      // Glasreinigung Rettungsplan (kürzer)
+      const rettungGlas = [
+        '1. Ruhe bewahren – Überblick verschaffen – Eigensicherung beachten.',
+        '2. NOTRUF 112: WER? WAS? WO? WIE VIELE?',
+        '3. Absturz: Rettung gem. Rettungsplan (nach UNTEN wenn möglich).',
+        '4. Erste-Hilfe-Maßnahmen einleiten.',
+        '5. Bei Verletzung durch Chemikalien: Sicherheitsdatenblatt dem Notarzt zeigen.',
+        '6. Auch ohne äußere Verletzungszeichen: Arzt aufsuchen.',
+        '7. Arbeitsunfälle sofort dem Aufsichtsführenden und der BG melden.',
+      ];
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(0);
+      rettungGlas.forEach(zeile => {
+        const lines = doc.splitTextToSize(zeile, PW - 4);
+        doc.text(lines, PL + 2, y);
+        y += lines.length * 6 + 2;
+      });
+    }
+    y += 6;
+  }
+
+  // Unterschrift Aufsichtsführender / Prüfer
+  const sigLabel = isGFBpdf ? 'UNTERSCHRIFT AUFSICHTSFÜHRENDER' : 'UNTERSCHRIFT PRÜFER';
+  if (y > 240) { doc.addPage(); y = PT; }
+  doc.setDrawColor(220, 220, 220); doc.line(PL, y, PL + PW, y); y += 6;
   doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(26, 58, 92);
-  doc.text('UNTERSCHRIFT PRÜFER', PL, y); y += 4;
+  doc.text(sigLabel, PL, y); y += 4;
   if (!isSignatureEmpty()) {
     const sigData = sigPad.canvas.toDataURL('image/png');
     doc.addImage(sigData, 'PNG', PL, y, 80, 25);
@@ -540,6 +735,36 @@ async function generatePDF() {
   }
   doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(0);
   doc.text(pruefer || '___________________________', PL, y);
+  y += 10;
+
+  // ===== GFB: Mitarbeiter-Unterschriften =====
+  if (isGFBpdf) {
+    const aktiveMa = gfbMitarbeiter.filter(m => m !== null);
+    if (aktiveMa.length > 0) {
+      if (y > 230) { doc.addPage(); y = PT; }
+      doc.setDrawColor(220, 220, 220); doc.line(PL, y, PL + PW, y); y += 6;
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(26, 58, 92);
+      doc.text('UNTERSCHRIFTEN MITARBEITER', PL, y); y += 8;
+
+      aktiveMa.forEach((ma, i) => {
+        if (y > 250) { doc.addPage(); y = PT; }
+        doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(0);
+        doc.text(`${i + 1}.  ${ma.name || '___________________________'}`, PL, y);
+
+        // Signatur des Mitarbeiters
+        if (ma.sigCanvas) {
+          const empty = document.createElement('canvas');
+          empty.width = ma.sigCanvas.width; empty.height = ma.sigCanvas.height;
+          if (ma.sigCanvas.toDataURL() !== empty.toDataURL()) {
+            doc.addImage(ma.sigCanvas.toDataURL('image/png'), 'PNG', PL + 90, y - 6, 60, 16);
+          } else {
+            doc.setDrawColor(150); doc.line(PL + 90, y + 8, PL + 150, y + 8);
+          }
+        }
+        y += 20;
+      });
+    }
+  }
 
   // Footer
   const pageCount = doc.getNumberOfPages();
