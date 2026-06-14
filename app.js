@@ -531,6 +531,17 @@ async function generatePDF() {
   doc.setDrawColor(220, 220, 220); doc.line(PL, y, PL + PW, y);
   y += 6;
 
+  // Bei GFB SZP: Abschnittstitel + Legende vor den Prüfpunkten
+  const isGFBszpPage1 = (currentBereich.liste === 'gfb_szp' || currentBereich.liste === 'gfb_glasreinigung');
+  if (isGFBszpPage1) {
+    doc.setFillColor(238, 242, 247); doc.rect(PL, y - 3, PW, 8, 'F');
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(26, 58, 92);
+    doc.text('2  GEFÄHRDUNGSGRUPPEN-ANALYSE', PL + 2, y + 3); y += 12; doc.setTextColor(0);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
+    doc.text('Legende: Spalte "Rel." = Relevant für diesen Einsatz (x = ja). Schutzmaßnahmen nach T-O-P-Prinzip (Technisch > Organisatorisch > Persönlich).', PL, y);
+    y += 7;
+  }
+
   // Abschnitte & Prüfpunkte
   currentListe.abschnitte.forEach(abschnitt => {
     doc.setFillColor(238, 242, 247);

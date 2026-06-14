@@ -266,105 +266,110 @@ const APP_CONFIG = {
       intervall: "Je Einsatz",
       abschnitte: [
         {
-          titel: "1 – Mechanische Gefährdungen",
+          titel: "1  Mechanische Gefährdungen",
           punkte: [
-            { id: "szp_1_1", text: "1.1 Ungeschützte bewegte Maschinenteile — Im Arbeitsbereich sichern." },
-            { id: "szp_1_2", text: "1.2 Teile mit gefährlichen Oberflächen (Kanten, Spitzen) — Schutzhandschuhe, Sicherheitsschuhe S3." },
+            { id: "szp_1_1", text: "1.1 Ungeschützt bewegte Maschinenteile — Im Arbeitsbereich sichern." },
+            { id: "szp_1_2", text: "1.2 Teile mit gefährlichen Oberflächen (Kanten, Spitzen) — Kanten und rutschige Flächen: geeignete Schutzhandschuhe, Sicherheitsschuhe S3." },
             { id: "szp_1_3", text: "1.3 Bewegte Transportmittel / Arbeitsmittel — Im Arbeitsbereich sichern." },
             { id: "szp_1_4", text: "1.4 Unkontrolliert bewegte Teile — Im Arbeitsbereich sichern." },
             { id: "szp_1_5", text: "1.5 Sturz, Ausrutschen, Stolpern, Umknicken — PSAgA im Gefahrenbereich tragen; Arbeitsbereich sichern." },
-            { id: "szp_1_6", text: "1.6 Absturz (Höhenarbeiten mit SZP) — PSAgA (Gurt, Trag- und Sicherungsseil); Gurtpflicht ab 3 m vor Absturzkante." },
-            { id: "szp_1_7", text: "1.7 Weitere mechanische Gefährdungen — geprüft." },
+            { id: "szp_1_6", text: "1.6 Absturz (Höhenarbeiten mit SZP) — Sicherung durch PSAgA (Gurt, Trag- und Sicherungsseil); Gurtpflicht ab 3 m vor Absturzkante." },
+            { id: "szp_1_7", text: "1.7 Weitere mechanische Gefährdungen" },
           ]
         },
         {
-          titel: "2 – Elektrische Gefährdungen",
+          titel: "2  Elektrische Gefährdungen",
           punkte: [
-            { id: "szp_2_1", text: "2.1 Elektrischer Schlag / Stromschlag — Freischalten durch Fachkraft, gegen Wiedereinschalten sichern." },
-            { id: "szp_2_2", text: "2.2 Lichtbögen — Freischalten durch Fachkraft, gegen Wiedereinschalten sichern." },
-            { id: "szp_2_3", text: "2.3 Elektrostatische Aufladungen — geprüft." },
-            { id: "szp_2_4", text: "2.4 Weitere elektrische Gefährdungen — geprüft." },
+            { id: "szp_2_1", text: "2.1 Elektrischer Schlag / Stromschlag — Freischalten durch Fachkraft. Gegen Wiedereinschalten sichern." },
+            { id: "szp_2_2", text: "2.2 Lichtbögen — Freischalten durch Fachkraft. Gegen Wiedereinschalten sichern." },
+            { id: "szp_2_3", text: "2.3 Elektrostatische Aufladungen — Ableiten laut Vorgabe Arbeitsplatz-System." },
+            { id: "szp_2_4", text: "2.4 Weitere elektrische Gefährdungen" },
           ]
         },
         {
-          titel: "3 – Gefahrstoffe",
+          titel: "3  Gefahrstoffe",
           punkte: [
             { id: "szp_3_1", text: "3.1 Hautkontakt mit Gefahrstoffen — Schutzkleidung anpassen und tragen (ggf. Einweganzug + Maske)." },
-            { id: "szp_3_2", text: "3.2 Einatmen von Gefahrstoffen — Schutzkleidung anpassen und tragen (ggf. Einweganzug + Maske)." },
+            { id: "szp_3_2", text: "3.2 Einatmen von Gefahrstoffen — Schutzmasken entsprechend der Gefahrenklasse, Rücksprache mit AG." },
+            { id: "szp_3_3", text: "3.3 Verschlucken — Siehe DIN Sicherheitsdatenblatt-Betriebsanweisung." },
+            { id: "szp_3_4", text: "3.4 Brand- / Explosionsgefahr durch Gefahrstoffe — Klärung und Abstimmung mit Ansprechpartner vor Ort. Schutzmaßnahmen laut AG." },
+            { id: "szp_3_5", text: "3.5 Weitere Gefährdungen durch Gefahrstoffe" },
           ]
         },
         {
-          titel: "4 – Biologische Arbeitsstoffe",
+          titel: "4  Biologische Arbeitsstoffe",
           punkte: [
             { id: "szp_4_1", text: "4.1 Infektionsgefahr — Einhaltung der aktuellen Hygiene- und Schutzvorschriften." },
-            { id: "szp_4_2", text: "4.2 Toxische Wirkungen von Biostoffen — Klärung und Abstimmung mit Ansprechpartner vor Ort." },
-            { id: "szp_4_3", text: "4.3 Weitere Gefährdungen durch biologische Stoffe — Klärung und Abstimmung vor Ort." },
+            { id: "szp_4_2", text: "4.2 Toxische Wirkungen von Biostoffen — Klärung und Abstimmung mit Ansprechpartner vor Ort. Schutzmaßnahmen laut AG." },
+            { id: "szp_4_3", text: "4.3 Weitere Gefährdungen durch biologische Stoffe — Klärung und Abstimmung mit Ansprechpartner vor Ort. Schutzmaßnahmen laut AG." },
           ]
         },
         {
-          titel: "5 – Brand- und Explosionsgefährdungen",
+          titel: "5  Brand- und Explosionsgefährdungen",
           punkte: [
-            { id: "szp_5_1", text: "5.1 Brennbare Stoffe / Materialien — Klärung und Abstimmung mit Ansprechpartner vor Ort." },
-            { id: "szp_5_2", text: "5.2 Explosionsfähige Atmosphäre — Klärung und Abstimmung vor Ort." },
-            { id: "szp_5_3", text: "5.3 Explosivstoffe — Klärung und Abstimmung vor Ort." },
-            { id: "szp_5_4", text: "5.4 Weitere Gefährdungen — Klärung und Abstimmung vor Ort." },
+            { id: "szp_5_1", text: "5.1 Brennbare Stoffe / Materialien — Klärung und Abstimmung mit Ansprechpartner vor Ort. Schutzmaßnahmen laut AG." },
+            { id: "szp_5_2", text: "5.2 Explosionsfähige Atmosphäre — Klärung und Abstimmung mit Ansprechpartner vor Ort. Schutzmaßnahmen laut AG." },
+            { id: "szp_5_3", text: "5.3 Explosivstoffe — Klärung und Abstimmung mit Ansprechpartner vor Ort. Schutzmaßnahmen laut AG." },
+            { id: "szp_5_4", text: "5.4 Weitere Gefährdungen — Klärung und Abstimmung mit Ansprechpartner vor Ort. Schutzmaßnahmen laut AG." },
           ]
         },
         {
-          titel: "6 – Thermische Gefährdungen",
+          titel: "6  Thermische Gefährdungen",
           punkte: [
-            { id: "szp_6_1", text: "6.1 Heiße Medien / Oberflächen — Körper- und Materialschutz (Information AG)." },
-            { id: "szp_6_2", text: "6.2 Kalte Medien / Oberflächen — Körper- und Materialschutz." },
-            { id: "szp_6_3", text: "6.3 Weitere thermische Gefährdungen — geprüft." },
+            { id: "szp_6_1", text: "6.1 Heiße Medien / Oberflächen — Körper und Materialschutz (Information vom AG welche Bereiche)." },
+            { id: "szp_6_2", text: "6.2 Kalte Medien / Oberflächen — Körper und Materialschutz (Information vom AG welche Bereiche)." },
+            { id: "szp_6_3", text: "6.3 Weitere thermische Gefährdungen" },
           ]
         },
         {
-          titel: "7 – Physikalische Einwirkungen",
+          titel: "7  Physikalische Einwirkungen",
           punkte: [
             { id: "szp_7_1", text: "7.1 Lärm — Hörschutz tragen." },
-            { id: "szp_7_2", text: "7.2 Ultraschall — geprüft." },
-            { id: "szp_7_3", text: "7.3 Ganzkörper-Vibration — geprüft." },
-            { id: "szp_7_4", text: "7.4 Hand-Arm-Vibration — geprüft." },
+            { id: "szp_7_2", text: "7.2 Ultraschall — Vorgabe Hersteller beachten." },
+            { id: "szp_7_3", text: "7.3 Ganzkörper-Vibration — Vorgabe Hersteller beachten." },
+            { id: "szp_7_4", text: "7.4 Hand-Arm-Vibration — Vorgabe Hersteller beachten." },
             { id: "szp_7_5", text: "7.5 Nicht ionisierende Strahlung (UV, Laser) — Schutzbrille tragen." },
-            { id: "szp_7_6", text: "7.6 Ionisierende Strahlung — geprüft." },
-            { id: "szp_7_7", text: "7.7 Weitere physikalische Einwirkungen — geprüft." },
+            { id: "szp_7_6", text: "7.6 Ionisierende Strahlung — Laut Vorgabe Auftraggeber Schutzmaßnahmen." },
+            { id: "szp_7_7", text: "7.7 Weitere physikalische Einwirkungen" },
           ]
         },
         {
-          titel: "8 – Arbeitsumgebungsbedingungen",
+          titel: "8  Arbeitsumgebungsbedingungen",
           punkte: [
-            { id: "szp_8_1", text: "8.1 Hitze, Kälte, unzureichende Lüftung — Ausreichend trinken, witterungsgerechte Kleidung, Pausenregelung." },
-            { id: "szp_8_2", text: "8.2 Beleuchtung / Sichtverhältnisse — Abstimmung mit Ansprechpartner; ggf. Zusatzbeleuchtung." },
-            { id: "szp_8_3", text: "8.3 Ersticken (Atmosphäre), Ertrinken — Freimessen." },
+            { id: "szp_8_1", text: "8.1 Hitze, Kälte, unzureichende Lüftung — Ausreichend trinken, witterungsgerechte Kleidung, Pausenregelung einhalten." },
+            { id: "szp_8_2", text: "8.2 Beleuchtung / Sichtverhältnisse — Abstimmung mit Ansprechpartner; ggf. zusätzliche Beleuchtung." },
+            { id: "szp_8_3", text: "8.3 Ersticken (Atmosph.), Ertrinken — Freimessen des Bereiches, Messgerät tragen im Arbeitsbereich, Schutzmaske." },
+            { id: "szp_8_4", text: "8.4 Flucht- und Verkehrswege — Laut Objektpläne." },
+            { id: "szp_8_5", text: "8.5 Pausen- / Sanitärräume" },
             { id: "szp_8_6", text: "8.6 Weitere Gefährdungen (eingeschränkter Zugang) — PSAgA einsetzen; Ankerpunkte vorab prüfen." },
           ]
         },
         {
-          titel: "9 – Physische Belastungen",
+          titel: "9  Physische Belastungen",
           punkte: [
-            { id: "szp_9_1", text: "9.1 Heben und Tragen schwerer Lasten — geprüft." },
+            { id: "szp_9_1", text: "9.1 Heben und Tragen schwerer Lasten — Hebehilfen je Situation berücksichtigen und einplanen." },
             { id: "szp_9_2", text: "9.2 Einseitige Körperbewegungen / Haltungsarbeit — Pausenregelung beachten; ggf. Ausgleichsübungen." },
-            { id: "szp_9_3", text: "9.3 Zwangshaltungen — geprüft." },
-            { id: "szp_9_4", text: "9.4 Statische und dynamische Arbeit — geprüft." },
-            { id: "szp_9_5", text: "9.5 Weitere physische Belastungen — geprüft." },
+            { id: "szp_9_3", text: "9.3 Zwangshaltungen — Körperhaltung wechseln und lockern." },
+            { id: "szp_9_4", text: "9.4 Statische und dynamische Arbeit — Rotierende Arbeitsplätze." },
+            { id: "szp_9_5", text: "9.5 Weitere physische Belastungen" },
           ]
         },
         {
-          titel: "10 – Psychische Belastungen",
+          titel: "10  Psychische Belastungen",
           punkte: [
-            { id: "szp_10_1", text: "10.1 Unzureichend gestaltete Arbeitsaufgabe — geprüft." },
-            { id: "szp_10_2", text: "10.2 Arbeit unter hohem Zeitdruck — geprüft." },
-            { id: "szp_10_3", text: "10.3 Erschwerte soziale Kontakte / Isolation — geprüft." },
-            { id: "szp_10_4", text: "10.4 Ungünstige Arbeitsbedingungen — Teilweise gebückte Haltung; regelmäßige Pausen." },
-            { id: "szp_10_5", text: "10.5 Weitere psychische Belastungen — geprüft." },
+            { id: "szp_10_1", text: "10.1 Unzureichend gestaltete Arbeitsaufgabe — Prozessabläufe besprechen." },
+            { id: "szp_10_2", text: "10.2 Arbeit unter hohem Zeitdruck — Zeitplanung überarbeiten und anpassen der Situation." },
+            { id: "szp_10_3", text: "10.3 Erschwerte soziale Kontakte / Isolation — Teameinsatz statt Einzelarbeitsplatz, gemeinsame Pausenregelung." },
+            { id: "szp_10_4", text: "10.4 Ungünstige Arbeitsbedingungen — Teilweise in gebückter Haltung; regelmäßige Pausen einhalten." },
+            { id: "szp_10_5", text: "10.5 Weitere psychische Belastungen" },
           ]
         },
         {
-          titel: "11 – Sonstige Gefährdungen",
+          titel: "11  Sonstige Gefährdungen",
           punkte: [
             { id: "szp_11_1", text: "11.1 Zutritt Dritter / unbefugter Personen — Arbeitsbereich durch Absperrband und Hinweisschilder sichern." },
-            { id: "szp_11_2", text: "11.2 Tiere (Bisse, Stiche) — geprüft." },
-            { id: "szp_11_3", text: "11.3 Pflanzen — geprüft." },
+            { id: "szp_11_2", text: "11.2 Tiere (Bisse, Stiche) — Entsprechende Mittel bereithalten (Medikamente), Arbeiten einstellen, PSA bereithalten." },
+            { id: "szp_11_3", text: "11.3 Pflanzen — Auf Gefahrenpotential prüfen und vor Körperkontakt schützen." },
             { id: "szp_11_4", text: "11.4 Weitere Gefährdungen (Ankerpunkte) — Ankerpunkte vor Gebrauch Sichtprüfung durchführen." },
           ]
         },
