@@ -225,6 +225,9 @@ function renderChecklist() {
   document.getElementById('pruefer-label').textContent = isGFB ? 'Name Aufsichtsführender:' : 'Name Prüfer:';
   document.getElementById('pruefer-name').placeholder = isGFB ? 'Name Aufsichtsführender …' : 'Oder Namen eingeben …';
 
+  // Unterschrift-Box bei GFB ausblenden (Unterschrift kommt auf Seite 12 der Unterweisungsliste)
+  document.getElementById('unterschrift-label-box').style.display = isGFB ? 'none' : 'block';
+
   // Mitarbeiterliste nur bei GFB
   document.getElementById('gfb-ma-box').style.display = isGFB ? 'block' : 'none';
   document.getElementById('gfb-ma-liste').innerHTML = '';
@@ -435,7 +438,8 @@ async function submitChecklist() {
     if (!confirm(`${offene} Prüfpunkt(e) noch nicht bewertet. Trotzdem fortfahren?`)) return;
   }
   if (!document.getElementById('pruefer-name').value.trim()) {
-    alert('Bitte Name des Prüfers eingeben.');
+    const isGFB = (currentBereich.liste === 'gfb_szp' || currentBereich.liste === 'gfb_glasreinigung');
+    alert(isGFB ? 'Bitte Name des Aufsichtsführenden eingeben.' : 'Bitte Name des Prüfers eingeben.');
     return;
   }
 
@@ -1319,52 +1323,24 @@ async function generatePDF() {
     doc.setTextColor(0); y += 10;
   }
 
-  // Unterschrift Aufsichtsführender / Prüfer
-  const sigLabel = isGFBpdf ? 'UNTERSCHRIFT AUFSICHTSFÜHRENDER' : 'UNTERSCHRIFT PRÜFER';
-  if (y > 240) { doc.addPage(); y = PT; }
-  doc.setDrawColor(220, 220, 220); doc.line(PL, y, PL + PW, y); y += 6;
-  doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(26, 58, 92);
-  doc.text(sigLabel, PL, y); y += 4;
-  if (!isSignatureEmpty()) {
-    const sigData = sigPad.canvas.toDataURL('image/png');
-    doc.addImage(sigData, 'PNG', PL, y, 80, 25);
-    y += 28;
-  } else {
-    doc.setDrawColor(100, 100, 100);
-    doc.line(PL, y + 20, PL + 80, y + 20);
-    y += 28;
-  }
-  doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(0);
-  doc.text(pruefer || '___________________________', PL, y);
-  y += 10;
-
-  // ===== GFB: Mitarbeiter-Unterschriften =====
-  if (isGFBpdf) {
-    const aktiveMa = gfbMitarbeiter.filter(m => m !== null);
-    if (aktiveMa.length > 0) {
-      if (y > 230) { doc.addPage(); y = PT; }
-      doc.setDrawColor(220, 220, 220); doc.line(PL, y, PL + PW, y); y += 6;
-      doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(26, 58, 92);
-      doc.text('UNTERSCHRIFTEN MITARBEITER', PL, y); y += 8;
-
-      aktiveMa.forEach((ma, i) => {
-        if (y > 250) { doc.addPage(); y = PT; }
-        doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(0);
-        doc.text(`${i + 1}.  ${ma.name || '___________________________'}`, PL, y);
-
-        // Signatur des Mitarbeiters
-        if (ma.sigCanvas) {
-          const empty = document.createElement('canvas');
-          empty.width = ma.sigCanvas.width; empty.height = ma.sigCanvas.height;
-          if (ma.sigCanvas.toDataURL() !== empty.toDataURL()) {
-            doc.addImage(ma.sigCanvas.toDataURL('image/png'), 'PNG', PL + 90, y - 6, 60, 16);
-          } else {
-            doc.setDrawColor(150); doc.line(PL + 90, y + 8, PL + 150, y + 8);
-          }
-        }
-        y += 20;
-      });
+  // Unterschrift Prüfer — nur bei normalen Prüflisten (nicht GFB)
+  if (!isGFBpdf) {
+    if (y > 240) { doc.addPage(); y = PT; }
+    doc.setDrawColor(220, 220, 220); doc.line(PL, y, PL + PW, y); y += 6;
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(26, 58, 92);
+    doc.text('UNTERSCHRIFT PRÜFER', PL, y); y += 4;
+    if (!isSignatureEmpty()) {
+      const sigData = sigPad.canvas.toDataURL('image/png');
+      doc.addImage(sigData, 'PNG', PL, y, 80, 25);
+      y += 28;
+    } else {
+      doc.setDrawColor(100, 100, 100);
+      doc.line(PL, y + 20, PL + 80, y + 20);
+      y += 28;
     }
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(0);
+    doc.text(pruefer || '___________________________', PL, y);
+    y += 10;
   }
 
   // Footer
