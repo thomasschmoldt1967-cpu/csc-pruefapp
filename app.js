@@ -581,6 +581,150 @@ async function generatePDF() {
     doc.text(lines, PL, y); y += lines.length * 5 + 6;
   }
 
+  // ===== GFB: Risikobewertung nach Gefährdungsgruppen =====
+  const isGFBrisk = (currentBereich.liste === 'gfb_szp' || currentBereich.liste === 'gfb_glasreinigung');
+  if (isGFBrisk) {
+    // Seite Risikobewertung (wie Seite 4 im Original)
+    doc.addPage(); y = PT;
+    // Seitenheader (gleiche Funktion wird später nach isGFBpdf-Block definiert — hier inline)
+    doc.setFillColor(26, 58, 92); doc.rect(0, 0, 210, 22, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(14); doc.setFont('helvetica', 'bold');
+    doc.text('GEFÄHRDUNGSBEURTEILUNG', PL, 10);
+    doc.setFontSize(9); doc.setFont('helvetica', 'normal');
+    doc.text('Seilunterstützte Zugangs- und Positionierungstechniken (SZP) / PSAgA', PL, 17);
+    doc.setFontSize(8);
+    doc.text('Erstellt gemäß ArbSchG § 5 / DGUV Vorschrift 1 § 3 / DIN EN 363', PL, 21);
+    doc.setTextColor(0); y = 28;
+
+    // Abschnittstitel
+    doc.setFillColor(238, 242, 247); doc.rect(PL, y - 3, PW, 8, 'F');
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(26, 58, 92);
+    doc.text('3  RISIKOBEWERTUNG UND MASSNAHMENPLANUNG', PL + 2, y + 3);
+    y += 12; doc.setTextColor(0);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
+    doc.text('Risiko = Eintrittswahrscheinlichkeit (E: 1–6) × Schadensschwere (S: A–F). Maßnahmen reduzieren das Risiko auf ein akzeptables Restrisiko.', PL, y);
+    y += 7;
+
+    // Tabellenkopf
+    const cNr=8, cGef=50, cE=8, cS=8, cMass=60, cEn=8, cSn=8, cVer=22, cErl=18;
+    const cols = [PL, PL+cNr, PL+cNr+cGef, PL+cNr+cGef+cE, PL+cNr+cGef+cE+cS,
+                  PL+cNr+cGef+cE+cS+cMass, PL+cNr+cGef+cE+cS+cMass+cEn,
+                  PL+cNr+cGef+cE+cS+cMass+cEn+cSn, PL+cNr+cGef+cE+cS+cMass+cEn+cSn+cVer];
+    const rowH = 7;
+
+    function risikoZeile(doc, zeile, nr, gef, e, s, mass, en, sn, ver, erl, isHeader) {
+      if (zeile > 268) { doc.addPage(); zeile = PT + 8; }
+      const bg = isHeader ? [26, 58, 92] : (nr % 2 === 0 ? [248, 249, 251] : [255, 255, 255]);
+      doc.setFillColor(...bg); doc.rect(PL, zeile, PW, rowH, 'F');
+      doc.setDrawColor(200, 200, 200); doc.rect(PL, zeile, PW, rowH, 'S');
+      const tc = isHeader ? [255,255,255] : [0,0,0];
+      doc.setTextColor(...tc);
+      doc.setFont('helvetica', isHeader ? 'bold' : 'normal'); doc.setFontSize(8);
+      const massLines = doc.splitTextToSize(mass, cMass - 2);
+      const hh = Math.max(massLines.length * 4.5, rowH);
+      if (hh > rowH) {
+        doc.setFillColor(...bg); doc.rect(PL, zeile, PW, hh, 'F');
+        doc.setDrawColor(200,200,200); doc.rect(PL, zeile, PW, hh, 'S');
+      }
+      const cy = zeile + 5;
+      doc.text(String(nr),   cols[0]+1, cy);
+      doc.text(gef,          cols[1]+1, cy, { maxWidth: cGef-2 });
+      doc.text(String(e),    cols[2]+1, cy);
+      doc.text(String(s),    cols[3]+1, cy);
+      doc.text(massLines,    cols[4]+1, cy);
+      doc.text(String(en),   cols[5]+1, cy);
+      doc.text(String(sn),   cols[6]+1, cy);
+      doc.text(ver,          cols[7]+1, cy, { maxWidth: cVer-1 });
+      doc.text(erl,          cols[8]+1, cy, { maxWidth: cErl-1 });
+      return zeile + hh;
+    }
+
+    y = risikoZeile(doc, y, 'Nr.', 'Gefährdung (Tätigkeit)', 'E', 'S', 'Schutzmaßnahmen', 'E', 'S', 'Verantwortl.', 'Erl. bis', true);
+
+    const risikoData = [
+      [1, 'Absturz bei SZP-Einsatz', 4, 'F', 'PSAgA anlegen; Trag- + Sicherungsseil an 2 unabh. Ankerpunkten; Buddy-Check', 2, 'C', 'Aufsichtf.', 'vor Einsatz'],
+      [2, 'Absturz / Stolpern auf Wegen', 3, 'D', 'Gurtpflicht ab 3 m vor Absturzkante; PSAgA; geeignetes Schuhwerk', 1, 'B', 'Aufsichtf.', 'vor Einsatz'],
+      [3, 'Unkontrollierter Pendelabsturz', 3, 'E', 'Sicherungsseil kurzhalten; Pendelbogen prüfen; sichere Abseilroute', 2, 'C', 'Aufsichtf.', 'vor Einsatz'],
+      [4, 'Infektionen / Hygiene', 2, 'C', 'Hygiene- und Schutzvorschriften einhalten; ggf. Einweganzug', 1, 'B', 'Teamführer', 'täglich'],
+      [5, 'Hitzestress / Kälte', 3, 'C', 'Ausreichend Flüssigkeit; witterungsgerechte Kleidung; Pausenregelung', 2, 'B', 'Teamführer', 'täglich'],
+      [6, 'Dritte im Gefahrenbereich', 4, 'D', 'Absperrband + Hinweisschilder; Bodenpersonal einweisen; Bereich sichern', 2, 'B', 'Aufsichtf.', 'vor Einsatz'],
+      [7, 'Materialfall / Werkzeugfall', 3, 'E', 'Werkzeuge sichern (Lanyards); Schutzhelm für alle Personen im Bereich', 2, 'C', 'Aufsichtf.', 'vor Einsatz'],
+      [8, 'Ankerpunkte ungeeignet', 3, 'F', 'Ankerpunkte vor Nutzung prüfen; Prüfberichte vorhanden; ggf. Nachrüstung', 1, 'C', 'Aufsichtf.', 'vor Einsatz'],
+    ];
+    risikoData.forEach(r => {
+      y = risikoZeile(doc, y, r[0], r[1], r[2], r[3], r[4], r[5], r[6], r[7], r[8], false);
+    });
+    y += 8;
+
+    // Seite: Notfall- und Rettungsplan Kurzform (Seite 5 im Original)
+    doc.addPage(); y = PT;
+    doc.setFillColor(26, 58, 92); doc.rect(0, 0, 210, 22, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(14); doc.setFont('helvetica', 'bold'); doc.text('GEFÄHRDUNGSBEURTEILUNG', PL, 10);
+    doc.setFontSize(9); doc.setFont('helvetica', 'normal');
+    doc.text('Seilunterstützte Zugangs- und Positionierungstechniken (SZP) / PSAgA', PL, 17);
+    doc.setFontSize(8); doc.text('Erstellt gemäß ArbSchG § 5 / DGUV Vorschrift 1 § 3 / DIN EN 363', PL, 21);
+    doc.setTextColor(0); y = 28;
+
+    doc.setFillColor(238, 242, 247); doc.rect(PL, y-3, PW, 8, 'F');
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(26, 58, 92);
+    doc.text('4  NOTFALL- UND RETTUNGSPLAN', PL+2, y+3); y += 12; doc.setTextColor(0);
+
+    // Felder-Tabelle 2-spaltig wie Original
+    const nfFelder = [
+      ['Notruf:', '112 (Feuerwehr / Rettungsdienst)', 'Polizei:', '110'],
+      ['Betriebsinterne Notfallnummer:', '', 'Nächster Arzt / Krankenhaus:', ''],
+      ['Sammelplatz bei Evakuierung:', 'Laut Plan und Hinweise im Objekt', 'Erste-Hilfe-Material vorhanden:', 'Ja  ☑   Nein  ☐'],
+    ];
+    nfFelder.forEach(([l1, v1, l2, v2]) => {
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(26, 58, 92);
+      doc.text(l1, PL+2, y);
+      doc.setFont('helvetica', 'normal'); doc.setTextColor(0);
+      if (v1) doc.text(v1, PL+52, y);
+      doc.setFont('helvetica', 'bold'); doc.setTextColor(26, 58, 92);
+      doc.text(l2, PL+100, y);
+      doc.setFont('helvetica', 'normal'); doc.setTextColor(0);
+      if (v2) doc.text(v2, PL+148, y);
+      y += 8;
+    });
+
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(26, 58, 92);
+    doc.text('Rettungsweg / Rettungsverfahren:', PL+2, y);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(0); y += 6;
+    const rvLines = doc.splitTextToSize('Rettung einer verletzten/hängenden Person grundsätzlich nach UNTEN zum Boden. Rettungsplan aushängen. Alle Teammitglieder kennen den Plan.', PW-4);
+    doc.text(rvLines, PL+2, y); y += rvLines.length*5 + 8;
+
+    // Abschnitt 5: Freigabe und Unterschriften (wie Seite 5 im Original)
+    doc.setFillColor(238, 242, 247); doc.rect(PL, y-3, PW, 8, 'F');
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(26, 58, 92);
+    doc.text('5  FREIGABE UND UNTERSCHRIFTEN', PL+2, y+3); y += 12; doc.setTextColor(0);
+
+    const freiCols = ['Erstellt durch', 'Geprüft durch', 'Freigegeben durch'];
+    const freiW = PW / 3;
+    freiCols.forEach((titel, i) => {
+      const fx = PL + i * freiW;
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(26, 58, 92);
+      doc.text(titel, fx+2, y);
+    });
+    y += 7;
+    freiCols.forEach((_, i) => {
+      const fx = PL + i * freiW;
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(0);
+      doc.text('Name: Thomas Schmoldt', fx+2, y);
+      doc.text('Funktion: Aufsichtsführender Höhenarbeiter Level 3', fx+2, y+5, { maxWidth: freiW-4 });
+      doc.text(`Datum: ${formatDatum(now).split(' ')[0]}`, fx+2, y+14);
+      doc.setFontSize(8); doc.setTextColor(100,100,100);
+      doc.text('Unterschrift', fx+2, y+22);
+      doc.setDrawColor(120); doc.line(fx+2, y+30, fx+freiW-4, y+30);
+    });
+    y += 36;
+
+    doc.setFontSize(8); doc.setTextColor(80,80,80);
+    const hinweis = doc.splitTextToSize('Dieses Dokument ist gemäß ArbSchG aufzubewahren und bei Bedarf der zuständigen Behörde vorzulegen. Die Gefährdungsbeurteilung ist bei wesentlichen Änderungen der Arbeitsbedingungen zu aktualisieren.', PW);
+    doc.text(hinweis, PL, y); y += hinweis.length*4+6; doc.setTextColor(0);
+  }
+
   // Fotos — nur wenn vorhanden
   const aktiveFotos = fotoListe.filter(f => f !== null);
   if (aktiveFotos.length > 0) {
@@ -1003,6 +1147,177 @@ async function generatePDF() {
 
     } // end gfb_szp
   } // end isGFBpdf
+
+  // ===== GFB: Unterweisungsliste (Seite 11–12 im Original) =====
+  if (isGFBpdf) {
+    // Seite 11: Einsatz- und Objektdaten + Unterweisungsthemen
+    doc.addPage(); y = PT;
+    doc.setFillColor(26, 58, 92); doc.rect(0, 0, 210, 22, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(14); doc.setFont('helvetica', 'bold'); doc.text('GEFÄHRDUNGSBEURTEILUNG', PL, 10);
+    doc.setFontSize(9); doc.setFont('helvetica', 'normal');
+    doc.text('Seilunterstützte Zugangs- und Positionierungstechniken (SZP) / PSAgA', PL, 17);
+    doc.setFontSize(8); doc.text('Erstellt gemäß ArbSchG § 5 / DGUV Vorschrift 1 § 3 / DIN EN 363', PL, 21);
+    doc.setTextColor(0); y = 28;
+
+    // Abschnitt 1: Einsatz- und Objektdaten
+    doc.setFillColor(238, 242, 247); doc.rect(PL, y-3, PW, 8, 'F');
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(26, 58, 92);
+    doc.text('1  EINSATZ- UND OBJEKTDATEN', PL+2, y+3); y += 12; doc.setTextColor(0);
+
+    const uwFelder = [
+      ['Unternehmen:', 'CSC GmbH', 'Datum der Unterweisung:', formatDatum(now).split(' ')[0]],
+      ['Objekt / Einsatzort:', gfbObjekt || '', 'Unterweisender (Aufsichtsführender):', pruefer],
+      ['Art der Unterweisung:', 'Gefährdungsbeurteilung SZP', 'Bezug zu Gefährdungsbeurteilung:', 'GFB SZP'],
+    ];
+    uwFelder.forEach(([l1, v1, l2, v2]) => {
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(26, 58, 92);
+      doc.text(l1, PL+2, y);
+      doc.setFont('helvetica', 'normal'); doc.setTextColor(0);
+      doc.text(v1, PL+45, y, { maxWidth: 45 });
+      doc.setFont('helvetica', 'bold'); doc.setTextColor(26, 58, 92);
+      doc.text(l2, PL+100, y);
+      doc.setFont('helvetica', 'normal'); doc.setTextColor(0);
+      doc.text(v2, PL+148, y, { maxWidth: 37 });
+      y += 8;
+    });
+
+    // Erstunterweisung / Wiederholung
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(26, 58, 92);
+    doc.text('X  Erstunterweisung', PL+2, y);
+    doc.setFont('helvetica', 'normal'); doc.setTextColor(0);
+    doc.text('☐  Wiederholung', PL+60, y); y += 10;
+
+    // Abschnitt 2: Unterweisungsthemen
+    doc.setFillColor(238, 242, 247); doc.rect(PL, y-3, PW, 8, 'F');
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(26, 58, 92);
+    doc.text('2  UNTERWEISUNGSTHEMEN UND INHALTE', PL+2, y+3); y += 12; doc.setTextColor(0);
+
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
+    const uwEinleit = doc.splitTextToSize('Die nachfolgenden Sicherheitsthemen wurden besprochen und sind von den Unterwiesenen gelesen und verstanden worden.', PW-4);
+    doc.text(uwEinleit, PL+2, y); y += uwEinleit.length*5+4;
+
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
+    const uwBest = doc.splitTextToSize('Ich wurde gemäß der Gefährdungsbeurteilung/Objektsicherheitsbeurteilung, dem Notfall- und Rettungsplan sowie der Betriebsanweisung SZP unterwiesen.', PW-4);
+    doc.text(uwBest, PL+2, y); y += uwBest.length*5+2;
+    doc.setFont('helvetica', 'normal');
+    doc.text('Diese habe ich gelesen und verstanden. Alle Fragen wurden beantwortet.', PL+2, y); y += 8;
+
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
+    doc.text('Besprochene Themen:', PL+2, y); y += 7;
+
+    const uwThemen = [
+      'Rettung einer verletzten Person grundsätzlich nach UNTEN zum Boden (Rettungsplan bekannt)',
+      'Es wird grundsätzlich im Team gearbeitet – Sicht- und Rufkontakt jederzeit halten',
+      'Ausrüstung vor jedem Einsatz auf Betriebssicherheit prüfen (Sichtprüfung)',
+      'Gurtpflicht ab 3 m vor der Absturzkante (Anschlagen an Haltepunkten)',
+      'Trag- und Sicherungsseil an je zwei unabhängigen Ankerpunkten befestigen',
+      'Buddy-Check vor jeder Besteigung: gegenseitige Überprüfung von Gurt, Knoten und Gerät',
+      'Erste-Hilfe-Ausrüstung (Koffer) mitführen – Standort bekannt',
+      'Beachten aller einschlägigen Richtlinien bei Arbeiten mittels PSAgA (DIN EN 363 etc.)',
+      'Tragen entsprechender Arbeitsschutzkleidung: Sicherheitsschuhe S3 und Helm (Pflicht)',
+      'Weitere Schutzkleidung wird entsprechend der Arbeiten bereitgestellt',
+      'Absperrung des Arbeitsbereichs durch Absperrband und Hinweisschilder',
+      'Werkzeuge und Arbeitsmittel gegen Herabfallen sichern (Lanyards, Werkzeugpouches)',
+      'Kommunikation: Kommunikationsregeln und -mittel festgelegt und bekannt',
+      'Verhalten bei Unterbrechung der Arbeiten: Arbeitsmittel sichern, alle Beteiligten informieren',
+      'Notrufnummern und betriebsinterne Notfallnummer bekannt (112 / 110)',
+      'Sammelplatz und Evakuierungsplan bekannt',
+    ];
+    uwThemen.forEach((t, i) => {
+      if (y > 268) { doc.addPage(); y = PT + 8; }
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(26,58,92);
+      doc.text(String(i+1), PL+2, y);
+      doc.setFont('helvetica', 'normal'); doc.setTextColor(0);
+      const lines = doc.splitTextToSize(t, PW-12);
+      doc.text(lines, PL+10, y);
+      y += lines.length*5+1;
+    });
+    y += 6;
+
+    // Seite 12: Unterschriftenliste der Unterweisenen
+    doc.addPage(); y = PT;
+    doc.setFillColor(26, 58, 92); doc.rect(0, 0, 210, 22, 'F');
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(14); doc.setFont('helvetica', 'bold'); doc.text('GEFÄHRDUNGSBEURTEILUNG', PL, 10);
+    doc.setFontSize(9); doc.setFont('helvetica', 'normal');
+    doc.text('Seilunterstützte Zugangs- und Positionierungstechniken (SZP) / PSAgA', PL, 17);
+    doc.setFontSize(8); doc.text('Erstellt gemäß ArbSchG § 5 / DGUV Vorschrift 1 § 3 / DIN EN 363', PL, 21);
+    doc.setTextColor(0); y = 28;
+
+    doc.setFillColor(238, 242, 247); doc.rect(PL, y-3, PW, 8, 'F');
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(26, 58, 92);
+    doc.text('3  UNTERSCHRIFTENLISTE DER UNTERWEISENEN', PL+2, y+3); y += 12; doc.setTextColor(0);
+
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
+    const uwHinweis = doc.splitTextToSize('Mit ihrer Unterschrift bestätigen die Mitarbeiter, dass sie an der Unterweisung teilgenommen haben, die Inhalte verstanden haben und sich verpflichten, die Sicherheitsregeln einzuhalten.', PW-4);
+    doc.text(uwHinweis, PL+2, y); y += uwHinweis.length*4+6;
+
+    // Tabellenkopf Unterschriftenliste
+    const uwC = [PL, PL+10, PL+70, PL+110, PL+130];
+    const uwH = 7;
+    doc.setFillColor(26,58,92); doc.rect(PL, y, PW, uwH, 'F');
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(255,255,255);
+    doc.text('Nr.', uwC[0]+1, y+5);
+    doc.text('Nachname, Vorname', uwC[1]+1, y+5);
+    doc.text('SZP-Qualifikation / Level', uwC[2]+1, y+5);
+    doc.text('Datum', uwC[3]+1, y+5);
+    doc.text('Unterschrift', uwC[4]+1, y+5);
+    y += uwH;
+
+    // Mitarbeiter aus der Mitarbeiterliste eintragen
+    const aktiveMaUW = gfbMitarbeiter.filter(m => m !== null);
+    const maxRows = Math.max(aktiveMaUW.length + 2, 5);
+    for (let i = 0; i < maxRows; i++) {
+      if (y > 268) break;
+      const ma = aktiveMaUW[i] || null;
+      const bg = i % 2 === 0 ? [255,255,255] : [248,249,251];
+      doc.setFillColor(...bg); doc.rect(PL, y, PW, uwH*2, 'F');
+      doc.setDrawColor(200,200,200); doc.rect(PL, y, PW, uwH*2, 'S');
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(0);
+      doc.text(String(i+1), uwC[0]+1, y+5);
+      if (ma && ma.name) doc.text(ma.name, uwC[1]+1, y+5);
+      // Unterschrift des MA
+      if (ma && ma.sigCanvas) {
+        const empty = document.createElement('canvas');
+        empty.width = ma.sigCanvas.width; empty.height = ma.sigCanvas.height;
+        if (ma.sigCanvas.toDataURL() !== empty.toDataURL()) {
+          doc.addImage(ma.sigCanvas.toDataURL('image/png'), 'PNG', uwC[4]+1, y+1, 50, 11);
+        }
+      }
+      y += uwH*2;
+    }
+    y += 8;
+
+    // Abschnitt 4: Bestätigung des Unterweisenden
+    if (y > 220) { doc.addPage(); y = PT + 8; }
+    doc.setFillColor(238, 242, 247); doc.rect(PL, y-3, PW, 8, 'F');
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(26, 58, 92);
+    doc.text('4  BESTÄTIGUNG DES UNTERWEISENDEN', PL+2, y+3); y += 12; doc.setTextColor(0);
+
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
+    doc.text(`Unterweisender (Name, Vorname): `, PL+2, y);
+    doc.setFont('helvetica', 'bold'); doc.text(pruefer, PL+62, y); y += 7;
+    doc.setFont('helvetica', 'normal'); doc.text('Funktion / SZP-Level: ', PL+2, y);
+    doc.setFont('helvetica', 'bold'); doc.text('3', PL+44, y);
+    doc.setFont('helvetica', 'normal'); doc.text(`Datum: ${formatDatum(now).split(' ')[0]}`, PL+100, y); y += 10;
+
+    // Unterschrift Unterweisender (Hauptunterschrift aus App)
+    if (!isSignatureEmpty()) {
+      const sigData = sigPad.canvas.toDataURL('image/png');
+      doc.addImage(sigData, 'PNG', PL, y, 70, 20); y += 22;
+    } else {
+      doc.setDrawColor(100); doc.line(PL, y+18, PL+70, y+18); y += 22;
+    }
+    doc.setFontSize(8); doc.setTextColor(100,100,100);
+    doc.text('Unterschrift des Unterweisenden', PL, y); y += 6;
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
+    const bestText = doc.splitTextToSize('Hiermit bestätige ich, dass alle oben genannten Mitarbeiter über die aufgeführten Sicherheitsthemen unterwiesen wurden. Die Unterweisung erfolgte gemäß ArbSchG § 12, DGUV Vorschrift 1 § 4 sowie der betrieblichen Gefährdungsbeurteilung SZP.', PW/2);
+    doc.text(bestText, PL+80, y - bestText.length*4 - 6); y += 4;
+    doc.setTextColor(80,80,80);
+    doc.text('Aufbewahrung: Mindestens 1 Jahr nach der Unterweisung.', PL, y);
+    doc.setTextColor(0); y += 10;
+  }
 
   // Unterschrift Aufsichtsführender / Prüfer
   const sigLabel = isGFBpdf ? 'UNTERSCHRIFT AUFSICHTSFÜHRENDER' : 'UNTERSCHRIFT PRÜFER';
