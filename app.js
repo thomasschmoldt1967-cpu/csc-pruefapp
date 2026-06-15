@@ -4,10 +4,10 @@
 
 // ===== LOGIN / AUTH =====
 const CSC_USERS = [
-  { name: 'Thomas Schmoldt',    email: 'thomas@csc-hannover.de',    hash: 'd5651848baa6169aa41a065d20fb0f5c2329acf84cb6544369a9b5e1d18323ef' },
-  { name: 'Katharina Schmoldt', email: 'katharina@csc-hannover.de', hash: 'c9437b3ac9f18eaf498d5576175325b5fae93eb137a5774d59c276a39d3c604f' },
-  { name: 'Fabian Romyke',      email: 'fabian@csc-hannover.de',    hash: 'eeb9f5bdc61ca39d968cab3e00d217a704418facfea9ad384302a8baa39b8bbd' },
-  { name: 'Klaus Stark',        email: 'klaus@csc-hannover.de',     hash: '78b673ed23e33cde5e839668445f6bbde2a41046f9ce716d3236b3f44d652114' },
+  { name: 'Thomas Schmoldt',    email: 'thomas@csc-hannover.de',    sendTo: 'tschmoldt@csc-hannover.de',        hash: 'd5651848baa6169aa41a065d20fb0f5c2329acf84cb6544369a9b5e1d18323ef' },
+  { name: 'Katharina Schmoldt', email: 'katharina@csc-hannover.de', sendTo: 'reinigung@csc-hannover.de',         hash: 'c9437b3ac9f18eaf498d5576175325b5fae93eb137a5774d59c276a39d3c604f' },
+  { name: 'Fabian Romeike',     email: 'fabian@csc-hannover.de',    sendTo: 'glasreinigung@csc-hannover.de',     hash: 'eeb9f5bdc61ca39d968cab3e00d217a704418facfea9ad384302a8baa39b8bbd' },
+  { name: 'Klaus Stark',        email: 'klaus@csc-hannover.de',     sendTo: 'tschmoldt@csc-hannover.de',        hash: '78b673ed23e33cde5e839668445f6bbde2a41046f9ce716d3236b3f44d652114' },
 ];
 const SESSION_KEY   = 'csc_session';
 const SESSION_HOURS = 24; // Session gültig für 24 Stunden
@@ -48,6 +48,7 @@ async function doLogin() {
   localStorage.setItem(SESSION_KEY, JSON.stringify({
     name:    user.name,
     email:   user.email,
+    sendTo:  user.sendTo || user.email,
     expires: Date.now() + SESSION_HOURS * 3600 * 1000
   }));
 
@@ -160,6 +161,10 @@ function renderHome() {
 
   // Mängel-Button laden
   renderMaengelButton();
+  // Dashboard Statistik laden
+  renderDashboard();
+  // Offline-Queue hochladen falls nötig
+  offlineQueueFlush().catch(() => {});
 }
 
 // Ampel-Aggregat für eine Gruppe (schlechtester Status aller Bereiche)
@@ -651,7 +656,15 @@ async function submitChecklist() {
   showLoading(true);
   try {
     const pdfBlob = await generatePDF();
-    await uploadToDrive(pdfBlob);
+    let driveOk = false;
+    try {
+      await uploadToDrive(pdfBlob);
+      driveOk = true;
+    } catch (driveErr) {
+      // Offline? → PDF lokal speichern + in Queue eintragen
+      console.warn('[Drive] Upload fehlgeschlagen (offline?):', driveErr.message);
+      offlineQueueAdd(pdfBlob);
+    }
 
     // ── Firebase: Prüfung speichern ──────────────────────────
     const bemerkungText = document.getElementById('bemerkung').value.trim();
@@ -671,10 +684,17 @@ async function submitChecklist() {
     }
     // ─────────────────────────────────────────────────────────
 
-    showResult(true);
+    // ── E-Mail anbieten ───────────────────────────────────────
+    const session = checkSession();
+    if (session && session.sendTo) {
+      currentPdfBlob = pdfBlob;
+      showResult(true, driveOk, session.sendTo);
+    } else {
+      showResult(true, driveOk, null);
+    }
   } catch (err) {
     console.error(err);
-    showResult(false, err.message);
+    showResult(false, false, null, err.message);
   } finally {
     showLoading(false);
   }
@@ -1617,20 +1637,151 @@ function handleQRResult(text) {
 }
 
 // ===== RESULT =====
-function showResult(success, errMsg) {
+// ===== PDF per E-Mail senden =====
+let currentPdfBlob = null;
+
+function emailPDF(toAddress) {
+  if (!currentPdfBlob) return;
+  const now = new Date();
+  const filename = `${formatDatumISO(now)}_${currentBereich ? currentBereich.id : 'pruefung'}_KW${getKW(now)}.pdf`;
+  const bereichName = currentBereich ? currentBereich.name : 'Prüfung';
+  const subject = encodeURIComponent(`CSC Prüfbericht: ${bereichName} vom ${formatDatumISO(now)}`);
+  const body = encodeURIComponent(`Bitte das angehängte Prüf-PDF weiterverarbeiten.\n\nBereich: ${bereichName}\nDatum: ${formatDatum(now)}\n\nCSC Hannover Prüf-App`);
+  // PDF lokal herunterladen (Browser-Download ist nötig da Anhang via mailto nicht geht)
+  const url = URL.createObjectURL(currentPdfBlob);
+  const a = document.createElement('a');
+  a.href = url; a.download = filename; a.click();
+  // Dann mailto öffnen
+  setTimeout(() => {
+    window.location.href = `mailto:${toAddress}?subject=${subject}&body=${body}`;
+  }, 800);
+}
+
+function showResult(success, driveOk, emailTo, errMsg) {
   const icon = document.getElementById('result-icon');
   const text = document.getElementById('result-text');
   const sub  = document.getElementById('result-sub');
+  const emailBtn = document.getElementById('result-email-btn');
   if (success) {
     icon.textContent = '✅';
     text.textContent = 'Prüfung gespeichert!';
-    sub.textContent  = `PDF in Google Drive abgelegt · ${formatDatum(new Date())}`;
+    if (driveOk) {
+      sub.textContent = `PDF in Google Drive abgelegt · ${formatDatum(new Date())}`;
+    } else {
+      sub.textContent = `⚠️ Offline – PDF lokal gespeichert. Wird hochgeladen sobald online.`;
+    }
+    // E-Mail-Button
+    if (emailBtn) {
+      if (emailTo) {
+        emailBtn.style.display = 'block';
+        emailBtn.textContent = `📧 Per E-Mail senden (${emailTo})`;
+        emailBtn.onclick = () => emailPDF(emailTo);
+      } else {
+        emailBtn.style.display = 'none';
+      }
+    }
   } else {
     icon.textContent = '⚠️';
     text.textContent = 'Fehler beim Hochladen';
     sub.textContent  = errMsg || 'PDF wurde lokal heruntergeladen.';
+    if (emailBtn) emailBtn.style.display = 'none';
   }
   showScreen('result');
+}
+
+// ===== OFFLINE QUEUE =====
+function offlineQueueAdd(pdfBlob) {
+  // PDF als Data-URL in localStorage speichern
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const queue = JSON.parse(localStorage.getItem('offline_queue') || '[]');
+      const now = new Date();
+      const filename = `${formatDatumISO(now)}_${currentBereich ? currentBereich.id : 'pruefung'}_KW${getKW(now)}.pdf`;
+      const folderId = (APP_CONFIG.googleDriveUnterordner || {})[currentBereich?.liste] || APP_CONFIG.googleDriveFolderId;
+      queue.push({ dataUrl: e.target.result, filename, folderId, ts: Date.now() });
+      // Max 5 in Queue
+      while (queue.length > 5) queue.shift();
+      localStorage.setItem('offline_queue', JSON.stringify(queue));
+      console.log('[Offline] PDF in Queue gespeichert:', filename);
+    } catch(err) { console.warn('[Offline] Queue-Fehler:', err); }
+  };
+  reader.readAsDataURL(pdfBlob);
+  // Lokal herunterladen als Backup
+  const url = URL.createObjectURL(pdfBlob);
+  const a = document.createElement('a');
+  const now2 = new Date();
+  a.href = url;
+  a.download = `${formatDatumISO(now2)}_${currentBereich ? currentBereich.id : 'pruefung'}_KW${getKW(now2)}.pdf`;
+  a.click();
+}
+
+async function offlineQueueFlush() {
+  const queue = JSON.parse(localStorage.getItem('offline_queue') || '[]');
+  if (queue.length === 0) return;
+  const token = await getDriveToken();
+  if (!token) return;
+  const remaining = [];
+  for (const item of queue) {
+    try {
+      const byteStr = atob(item.dataUrl.split(',')[1]);
+      const arr = new Uint8Array(byteStr.length);
+      for (let i = 0; i < byteStr.length; i++) arr[i] = byteStr.charCodeAt(i);
+      const blob = new Blob([arr], { type: 'application/pdf' });
+      const form = new FormData();
+      form.append('metadata', new Blob([JSON.stringify({ name: item.filename, parents: [item.folderId] })], { type: 'application/json' }));
+      form.append('file', blob);
+      const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+        method: 'POST', headers: { Authorization: 'Bearer ' + token }, body: form
+      });
+      if (res.ok) {
+        console.log('[Offline] Nachgeladener Upload OK:', item.filename);
+      } else {
+        remaining.push(item);
+      }
+    } catch(e) { remaining.push(item); }
+  }
+  localStorage.setItem('offline_queue', JSON.stringify(remaining));
+  if (remaining.length < queue.length) {
+    const delta = queue.length - remaining.length;
+    console.log(`[Offline] ${delta} PDF(s) nachträglich hochgeladen.`);
+  }
+}
+
+// ===== DASHBOARD STATISTIK (Home-Screen) =====
+async function renderDashboard() {
+  const el = document.getElementById('dashboard-stats');
+  if (!el || typeof window.fbGetAmpelAlle !== 'function') return;
+  let total = 0, gruen = 0, gelb = 0, rot = 0;
+  for (const s of APP_CONFIG.standorte) {
+    for (const g of (s.gruppen || [])) {
+      for (const b of (g.bereiche || [])) {
+        total++;
+        const status = await window.fbGetAmpel(b.id, b.liste);
+        if (status === 'gruen') gruen++;
+        else if (status === 'gelb') gelb++;
+        else if (status === 'rot') rot++;
+      }
+    }
+  }
+  const geprüft = gruen + gelb + rot;
+  el.innerHTML = `
+    <div class="dashboard-row">
+      <span>📋 Bereiche gesamt</span><strong>${total}</strong>
+    </div>
+    <div class="dashboard-row">
+      <span>✅ Aktuell</span><strong style="color:#2a9d2a">${gruen}</strong>
+    </div>
+    <div class="dashboard-row">
+      <span>🟡 Bald fällig</span><strong style="color:#e6a817">${gelb}</strong>
+    </div>
+    <div class="dashboard-row">
+      <span>🔴 Überfällig</span><strong style="color:#c0392b">${rot}</strong>
+    </div>
+    <div class="dashboard-row" style="border-top:1px solid #ddd;margin-top:4px;padding-top:6px">
+      <span>📊 Geprüft diesen Monat</span><strong>${geprüft} / ${total}</strong>
+    </div>
+  `;
 }
 
 // ===== LOADING =====

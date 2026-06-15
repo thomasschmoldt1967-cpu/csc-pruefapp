@@ -68,6 +68,8 @@
       <span class="icon">📷</span> QR-Code scannen
     </button>
     <div class="divider">— oder manuell wählen —</div>
+    <!-- Dashboard Statistik -->
+    <div id="dashboard-stats" class="dashboard-box"></div>
     <div id="standort-liste"></div>
   </div>
 </div>
@@ -192,7 +194,8 @@
     <div class="result-icon" id="result-icon">✅</div>
     <div class="result-text" id="result-text">Prüfung gespeichert!</div>
     <div class="result-sub" id="result-sub"></div>
-    <button class="btn-primary" onclick="showScreen('home')">Neue Prüfung</button>
+    <button id="result-email-btn" class="btn-secondary" style="display:none;margin-top:12px;width:100%"></button>
+    <button class="btn-primary" style="margin-top:12px" onclick="showScreen('home')">Neue Prüfung</button>
   </div>
 </div>
 
