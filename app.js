@@ -172,8 +172,18 @@ async function renderAmpelGruppe(standortId, gruppe) {
   if (typeof window.fbGetAmpelAlle !== 'function') return;
   const badge = document.getElementById(`ampel-gruppe-${standortId}-${gruppe.id}`);
   if (!badge) return;
-  const ampeln = await window.fbGetAmpelAlle(gruppe.bereiche);
-  const vals = Object.values(ampeln);
+
+  let vals;
+  // Leitern: dynamische bereichIds aus Firestore laden
+  if (gruppe.id === 'leitern' && typeof window.fbGetAmpelLeitern === 'function') {
+    const ampeln = await window.fbGetAmpelLeitern();
+    vals = Object.values(ampeln);
+    if (vals.length === 0) vals = ['unbekannt'];
+  } else {
+    const ampeln = await window.fbGetAmpelAlle(gruppe.bereiche);
+    vals = Object.values(ampeln);
+  }
+
   let status = 'unbekannt';
   if (vals.includes('rot'))        status = 'rot';
   else if (vals.includes('gelb'))  status = 'gelb';
@@ -277,6 +287,24 @@ async function renderAmpelBereich(b) {
   const badge   = document.getElementById(`ampel-bereich-${b.id}`);
   const letzter = document.getElementById(`letzter-${b.id}`);
   if (!badge) return;
+
+  // Leitern: schlechtester Status aller leiter_* aus Firestore
+  if (b.id === 'leiter_sammel' && typeof window.fbGetAmpelLeitern === 'function') {
+    const ampeln = await window.fbGetAmpelLeitern();
+    const vals = Object.values(ampeln);
+    let status = 'unbekannt';
+    if (vals.includes('rot'))        status = 'rot';
+    else if (vals.includes('gelb'))  status = 'gelb';
+    else if (vals.length > 0)        status = 'gruen';
+    const label = { rot: '🔴', gelb: '🟡', gruen: '🟢', unbekannt: '⚪' };
+    badge.textContent = label[status] || '⚪';
+    badge.className   = `ampel-badge ampel-${status}`;
+    if (letzter) {
+      const count = vals.length;
+      letzter.textContent = count > 0 ? `${count} Leiter(n) geprüft` : 'Noch keine Prüfung';
+    }
+    return;
+  }
 
   const status = await window.fbGetAmpel(b.id, b.liste);
   const label  = { rot: '🔴', gelb: '🟡', gruen: '🟢', unbekannt: '⚪' };
@@ -462,6 +490,7 @@ function renderChecklist() {
   // Felder leeren / Standardwerte setzen
   document.getElementById('formular-standort').value = 'Raschplatz 5';
   document.getElementById('aufzug-nr').value = '';
+  document.getElementById('leiter-nr').value = '';
   document.getElementById('leiter-typ').value = '';
   document.getElementById('gfb-objekt').value = '';
   document.getElementById('gfb-auftraggeber').value = '';
@@ -652,6 +681,15 @@ async function submitChecklist() {
     alert(isGFB ? 'Bitte Name des Aufsichtsführenden eingeben.' : 'Bitte Name des Prüfers eingeben.');
     return;
   }
+  // Leiter-Nr. Pflichtfeld
+  if (currentBereich.liste === 'leiterkontrolle') {
+    const leiterNrVal = document.getElementById('leiter-nr').value.trim();
+    if (!leiterNrVal) {
+      alert('Bitte Leiter-Nr. eingeben (z. B. L-01).');
+      document.getElementById('leiter-nr').focus();
+      return;
+    }
+  }
 
   showLoading(true);
   try {
@@ -670,11 +708,19 @@ async function submitChecklist() {
     const bemerkungText = document.getElementById('bemerkung').value.trim();
     const prueferName   = document.getElementById('pruefer-name').value.trim();
     if (typeof window.fbSavePruefung === 'function') {
+      // Bei Leiterkontrolle: bereichId dynamisch je Leiter-Nr. (z. B. "leiter_L-01")
+      const leiterNrSave = (currentBereich.liste === 'leiterkontrolle')
+        ? document.getElementById('leiter-nr').value.trim() : null;
+      const fbBereichId = leiterNrSave
+        ? `leiter_${leiterNrSave.replace(/[^a-zA-Z0-9\-_]/g, '_')}`
+        : currentBereich.id;
+      const fbBereichName = leiterNrSave
+        ? `Leiter ${leiterNrSave}` : currentBereich.name;
       await window.fbSavePruefung({
-        bereichId:   currentBereich.id,
+        bereichId:   fbBereichId,
         standortId:  currentStandort.id,
         standortName:currentStandort.name,
-        bereichName: currentBereich.name,
+        bereichName: fbBereichName,
         listentyp:   currentBereich.liste,
         pruefer:     prueferName,
         datum:       new Date(),
@@ -709,6 +755,7 @@ async function generatePDF() {
   const bemerkung = document.getElementById('bemerkung').value.trim();
   const formularStandort = document.getElementById('formular-standort').value.trim();
   const aufzugNr = document.getElementById('aufzug-nr').value.trim();
+  const leiterNr  = document.getElementById('leiter-nr').value.trim();
   const leiterTyp = document.getElementById('leiter-typ').value.trim();
   const gfbObjekt = document.getElementById('gfb-objekt').value.trim();
   const gfbAuftraggeber = document.getElementById('gfb-auftraggeber').value.trim();
@@ -745,6 +792,12 @@ async function generatePDF() {
   if (aufzugNr) {
     doc.setFont('helvetica', 'bold');
     doc.text(`Aufzug-Nr.: ${aufzugNr}`, PL, y);
+    doc.setFont('helvetica', 'normal');
+    y += 6;
+  }
+  if (leiterNr) {
+    doc.setFont('helvetica', 'bold');
+    doc.text(`Leiter-Nr.: ${leiterNr}`, PL, y);
     doc.setFont('helvetica', 'normal');
     y += 6;
   }

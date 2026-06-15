@@ -64,26 +64,7 @@ const APP_CONFIG = {
           name: "Leitern",
           icon: "🪜",
           bereiche: [
-            { id: "leiter_01", name: "Leiter 01", liste: "leiterkontrolle" },
-            { id: "leiter_02", name: "Leiter 02", liste: "leiterkontrolle" },
-            { id: "leiter_03", name: "Leiter 03", liste: "leiterkontrolle" },
-            { id: "leiter_04", name: "Leiter 04", liste: "leiterkontrolle" },
-            { id: "leiter_05", name: "Leiter 05", liste: "leiterkontrolle" },
-            { id: "leiter_06", name: "Leiter 06", liste: "leiterkontrolle" },
-            { id: "leiter_07", name: "Leiter 07", liste: "leiterkontrolle" },
-            { id: "leiter_08", name: "Leiter 08", liste: "leiterkontrolle" },
-            { id: "leiter_09", name: "Leiter 09", liste: "leiterkontrolle" },
-            { id: "leiter_10", name: "Leiter 10", liste: "leiterkontrolle" },
-            { id: "leiter_11", name: "Leiter 11", liste: "leiterkontrolle" },
-            { id: "leiter_12", name: "Leiter 12", liste: "leiterkontrolle" },
-            { id: "leiter_13", name: "Leiter 13", liste: "leiterkontrolle" },
-            { id: "leiter_14", name: "Leiter 14", liste: "leiterkontrolle" },
-            { id: "leiter_15", name: "Leiter 15", liste: "leiterkontrolle" },
-            { id: "leiter_16", name: "Leiter 16", liste: "leiterkontrolle" },
-            { id: "leiter_17", name: "Leiter 17", liste: "leiterkontrolle" },
-            { id: "leiter_18", name: "Leiter 18", liste: "leiterkontrolle" },
-            { id: "leiter_19", name: "Leiter 19", liste: "leiterkontrolle" },
-            { id: "leiter_20", name: "Leiter 20", liste: "leiterkontrolle" },
+            { id: "leiter_sammel", name: "Leitern", liste: "leiterkontrolle" },
           ]
         },
       ]
@@ -214,7 +195,7 @@ const APP_CONFIG = {
     leiterkontrolle: {
       titel: "Leiterkontrolle",
       untertitel: "Regelmäßige Sicht- und Funktionskontrolle gemäß DGUV 208-016 (BGR 191)",
-      intervall: "Monatlich",
+      intervall: "Jährlich",
       abschnitte: [
         {
           titel: "Holme / Schenkel",

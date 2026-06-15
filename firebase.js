@@ -26,7 +26,7 @@ const INTERVALLE = {
   aufzug:           30,
   brandschutztuer:  30,
   notbeleuchtung:   30,
-  leiterkontrolle:  30,
+  leiterkontrolle: 365,
   gfb_szp:         365,
   gfb_glasreinigung:365,
 };
@@ -114,6 +114,36 @@ window.fbGetAmpelAlle = async function(bereiche) {
     result[b.id] = await window.fbGetAmpel(b.id, b.liste);
   }));
   return result;
+};
+
+// ============================================================
+//  Ampel für alle Leitern (dynamische bereichIds leiter_*)
+//  Lädt alle Dokumente aus letztePruefung die mit 'leiter_' beginnen
+// ============================================================
+window.fbGetAmpelLeitern = async function() {
+  try {
+    const snap = await getDocs(collection(db, 'letztePruefung'));
+    const results = {};
+    snap.docs.forEach(d => {
+      if (d.id.startsWith('leiter_')) {
+        results[d.id] = d.data();
+      }
+    });
+    // Ampelstatus berechnen
+    const ampeln = {};
+    Object.entries(results).forEach(([id, data]) => {
+      const letztes   = new Date(data.datum);
+      const intervall = INTERVALLE['leiterkontrolle'] || 365;
+      const faelligAm = new Date(letztes.getTime() + intervall * 86400000);
+      const restTage  = Math.floor((faelligAm - new Date()) / 86400000);
+      if (restTage < 0)  ampeln[id] = 'rot';
+      else if (restTage <= 7) ampeln[id] = 'gelb';
+      else ampeln[id] = 'gruen';
+    });
+    return ampeln; // leer = noch keine Prüfungen
+  } catch (e) {
+    return {};
+  }
 };
 
 // ============================================================
