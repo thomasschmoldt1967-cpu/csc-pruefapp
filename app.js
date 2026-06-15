@@ -140,6 +140,7 @@ function renderHome() {
     gruppen.forEach(g => {
       const item = document.createElement('div');
       item.className = 'bereich-item gruppe-item';
+      item.id = `home-gruppe-${standort.id}-${g.id}`;
       item.onclick = () => openGruppe(standort.id, g.id);
       item.innerHTML = `
         <div class="bereich-icon icon-gruppe">${g.icon || '📁'}</div>
@@ -147,13 +148,52 @@ function renderHome() {
           <div class="bereich-name">${g.name}</div>
           <div class="bereich-liste-name">${g.bereiche.length} Bereiche</div>
         </div>
-        <div class="bereich-arrow">›</div>
+        <div class="ampel-badge ampel-unbekannt" id="ampel-gruppe-${standort.id}-${g.id}">…</div>
       `;
       preview.appendChild(item);
+      // Ampel für Gruppe asynchron laden
+      renderAmpelGruppe(standort.id, g);
     });
     card.appendChild(preview);
     container.appendChild(card);
   });
+
+  // Mängel-Button laden
+  renderMaengelButton();
+}
+
+// Ampel-Aggregat für eine Gruppe (schlechtester Status aller Bereiche)
+async function renderAmpelGruppe(standortId, gruppe) {
+  if (typeof window.fbGetAmpelAlle !== 'function') return;
+  const badge = document.getElementById(`ampel-gruppe-${standortId}-${gruppe.id}`);
+  if (!badge) return;
+  const ampeln = await window.fbGetAmpelAlle(gruppe.bereiche);
+  const vals = Object.values(ampeln);
+  let status = 'unbekannt';
+  if (vals.includes('rot'))        status = 'rot';
+  else if (vals.includes('gelb'))  status = 'gelb';
+  else if (vals.includes('gruen')) status = 'gruen';
+  const label = { rot: '🔴', gelb: '🟡', gruen: '🟢', unbekannt: '⚪' };
+  badge.textContent  = label[status] || '⚪';
+  badge.className    = `ampel-badge ampel-${status}`;
+}
+
+// Mängel-Button im Home-Screen
+async function renderMaengelButton() {
+  const existing = document.getElementById('maengel-btn-container');
+  if (existing) existing.remove();
+  if (typeof window.fbGetOffeneMaengel !== 'function') return;
+  const maengel = await window.fbGetOffeneMaengel();
+  if (maengel.length === 0) return;
+  const container = document.getElementById('standort-liste');
+  const btn = document.createElement('div');
+  btn.id = 'maengel-btn-container';
+  btn.innerHTML = `
+    <button class="btn-maengel" onclick="showMaengelScreen()">
+      ⚠️ ${maengel.length} offene Mängel ansehen
+    </button>
+  `;
+  container.insertBefore(btn, container.firstChild);
 }
 
 function iconClass(liste) {
@@ -215,13 +255,94 @@ function openGruppe(standortId, gruppeId) {
       <div class="bereich-icon ${iconClass(b.liste)}">${listeIcon(b.liste)}</div>
       <div class="bereich-info">
         <div class="bereich-name">${b.name}</div>
-        <div class="bereich-liste-name">${listeTitel(b.liste)}</div>
+        <div class="bereich-liste-name bereich-letzter" id="letzter-${b.id}">${listeTitel(b.liste)}</div>
       </div>
-      <div class="bereich-arrow">›</div>
+      <div class="ampel-badge ampel-unbekannt" id="ampel-bereich-${b.id}">…</div>
     `;
     container.appendChild(item);
+    // Ampel + letzte Prüfung asynchron laden
+    renderAmpelBereich(b);
   });
   showScreen('bereiche');
+}
+
+// ===== AMPEL PRO BEREICH =====
+async function renderAmpelBereich(b) {
+  if (typeof window.fbGetAmpel !== 'function') return;
+  const badge   = document.getElementById(`ampel-bereich-${b.id}`);
+  const letzter = document.getElementById(`letzter-${b.id}`);
+  if (!badge) return;
+
+  const status = await window.fbGetAmpel(b.id, b.liste);
+  const label  = { rot: '🔴', gelb: '🟡', gruen: '🟢', unbekannt: '⚪' };
+  badge.textContent = label[status] || '⚪';
+  badge.className   = `ampel-badge ampel-${status}`;
+
+  // Letzte Prüfung anzeigen
+  if (letzter && typeof window.fbGetLetztePruefung === 'function') {
+    const lp = await window.fbGetLetztePruefung(b.id);
+    if (lp) {
+      const d = new Date(lp.datum);
+      const tage = typeof window.fbRestTage === 'function'
+        ? window.fbRestTage(lp.datum, b.liste) : null;
+      const tageText = tage !== null
+        ? (tage < 0 ? ` · <span style="color:#c00">überfällig ${Math.abs(tage)}d</span>`
+           : tage <= 7 ? ` · <span style="color:#e67e00">fällig in ${tage}d</span>`
+           : ` · fällig in ${tage}d`)
+        : '';
+      letzter.innerHTML = `Letzte Prüfung: ${d.toLocaleDateString('de-DE')}${tageText}`;
+    }
+  }
+}
+
+// ===== MÄNGEL-SCREEN =====
+async function showMaengelScreen() {
+  const screen = document.getElementById('screen-maengel');
+  if (!screen) return;
+  const liste = document.getElementById('maengel-liste');
+  liste.innerHTML = '<div style="padding:20px;text-align:center;color:#888">Lade Mängel…</div>';
+  showScreen('maengel');
+
+  const maengel = typeof window.fbGetOffeneMaengel === 'function'
+    ? await window.fbGetOffeneMaengel() : [];
+
+  if (maengel.length === 0) {
+    liste.innerHTML = '<div style="padding:20px;text-align:center;color:#2a9d2a">✅ Keine offenen Mängel!</div>';
+    return;
+  }
+
+  liste.innerHTML = '';
+  maengel.forEach(m => {
+    const d = new Date(m.datum);
+    const card = document.createElement('div');
+    card.className = 'mangel-card';
+    card.innerHTML = `
+      <div class="mangel-header">
+        <span class="mangel-bereich">${m.bereichName}</span>
+        <span class="mangel-datum">${d.toLocaleDateString('de-DE')}</span>
+      </div>
+      <div class="mangel-text">${m.beschreibung}</div>
+      <div class="mangel-meta">Prüfer: ${m.pruefer}</div>
+      <button class="btn-erledigt" onclick="mangelErledigen('${m.id}', this)">
+        ✅ Als erledigt markieren
+      </button>
+    `;
+    liste.appendChild(card);
+  });
+}
+
+async function mangelErledigen(mangelId, btn) {
+  btn.disabled = true;
+  btn.textContent = '…';
+  const ok = typeof window.fbMangelErledigt === 'function'
+    ? await window.fbMangelErledigt(mangelId) : false;
+  if (ok) {
+    btn.closest('.mangel-card').style.opacity = '0.4';
+    btn.textContent = '✅ Erledigt';
+  } else {
+    btn.textContent = '❌ Fehler';
+    btn.disabled = false;
+  }
 }
 
 // ===== BEREICH ÖFFNEN =====
@@ -531,6 +652,25 @@ async function submitChecklist() {
   try {
     const pdfBlob = await generatePDF();
     await uploadToDrive(pdfBlob);
+
+    // ── Firebase: Prüfung speichern ──────────────────────────
+    const bemerkungText = document.getElementById('bemerkung').value.trim();
+    const prueferName   = document.getElementById('pruefer-name').value.trim();
+    if (typeof window.fbSavePruefung === 'function') {
+      await window.fbSavePruefung({
+        bereichId:   currentBereich.id,
+        standortId:  currentStandort.id,
+        standortName:currentStandort.name,
+        bereichName: currentBereich.name,
+        listentyp:   currentBereich.liste,
+        pruefer:     prueferName,
+        datum:       new Date(),
+        hatMaengel:  bemerkungText.length > 0,
+        maengelText: bemerkungText
+      });
+    }
+    // ─────────────────────────────────────────────────────────
+
     showResult(true);
   } catch (err) {
     console.error(err);
