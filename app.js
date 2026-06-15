@@ -2,6 +2,81 @@
    CSC Prüf-App — Hauptlogik
    ============================================================ */
 
+// ===== LOGIN / AUTH =====
+const CSC_USERS = [
+  { name: 'Thomas Schmoldt',    email: 'thomas@csc-hannover.de',    hash: 'd5651848baa6169aa41a065d20fb0f5c2329acf84cb6544369a9b5e1d18323ef' },
+  { name: 'Katharina Schmoldt', email: 'katharina@csc-hannover.de', hash: 'c9437b3ac9f18eaf498d5576175325b5fae93eb137a5774d59c276a39d3c604f' },
+  { name: 'Fabian Romyke',      email: 'fabian@csc-hannover.de',    hash: 'eeb9f5bdc61ca39d968cab3e00d217a704418facfea9ad384302a8baa39b8bbd' },
+  { name: 'Klaus Stark',        email: 'klaus@csc-hannover.de',     hash: '78b673ed23e33cde5e839668445f6bbde2a41046f9ce716d3236b3f44d652114' },
+];
+const SESSION_KEY   = 'csc_session';
+const SESSION_HOURS = 24; // Session gültig für 24 Stunden
+
+async function sha256(text) {
+  const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+  return Array.from(new Uint8Array(buf)).map(b => b.toString(16).padStart(2,'0')).join('');
+}
+
+function checkSession() {
+  try {
+    const s = JSON.parse(localStorage.getItem(SESSION_KEY) || 'null');
+    if (!s) return null;
+    if (Date.now() > s.expires) { localStorage.removeItem(SESSION_KEY); return null; }
+    return s;
+  } catch(e) { return null; }
+}
+
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim().toLowerCase();
+  const pw    = document.getElementById('login-password').value;
+  const err   = document.getElementById('login-fehler');
+  err.style.display = 'none';
+
+  if (!email || !pw) { err.textContent = '⚠️ Bitte E-Mail und Passwort eingeben.'; err.style.display = 'block'; return; }
+
+  const pwHash = await sha256(pw);
+  const user = CSC_USERS.find(u => u.email === email && u.hash === pwHash);
+
+  if (!user) {
+    err.textContent = '❌ E-Mail oder Passwort falsch.';
+    err.style.display = 'block';
+    document.getElementById('login-password').value = '';
+    return;
+  }
+
+  // Session speichern
+  localStorage.setItem(SESSION_KEY, JSON.stringify({
+    name:    user.name,
+    email:   user.email,
+    expires: Date.now() + SESSION_HOURS * 3600 * 1000
+  }));
+
+  // Zur App weiterleiten
+  showScreen('home');
+  document.getElementById('home-user-name').textContent = user.name;
+  renderHome();
+
+  // QR-Parameter verarbeiten falls vorhanden
+  const params = new URLSearchParams(window.location.search);
+  const bereichId = params.get('bereich');
+  if (bereichId) openBereichById(bereichId);
+}
+
+function doLogout() {
+  localStorage.removeItem(SESSION_KEY);
+  document.getElementById('login-email').value = '';
+  document.getElementById('login-password').value = '';
+  document.getElementById('login-fehler').style.display = 'none';
+  showScreen('login');
+}
+
+function togglePwVisible() {
+  const inp = document.getElementById('login-password');
+  const btn = document.getElementById('pw-toggle-btn');
+  if (inp.type === 'password') { inp.type = 'text'; btn.textContent = '🙈'; }
+  else { inp.type = 'password'; btn.textContent = '👁'; }
+}
+
 // ===== STATE =====
 let currentStandort  = null;
 let currentGruppe    = null;
@@ -17,17 +92,26 @@ let gfbMitarbeiter   = [];   // Array von { name, sigCanvas }
 
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', () => {
-  renderHome();
-
   // Service Worker registrieren
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').catch(() => {});
   }
 
-  // URL-Parameter: ?bereich=xxx (von QR-Code)
-  const params = new URLSearchParams(window.location.search);
-  const bereichId = params.get('bereich');
-  if (bereichId) openBereichById(bereichId);
+  // Session prüfen
+  const session = checkSession();
+  if (session) {
+    // Bereits eingeloggt → direkt zur App
+    showScreen('home');
+    document.getElementById('home-user-name').textContent = session.name;
+    renderHome();
+    // URL-Parameter: ?bereich=xxx (von QR-Code)
+    const params = new URLSearchParams(window.location.search);
+    const bereichId = params.get('bereich');
+    if (bereichId) openBereichById(bereichId);
+  } else {
+    // Nicht eingeloggt → Login-Screen zeigen
+    showScreen('login');
+  }
 });
 
 // ===== SCREEN MANAGEMENT =====
