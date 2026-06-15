@@ -16,8 +16,8 @@ const APP_CONFIG = {
     brandschutztuer:  "1gzXpsDtFatEjQqxmpoPWyhyI0LoRBzvx",
     notbeleuchtung:   "1ZnXMl4vCNsYrbdu2i3d2_kKgYrkN6Fps",
     leiterkontrolle:  "1iwyyDvyFTl0Jz2wTlfNQkgNRqDHt1oZ-",
-    gfb_szp:          "1PendBTPwGultV9MzKcRoBoKfqUYXBVn3",  // Hauptordner vorerst
-    gfb_glasreinigung:"1PendBTPwGultV9MzKcRoBoKfqUYXBVn3",  // Hauptordner vorerst
+    gfb_szp:          "1z58qrJWXWHQF4KQe3VUHMbS4nc2Zt761",  // GFU/SZP
+    gfb_glasreinigung:"14NjHFg8ekBHJ85Hiaa1hlPhZn5Se7XVa",  // GFU/Glasreinigung
   },
 
   standorte: [
