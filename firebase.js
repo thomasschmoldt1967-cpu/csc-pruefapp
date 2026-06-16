@@ -164,7 +164,7 @@ window.fbGetAlleLeiternDaten = async function() {
       const restTage  = Math.floor((faelligAm - new Date()) / 86400000);
       let ampel = 'gruen';
       if (restTage < 0)       ampel = 'rot';
-      else if (restTage <= 30) ampel = 'gelb';
+      else if (restTage <= 60) ampel = 'gelb';
       // Leiter-Nr aus ID extrahieren (leiter_L-01 → L-01)
       const leiterNr = d.id.replace(/^leiter_/, '');
       liste.push({

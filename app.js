@@ -355,7 +355,7 @@ async function renderLeiternFristenliste(bereichId) {
     let fristText;
     if (l.restTage < 0) {
       fristText = `<span class="frist-ueberfaellig">Überfällig seit ${Math.abs(l.restTage)} Tagen</span>`;
-    } else if (l.restTage <= 30) {
+    } else if (l.restTage <= 60) {
       fristText = `<span class="frist-bald">Fällig in ${l.restTage} Tagen (${faelligStr})</span>`;
     } else {
       fristText = `<span class="frist-ok">Nächste Prüfung: ${faelligStr}</span>`;
