@@ -441,12 +441,19 @@ async function showHistorieScreen() {
         maengelHtml = `<div style="margin-top:4px;padding:6px 8px;background:#fff3f3;border-radius:4px;font-size:12px;color:#c00;">⚠️ ${p.maengelText}</div>`;
       }
 
+      let driveHtml = '';
+      if (p.driveFileId) {
+        const driveUrl = `https://drive.google.com/file/d/${p.driveFileId}/view`;
+        driveHtml = `<div style="margin-top:6px;"><a href="${driveUrl}" target="_blank" style="display:inline-block;padding:5px 12px;background:#1a73e8;color:#fff;border-radius:6px;font-size:12px;text-decoration:none;font-weight:500;">📄 Protokoll öffnen</a></div>`;
+      }
+
       card.innerHTML = `
         <div style="display:flex;justify-content:space-between;align-items:center;">
           <span style="font-size:14px;font-weight:500;">${icon} ${datumStr}</span>
           <span style="font-size:12px;color:#666;">👤 ${p.pruefer || '—'}</span>
         </div>
         ${maengelHtml}
+        ${driveHtml}
       `;
       gruppe.appendChild(card);
     });
@@ -822,9 +829,11 @@ async function submitChecklist() {
   try {
     const pdfBlob = await generatePDF();
     let driveOk = false;
+    let driveFileId = null;
     try {
-      await uploadToDrive(pdfBlob);
+      const driveResult = await uploadToDrive(pdfBlob);
       driveOk = true;
+      driveFileId = driveResult?.id || null;
     } catch (driveErr) {
       // Offline? → PDF lokal speichern + in Queue eintragen
       console.warn('[Drive] Upload fehlgeschlagen (offline?):', driveErr.message);
@@ -852,7 +861,8 @@ async function submitChecklist() {
         pruefer:     prueferName,
         datum:       new Date(),
         hatMaengel:  bemerkungText.length > 0,
-        maengelText: bemerkungText
+        maengelText: bemerkungText,
+        driveFileId: driveFileId
       });
     }
     // ─────────────────────────────────────────────────────────

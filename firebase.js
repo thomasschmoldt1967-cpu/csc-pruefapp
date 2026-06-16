@@ -37,7 +37,7 @@ const INTERVALLE = {
 // ============================================================
 window.fbSavePruefung = async function({
   bereichId, standortId, standortName, bereichName, listentyp,
-  pruefer, datum, hatMaengel, maengelText
+  pruefer, datum, hatMaengel, maengelText, driveFileId
 }) {
   try {
     const now = new Date();
@@ -45,7 +45,8 @@ window.fbSavePruefung = async function({
     const letzteRef = doc(db, 'letztePruefung', bereichId);
     await setDoc(letzteRef, {
       bereichId, standortId, standortName, bereichName, listentyp,
-      pruefer, datum: datum.toISOString(), timestamp: serverTimestamp()
+      pruefer, datum: datum.toISOString(), timestamp: serverTimestamp(),
+      driveFileId: driveFileId || null
     });
 
     // Prüfungs-Verlauf (History-Eintrag mit eindeutigem Timestamp-Key)
@@ -56,6 +57,7 @@ window.fbSavePruefung = async function({
       pruefer, datum: datum.toISOString(),
       hatMaengel: !!hatMaengel,
       maengelText: maengelText || '',
+      driveFileId: driveFileId || null,
       timestamp: serverTimestamp()
     });
 
@@ -253,6 +255,7 @@ window.fbGetHistorieLeitern = async function() {
         datum:       data.datum       || '',
         hatMaengel:  !!data.hatMaengel,
         maengelText: data.maengelText || '',
+        driveFileId: data.driveFileId || null,
         // Leiter-Nr aus bereichId extrahieren (leiter_L-01 → L-01)
         leiterNr: (data.bereichId || d.id).replace(/^leiter_/, '')
       });
