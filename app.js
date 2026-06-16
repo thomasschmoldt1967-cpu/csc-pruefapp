@@ -303,6 +303,23 @@ async function renderAmpelBereich(b) {
       const count = vals.length;
       letzter.textContent = count > 0 ? `${count} Leiter(n) geprüft` : 'Noch keine Prüfung';
     }
+    // Prüfhistorie-Button (wie bei anderen Bereichen) — mit Guard gegen Doppel-Render
+    const existingHistBtn = document.getElementById(`hist-btn-${b.id}`);
+    if (!existingHistBtn) {
+      const histBtn = document.createElement('button');
+      histBtn.id = `hist-btn-${b.id}`;
+      histBtn.className = 'btn-secondary';
+      histBtn.style.cssText = 'width:100%;margin-top:6px;font-size:13px;padding:7px;';
+      histBtn.textContent = '📋 Prüfhistorie';
+      histBtn.onclick = () => showHistorieScreen(b.id, b.name, b.liste);
+      const container = document.getElementById('bereiche-liste');
+      const bereichItem = document.querySelector(`#ampel-bereich-${b.id}`)?.closest('.bereich-item');
+      if (container && bereichItem && bereichItem.nextSibling) {
+        container.insertBefore(histBtn, bereichItem.nextSibling);
+      } else if (container) {
+        container.appendChild(histBtn);
+      }
+    }
     // Fristenliste laden und anzeigen
     renderLeiternFristenliste(b.id);
     return;
@@ -395,14 +412,6 @@ async function renderLeiternFristenliste(bereichId) {
   });
 
   container.appendChild(listDiv);
-
-  // Prüfhistorie-Button unter der Fristenliste
-  const histBtn = document.createElement('button');
-  histBtn.className = 'btn-secondary';
-  histBtn.style.cssText = 'width:100%;margin-top:12px;';
-  histBtn.textContent = '📋 Prüfhistorie ansehen';
-  histBtn.onclick = () => showHistorieScreen('leiter_sammel', 'Leitern', 'leiterkontrolle');
-  container.appendChild(histBtn);
 }
 
 // ===== PRÜFHISTORIE SCREEN =====
