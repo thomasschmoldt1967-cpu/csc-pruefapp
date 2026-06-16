@@ -165,6 +165,12 @@ function renderHome() {
   renderDashboard();
   // Offline-Queue hochladen falls nötig
   offlineQueueFlush().catch(() => {});
+
+  // Admin-Button: nur für Thomas & Fabian sichtbar
+  const session = JSON.parse(localStorage.getItem(SESSION_KEY) || '{}');
+  const adminEmails = ['thomas@csc-hannover.de', 'fabian@csc-hannover.de'];
+  const adminBtn = document.getElementById('admin-editor-btn');
+  if (adminBtn) adminBtn.style.display = adminEmails.includes(session.email) ? 'block' : 'none';
 }
 
 // Ampel-Aggregat für eine Gruppe (schlechtester Status aller Bereiche)
@@ -602,10 +608,11 @@ function renderChecklist() {
     <div class="meta-kw">KW ${getKW(now)} · ${currentListe.intervall}</div>
   `;
 
-  // Abschnitte
+  // Abschnitte (mit Editor-Anpassungen zusammenführen)
   const container = document.getElementById('checklist-abschnitte');
   container.innerHTML = '';
-  currentListe.abschnitte.forEach(abschnitt => {
+  const abschnitteAktuell = editorGetPunkte(currentBereich.liste) || currentListe.abschnitte;
+  abschnitteAktuell.forEach(abschnitt => {
     const div = document.createElement('div');
     div.className = 'abschnitt';
     div.innerHTML = `<div class="abschnitt-titel">${abschnitt.titel}</div>`;
@@ -1023,8 +1030,9 @@ async function generatePDF() {
     y += 7;
   }
 
-  // Abschnitte & Prüfpunkte
-  currentListe.abschnitte.forEach(abschnitt => {
+  // Abschnitte & Prüfpunkte (mit Editor-Anpassungen)
+  const abschnitteAktuellPDF = editorGetPunkte(currentBereich.liste) || currentListe.abschnitte;
+  abschnitteAktuellPDF.forEach(abschnitt => {
     doc.setFillColor(238, 242, 247);
     doc.rect(PL, y - 4, PW, 8, 'F');
     doc.setFont('helvetica', 'bold'); doc.setFontSize(10);
@@ -2064,4 +2072,273 @@ function formatDatumISO(d) {
 function getKW(d) {
   const oneJan = new Date(d.getFullYear(), 0, 1);
   return Math.ceil((((d - oneJan) / 86400000) + oneJan.getDay() + 1) / 7);
+}
+
+// ===== CHECKLISTEN-EDITOR (Admin: Thomas & Fabian) =====
+
+const EDITOR_STORAGE_KEY = 'csc_editor_anpassungen';
+
+// Lade angepasste Punkte aus localStorage (Überschreibungen)
+function editorLadeAnpassungen() {
+  try { return JSON.parse(localStorage.getItem(EDITOR_STORAGE_KEY) || '{}'); }
+  catch(e) { return {}; }
+}
+
+// Speichere Anpassungen
+function editorSpeichereAnpassungen(data) {
+  localStorage.setItem(EDITOR_STORAGE_KEY, JSON.stringify(data));
+}
+
+// Gibt die aktuellen Punkte einer Liste zurück (Original + Anpassungen zusammengeführt)
+function editorGetPunkte(listeKey) {
+  const anpassungen = editorLadeAnpassungen();
+  const liste = APP_CONFIG.listen[listeKey];
+  if (!liste) return [];
+  // Tiefe Kopie der Original-Abschnitte
+  const abschnitte = JSON.parse(JSON.stringify(liste.abschnitte));
+  const ueberschreib = anpassungen[listeKey] || {};
+  // Überschreibungen anwenden
+  abschnitte.forEach(abs => {
+    abs.punkte = abs.punkte
+      .map(p => ({ ...p, text: ueberschreib[p.id]?.text ?? p.text, geloescht: ueberschreib[p.id]?.geloescht ?? false }))
+      .filter(p => !p.geloescht);
+    // Neue Punkte (id beginnt mit 'custom_') hinzufügen
+    const neuePunkte = Object.entries(ueberschreib)
+      .filter(([k, v]) => k.startsWith('custom_') && v.abschnitt === abs.titel && !v.geloescht)
+      .map(([k, v]) => ({ id: k, text: v.text }));
+    abs.punkte.push(...neuePunkte);
+  });
+  return abschnitte;
+}
+
+// Editor-Screen öffnen
+function openEditor() {
+  showScreen('editor');
+  renderEditorHome();
+}
+
+// Übersicht aller bearbeitbaren Listen
+function renderEditorHome() {
+  const container = document.getElementById('editor-inhalt');
+  const LISTEN_LABELS = {
+    aufzug:         '🛗 Aufzug',
+    brandschutztuer:'🚪 Brandschutztüren',
+    notbeleuchtung: '💡 Notbeleuchtung',
+    leiterkontrolle:'🪜 Leitern',
+  };
+  container.innerHTML = `
+    <div style="padding:8px 0 16px 0;color:#555;font-size:13px">
+      Hier kannst du Prüfpunkte bearbeiten, löschen oder neue hinzufügen.<br>
+      Änderungen gelten nur auf diesem Gerät.
+    </div>
+  `;
+  Object.entries(LISTEN_LABELS).forEach(([key, label]) => {
+    const anpassungen = editorLadeAnpassungen();
+    const hatAnpassungen = Object.keys(anpassungen[key] || {}).length > 0;
+    const btn = document.createElement('div');
+    btn.className = 'bereich-item';
+    btn.style.cssText = 'cursor:pointer;margin-bottom:10px';
+    btn.onclick = () => renderEditorListe(key);
+    btn.innerHTML = `
+      <div class="bereich-info">
+        <div class="bereich-name">${label}</div>
+        <div class="bereich-liste-name" style="color:${hatAnpassungen ? '#e67e00' : '#888'}">
+          ${hatAnpassungen ? '⚠️ Angepasst' : 'Original'}
+        </div>
+      </div>
+      <div style="font-size:20px;color:#1a3a5c">›</div>
+    `;
+    container.appendChild(btn);
+  });
+
+  // Reset-Button
+  const resetDiv = document.createElement('div');
+  resetDiv.style.cssText = 'margin-top:24px;padding-top:16px;border-top:1px solid #eee';
+  resetDiv.innerHTML = `
+    <button class="btn-secondary" style="width:100%;color:#c00;border-color:#c00;font-size:13px"
+      onclick="editorAllesZuruecksetzen()">
+      🔄 Alle Änderungen zurücksetzen (Original wiederherstellen)
+    </button>
+  `;
+  container.appendChild(resetDiv);
+}
+
+// Einzelne Liste bearbeiten
+function renderEditorListe(listeKey) {
+  const liste = APP_CONFIG.listen[listeKey];
+  if (!liste) return;
+  const anpassungen = editorLadeAnpassungen();
+  const ueberschreib = anpassungen[listeKey] || {};
+  const container = document.getElementById('editor-inhalt');
+  container.innerHTML = '';
+
+  // Zurück-Button
+  const backBtn = document.createElement('button');
+  backBtn.className = 'btn-secondary';
+  backBtn.style.cssText = 'margin-bottom:16px;font-size:13px;padding:7px 14px';
+  backBtn.textContent = '‹ Alle Listen';
+  backBtn.onclick = () => renderEditorHome();
+  container.appendChild(backBtn);
+
+  // Titel
+  const titelDiv = document.createElement('div');
+  titelDiv.style.cssText = 'font-size:16px;font-weight:700;color:#1a3a5c;margin-bottom:16px';
+  titelDiv.textContent = liste.titel;
+  container.appendChild(titelDiv);
+
+  // Abschnitte
+  liste.abschnitte.forEach(abs => {
+    const absDiv = document.createElement('div');
+    absDiv.style.cssText = 'margin-bottom:20px';
+
+    // Abschnittstitel
+    const absHeader = document.createElement('div');
+    absHeader.style.cssText = 'background:#1a3a5c;color:#fff;padding:8px 12px;border-radius:8px 8px 0 0;font-weight:600;font-size:14px';
+    absHeader.textContent = abs.titel;
+    absDiv.appendChild(absHeader);
+
+    // Punkte
+    abs.punkte.forEach(p => {
+      const istGeloescht = ueberschreib[p.id]?.geloescht === true;
+      const aktuellerText = ueberschreib[p.id]?.text ?? p.text;
+      if (istGeloescht) return; // gelöschte nicht anzeigen
+
+      const punktDiv = document.createElement('div');
+      punktDiv.id = `editor-punkt-${p.id}`;
+      punktDiv.style.cssText = 'background:#f8f9fa;border:1px solid #ddd;border-top:none;padding:10px 12px;display:flex;gap:8px;align-items:flex-start';
+      punktDiv.innerHTML = `
+        <div style="flex:1">
+          <div id="editor-text-${p.id}" style="font-size:13px;color:#333;line-height:1.4">${aktuellerText}</div>
+          <div style="display:none" id="editor-input-wrap-${p.id}">
+            <textarea id="editor-input-${p.id}" rows="3"
+              style="width:100%;box-sizing:border-box;margin-top:6px;padding:8px;border:2px solid #1a3a5c;border-radius:6px;font-size:13px;resize:vertical"
+            >${aktuellerText}</textarea>
+            <div style="display:flex;gap:6px;margin-top:6px">
+              <button class="btn-primary" style="flex:1;font-size:12px;padding:7px"
+                onclick="editorPunktSpeichern('${listeKey}','${p.id}')">💾 Speichern</button>
+              <button class="btn-secondary" style="flex:1;font-size:12px;padding:7px"
+                onclick="editorPunktAbbrechen('${p.id}')">Abbrechen</button>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0">
+          <button class="btn-secondary" style="font-size:11px;padding:5px 8px"
+            onclick="editorPunktBearbeiten('${p.id}')">✏️</button>
+          <button class="btn-secondary" style="font-size:11px;padding:5px 8px;color:#c00;border-color:#c00"
+            onclick="editorPunktLoeschen('${listeKey}','${p.id}','${abs.titel}')">🗑</button>
+        </div>
+      `;
+      absDiv.appendChild(punktDiv);
+    });
+
+    // Neuen Punkt hinzufügen
+    // Auch neue custom-Punkte dieses Abschnitts anzeigen
+    const neuePunkte = Object.entries(ueberschreib)
+      .filter(([k, v]) => k.startsWith('custom_') && v.abschnitt === abs.titel && !v.geloescht);
+    neuePunkte.forEach(([k, v]) => {
+      const punktDiv = document.createElement('div');
+      punktDiv.id = `editor-punkt-${k}`;
+      punktDiv.style.cssText = 'background:#f0fff4;border:1px solid #aed;border-top:none;padding:10px 12px;display:flex;gap:8px;align-items:flex-start';
+      punktDiv.innerHTML = `
+        <div style="flex:1">
+          <div id="editor-text-${k}" style="font-size:13px;color:#333;line-height:1.4">✨ ${v.text}</div>
+          <div style="display:none" id="editor-input-wrap-${k}">
+            <textarea id="editor-input-${k}" rows="3"
+              style="width:100%;box-sizing:border-box;margin-top:6px;padding:8px;border:2px solid #1a3a5c;border-radius:6px;font-size:13px;resize:vertical"
+            >${v.text}</textarea>
+            <div style="display:flex;gap:6px;margin-top:6px">
+              <button class="btn-primary" style="flex:1;font-size:12px;padding:7px"
+                onclick="editorPunktSpeichern('${listeKey}','${k}')">💾 Speichern</button>
+              <button class="btn-secondary" style="flex:1;font-size:12px;padding:7px"
+                onclick="editorPunktAbbrechen('${k}')">Abbrechen</button>
+            </div>
+          </div>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:4px;flex-shrink:0">
+          <button class="btn-secondary" style="font-size:11px;padding:5px 8px"
+            onclick="editorPunktBearbeiten('${k}')">✏️</button>
+          <button class="btn-secondary" style="font-size:11px;padding:5px 8px;color:#c00;border-color:#c00"
+            onclick="editorPunktLoeschen('${listeKey}','${k}','${abs.titel}')">🗑</button>
+        </div>
+      `;
+      absDiv.appendChild(punktDiv);
+    });
+
+    // "+ Neuen Punkt hinzufügen"-Bereich
+    const addDiv = document.createElement('div');
+    addDiv.style.cssText = 'border:1px solid #ddd;border-top:none;border-radius:0 0 8px 8px;padding:8px 12px;background:#fff';
+    const safeAbsTitel = abs.titel.replace(/'/g, "\\'");
+    addDiv.innerHTML = `
+      <div id="add-wrap-${listeKey}-${abs.titel.replace(/\s+/g,'_')}" style="display:none">
+        <textarea id="add-input-${listeKey}-${abs.titel.replace(/\s+/g,'_')}" rows="2"
+          placeholder="Neuen Prüfpunkt eingeben…"
+          style="width:100%;box-sizing:border-box;padding:8px;border:2px solid #1a3a5c;border-radius:6px;font-size:13px;resize:vertical"></textarea>
+        <div style="display:flex;gap:6px;margin-top:6px">
+          <button class="btn-primary" style="flex:1;font-size:12px;padding:7px"
+            onclick="editorPunktHinzufuegen('${listeKey}','${safeAbsTitel}')">✅ Hinzufügen</button>
+          <button class="btn-secondary" style="flex:1;font-size:12px;padding:7px"
+            onclick="document.getElementById('add-wrap-${listeKey}-${abs.titel.replace(/\s+/g,'_')}').style.display='none'">Abbrechen</button>
+        </div>
+      </div>
+      <button class="btn-secondary" id="add-btn-${listeKey}-${abs.titel.replace(/\s+/g,'_')}"
+        style="width:100%;font-size:12px;padding:7px;margin-top:2px"
+        onclick="document.getElementById('add-wrap-${listeKey}-${abs.titel.replace(/\s+/g,'_')}').style.display='block';this.style.display='none'">
+        ＋ Neuen Punkt hinzufügen
+      </button>
+    `;
+    absDiv.appendChild(addDiv);
+    container.appendChild(absDiv);
+  });
+}
+
+function editorPunktBearbeiten(punktId) {
+  document.getElementById(`editor-text-${punktId}`).style.display = 'none';
+  document.getElementById(`editor-input-wrap-${punktId}`).style.display = 'block';
+}
+
+function editorPunktAbbrechen(punktId) {
+  document.getElementById(`editor-text-${punktId}`).style.display = 'block';
+  document.getElementById(`editor-input-wrap-${punktId}`).style.display = 'none';
+}
+
+function editorPunktSpeichern(listeKey, punktId) {
+  const neuerText = document.getElementById(`editor-input-${punktId}`).value.trim();
+  if (!neuerText) { alert('Bitte Text eingeben.'); return; }
+  const anpassungen = editorLadeAnpassungen();
+  if (!anpassungen[listeKey]) anpassungen[listeKey] = {};
+  anpassungen[listeKey][punktId] = { ...(anpassungen[listeKey][punktId] || {}), text: neuerText, geloescht: false };
+  editorSpeichereAnpassungen(anpassungen);
+  // Anzeige aktualisieren
+  document.getElementById(`editor-text-${punktId}`).textContent = neuerText;
+  document.getElementById(`editor-text-${punktId}`).style.display = 'block';
+  document.getElementById(`editor-input-wrap-${punktId}`).style.display = 'none';
+}
+
+function editorPunktLoeschen(listeKey, punktId, abschnittTitel) {
+  if (!confirm('Diesen Prüfpunkt wirklich löschen?')) return;
+  const anpassungen = editorLadeAnpassungen();
+  if (!anpassungen[listeKey]) anpassungen[listeKey] = {};
+  anpassungen[listeKey][punktId] = { ...(anpassungen[listeKey][punktId] || {}), geloescht: true, abschnitt: abschnittTitel };
+  editorSpeichereAnpassungen(anpassungen);
+  const el = document.getElementById(`editor-punkt-${punktId}`);
+  if (el) el.remove();
+}
+
+function editorPunktHinzufuegen(listeKey, abschnittTitel) {
+  const inputKey = `${listeKey}-${abschnittTitel.replace(/\s+/g,'_')}`;
+  const neuerText = document.getElementById(`add-input-${inputKey}`).value.trim();
+  if (!neuerText) { alert('Bitte Text eingeben.'); return; }
+  const anpassungen = editorLadeAnpassungen();
+  if (!anpassungen[listeKey]) anpassungen[listeKey] = {};
+  const customId = `custom_${Date.now()}`;
+  anpassungen[listeKey][customId] = { text: neuerText, abschnitt: abschnittTitel, geloescht: false };
+  editorSpeichereAnpassungen(anpassungen);
+  // Seite neu rendern damit der neue Punkt erscheint
+  renderEditorListe(listeKey);
+}
+
+function editorAllesZuruecksetzen() {
+  if (!confirm('Wirklich alle Änderungen zurücksetzen und Original-Prüfpunkte wiederherstellen?')) return;
+  localStorage.removeItem(EDITOR_STORAGE_KEY);
+  renderEditorHome();
 }
