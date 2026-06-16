@@ -303,6 +303,8 @@ async function renderAmpelBereich(b) {
       const count = vals.length;
       letzter.textContent = count > 0 ? `${count} Leiter(n) geprüft` : 'Noch keine Prüfung';
     }
+    // Fristenliste laden und anzeigen
+    renderLeiternFristenliste(b.id);
     return;
   }
 
@@ -326,6 +328,52 @@ async function renderAmpelBereich(b) {
       letzter.innerHTML = `Letzte Prüfung: ${d.toLocaleDateString('de-DE')}${tageText}`;
     }
   }
+}
+
+// ===== LEITERN FRISTENLISTE (unter dem Bereich-Item) =====
+async function renderLeiternFristenliste(bereichId) {
+  if (typeof window.fbGetAlleLeiternDaten !== 'function') return;
+  // Container direkt nach dem bereich-item einfügen
+  const existingList = document.getElementById('leitern-fristenliste');
+  if (existingList) existingList.remove();
+
+  const leitern = await window.fbGetAlleLeiternDaten();
+  if (leitern.length === 0) return;
+
+  const container = document.getElementById('bereiche-liste');
+  if (!container) return;
+
+  const listDiv = document.createElement('div');
+  listDiv.id = 'leitern-fristenliste';
+  listDiv.className = 'leitern-fristenliste';
+
+  const ampelIcon = { rot: '🔴', gelb: '🟡', gruen: '🟢' };
+  leitern.forEach(l => {
+    const datum = new Date(l.datum);
+    const faellig = new Date(l.faelligAm);
+    const faelligStr = faellig.toLocaleDateString('de-DE');
+    let fristText;
+    if (l.restTage < 0) {
+      fristText = `<span class="frist-ueberfaellig">Überfällig seit ${Math.abs(l.restTage)} Tagen</span>`;
+    } else if (l.restTage <= 30) {
+      fristText = `<span class="frist-bald">Fällig in ${l.restTage} Tagen (${faelligStr})</span>`;
+    } else {
+      fristText = `<span class="frist-ok">Nächste Prüfung: ${faelligStr}</span>`;
+    }
+    const row = document.createElement('div');
+    row.className = 'leiter-frist-row';
+    row.innerHTML = `
+      <span class="leiter-frist-ampel">${ampelIcon[l.ampel] || '⚪'}</span>
+      <span class="leiter-frist-nr">${l.bereichName}</span>
+      <span class="leiter-frist-info">
+        Geprüft: ${datum.toLocaleDateString('de-DE')} (${l.pruefer})<br>
+        ${fristText}
+      </span>
+    `;
+    listDiv.appendChild(row);
+  });
+
+  container.appendChild(listDiv);
 }
 
 // ===== MÄNGEL-SCREEN =====
@@ -1714,7 +1762,16 @@ function showResult(success, driveOk, emailTo, errMsg) {
   const icon = document.getElementById('result-icon');
   const text = document.getElementById('result-text');
   const sub  = document.getElementById('result-sub');
-  const emailBtn = document.getElementById('result-email-btn');
+  const emailBtn    = document.getElementById('result-email-btn');
+  const weitereBtn  = document.getElementById('result-weitere-leiter-btn');
+  // „Weitere Leiter prüfen"-Button nur bei Leiterkontrolle
+  if (weitereBtn) {
+    if (success && currentBereich && currentBereich.liste === 'leiterkontrolle') {
+      weitereBtn.style.display = 'block';
+    } else {
+      weitereBtn.style.display = 'none';
+    }
+  }
   if (success) {
     icon.textContent = '✅';
     text.textContent = 'Prüfung gespeichert!';
@@ -1740,6 +1797,24 @@ function showResult(success, driveOk, emailTo, errMsg) {
     if (emailBtn) emailBtn.style.display = 'none';
   }
   showScreen('result');
+}
+
+// ===== WEITERE LEITER PRÜFEN (nach Abschluss direkt neu starten) =====
+function weitereLeiterPruefen() {
+  if (!currentStandort || !currentGruppe || !currentBereich) {
+    showScreen('home');
+    return;
+  }
+  // Formular neu laden (gleicher Bereich, gleicher Prüfer bleibt)
+  pruefErgebnisse = {};
+  renderChecklist();
+  // Leiter-Nr. leeren — muss für die nächste Leiter neu eingegeben werden
+  const leiterNrInput = document.getElementById('leiter-nr');
+  if (leiterNrInput) leiterNrInput.value = '';
+  const leiterTypInput = document.getElementById('leiter-typ');
+  if (leiterTypInput) leiterTypInput.value = '';
+  showScreen('checklist');
+  initSignaturePad();
 }
 
 // ===== OFFLINE QUEUE =====

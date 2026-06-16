@@ -147,6 +147,51 @@ window.fbGetAmpelLeitern = async function() {
 };
 
 // ============================================================
+//  Alle Leitern-Daten mit Datum, Prüfer, Fälligkeit
+//  Gibt zurück: Array von { id, leiterNr, bereichName, datum,
+//               pruefer, faelligAm, restTage, ampel }
+// ============================================================
+window.fbGetAlleLeiternDaten = async function() {
+  try {
+    const snap = await getDocs(collection(db, 'letztePruefung'));
+    const liste = [];
+    const intervall = INTERVALLE['leiterkontrolle'] || 365;
+    snap.docs.forEach(d => {
+      if (!d.id.startsWith('leiter_')) return;
+      const data = d.data();
+      const letztes   = new Date(data.datum);
+      const faelligAm = new Date(letztes.getTime() + intervall * 86400000);
+      const restTage  = Math.floor((faelligAm - new Date()) / 86400000);
+      let ampel = 'gruen';
+      if (restTage < 0)       ampel = 'rot';
+      else if (restTage <= 30) ampel = 'gelb';
+      // Leiter-Nr aus ID extrahieren (leiter_L-01 → L-01)
+      const leiterNr = d.id.replace(/^leiter_/, '');
+      liste.push({
+        id: d.id,
+        leiterNr,
+        bereichName: data.bereichName || leiterNr,
+        datum: data.datum,
+        pruefer: data.pruefer || '',
+        faelligAm: faelligAm.toISOString(),
+        restTage,
+        ampel
+      });
+    });
+    // Sortieren: rot → gelb → grün, dann nach Fälligkeit
+    liste.sort((a, b) => {
+      const prio = { rot: 0, gelb: 1, gruen: 2 };
+      if (prio[a.ampel] !== prio[b.ampel]) return prio[a.ampel] - prio[b.ampel];
+      return a.restTage - b.restTage;
+    });
+    return liste;
+  } catch (e) {
+    console.warn('[Firebase] fbGetAlleLeiternDaten fehlgeschlagen:', e.message);
+    return [];
+  }
+};
+
+// ============================================================
 //  Letzte Prüfung eines Bereichs abrufen
 // ============================================================
 window.fbGetLetztePruefung = async function(bereichId) {

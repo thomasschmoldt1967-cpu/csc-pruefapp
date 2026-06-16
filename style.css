@@ -488,3 +488,49 @@ input[type="text"] {
   border-radius: 8px; padding: 8px 14px;
   font-size: 13px; color: #2e7d32; cursor: pointer;
 }
+
+/* ===== LEITERN FRISTENLISTE ===== */
+.leitern-fristenliste {
+  margin: 8px 0 16px 0;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #dde4ed;
+  background: #f8fafc;
+}
+.leiter-frist-row {
+  display: flex;
+  align-items: flex-start;
+  padding: 10px 14px;
+  border-bottom: 1px solid #e8edf4;
+  gap: 10px;
+}
+.leiter-frist-row:last-child { border-bottom: none; }
+.leiter-frist-ampel {
+  font-size: 18px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.leiter-frist-nr {
+  font-weight: 700;
+  color: #1a3a5c;
+  font-size: 14px;
+  min-width: 80px;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+.leiter-frist-info {
+  font-size: 12px;
+  color: #555;
+  line-height: 1.6;
+}
+.frist-ueberfaellig {
+  color: #c00;
+  font-weight: 700;
+}
+.frist-bald {
+  color: #b85c00;
+  font-weight: 600;
+}
+.frist-ok {
+  color: #2a7a2a;
+}
