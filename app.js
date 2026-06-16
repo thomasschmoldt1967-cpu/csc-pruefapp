@@ -2121,10 +2121,12 @@ function openEditor() {
 function renderEditorHome() {
   const container = document.getElementById('editor-inhalt');
   const LISTEN_LABELS = {
-    aufzug:         '🛗 Aufzug',
-    brandschutztuer:'🚪 Brandschutztüren',
-    notbeleuchtung: '💡 Notbeleuchtung',
-    leiterkontrolle:'🪜 Leitern',
+    aufzug:           '🛗 Aufzug',
+    brandschutztuer:  '🚪 Brandschutztüren',
+    notbeleuchtung:   '💡 Notbeleuchtung',
+    leiterkontrolle:  '🪜 Leitern',
+    gfb_szp:          '🧗 GFB Seil-Zugangs-Technik',
+    gfb_glasreinigung:'🪟 GFB Glasreinigung',
   };
   container.innerHTML = `
     <div style="padding:8px 0 16px 0;color:#555;font-size:13px">
