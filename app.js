@@ -328,6 +328,27 @@ async function renderAmpelBereich(b) {
       letzter.innerHTML = `Letzte Prüfung: ${d.toLocaleDateString('de-DE')}${tageText}`;
     }
   }
+
+  // Prüfhistorie-Button unter dem Bereich-Item einfügen
+  const existingBtn = document.getElementById(`hist-btn-${b.id}`);
+  if (!existingBtn) {
+    const histBtn = document.createElement('button');
+    histBtn.id = `hist-btn-${b.id}`;
+    histBtn.className = 'btn-secondary';
+    histBtn.style.cssText = 'width:100%;margin-top:6px;font-size:13px;padding:7px;';
+    histBtn.textContent = '📋 Prüfhistorie';
+    histBtn.onclick = () => showHistorieScreen(b.id, b.name, b.liste);
+    const container = document.getElementById('bereiche-liste');
+    if (container) {
+      // Button nach dem bereich-item einfügen (vor leitern-fristenliste)
+      const bereichItem = document.querySelector(`#ampel-bereich-${b.id}`)?.closest('.bereich-item');
+      if (bereichItem && bereichItem.nextSibling) {
+        container.insertBefore(histBtn, bereichItem.nextSibling);
+      } else {
+        container.appendChild(histBtn);
+      }
+    }
+  }
 }
 
 // ===== LEITERN FRISTENLISTE (unter dem Bereich-Item) =====
@@ -380,86 +401,103 @@ async function renderLeiternFristenliste(bereichId) {
   histBtn.className = 'btn-secondary';
   histBtn.style.cssText = 'width:100%;margin-top:12px;';
   histBtn.textContent = '📋 Prüfhistorie ansehen';
-  histBtn.onclick = showHistorieScreen;
+  histBtn.onclick = () => showHistorieScreen('leiter_sammel', 'Leitern', 'leiterkontrolle');
   container.appendChild(histBtn);
 }
 
 // ===== PRÜFHISTORIE SCREEN =====
-async function showHistorieScreen() {
+async function showHistorieScreen(bereichId, bereichName, listentyp) {
   const inhalt = document.getElementById('historie-inhalt');
+  const titelEl = document.querySelector('#screen-historie .header-title');
+
+  // Titel anpassen
+  if (titelEl) titelEl.textContent = `📋 ${bereichName || 'Prüfhistorie'}`;
+
   inhalt.innerHTML = '<div style="padding:20px;text-align:center;color:#888">Lade Protokolle…</div>';
   showScreen('historie');
 
-  if (typeof window.fbGetHistorieLeitern !== 'function') {
+  // Leitern: spezielle Funktion (alle leiter_* Einträge)
+  const istLeitern = (bereichId === 'leiter_sammel' || listentyp === 'leiterkontrolle');
+
+  let protokolle = [];
+  if (istLeitern && typeof window.fbGetHistorieLeitern === 'function') {
+    protokolle = await window.fbGetHistorieLeitern();
+  } else if (typeof window.fbGetHistorieBereich === 'function') {
+    protokolle = await window.fbGetHistorieBereich(bereichId);
+  } else {
     inhalt.innerHTML = '<div style="padding:20px;text-align:center;color:#c00">Firebase nicht verfügbar.</div>';
     return;
   }
-
-  const protokolle = await window.fbGetHistorieLeitern();
 
   if (protokolle.length === 0) {
     inhalt.innerHTML = '<div style="padding:20px;text-align:center;color:#888">Noch keine Prüfprotokolle vorhanden.</div>';
     return;
   }
 
-  // Gruppierung nach Leiter-Nr.
-  const gruppen = {};
-  protokolle.forEach(p => {
-    const nr = p.leiterNr || p.bereichId;
-    if (!gruppen[nr]) gruppen[nr] = [];
-    gruppen[nr].push(p);
-  });
-
   inhalt.innerHTML = '';
 
-  Object.keys(gruppen).sort().forEach(nr => {
-    const eintraege = gruppen[nr];
-    const gruppe = document.createElement('div');
-    gruppe.className = 'historie-gruppe';
-    gruppe.style.cssText = 'margin-bottom:16px;';
-
-    // Kopfzeile mit letzter Ampel
-    const letzter = eintraege[0]; // neuester zuerst
-    const ampel = letzter.hatMaengel ? '🔴' : '🟢';
-    const header = document.createElement('div');
-    header.className = 'historie-gruppe-header';
-    header.style.cssText = 'font-weight:bold;font-size:15px;padding:8px 12px;background:#f0f4ff;border-radius:8px 8px 0 0;border-bottom:1px solid #dde;display:flex;align-items:center;gap:8px;';
-    header.innerHTML = `${ampel} Leiter ${nr} <span style="font-weight:normal;font-size:13px;color:#666">(${eintraege.length} Protokoll${eintraege.length > 1 ? 'e' : ''})</span>`;
-    gruppe.appendChild(header);
-
-    eintraege.forEach((p, idx) => {
-      const d = new Date(p.datum);
-      const datumStr = d.toLocaleDateString('de-DE', { day:'2-digit', month:'2-digit', year:'numeric' });
-      const icon = p.hatMaengel ? '🔴' : '🟢';
-
-      const card = document.createElement('div');
-      card.className = 'historie-card';
-      card.style.cssText = `padding:10px 12px;background:${idx % 2 === 0 ? '#fff' : '#fafafa'};border-left:3px solid ${p.hatMaengel ? '#c00' : '#2a9d2a'};border-bottom:1px solid #eee;`;
-
-      let maengelHtml = '';
-      if (p.hatMaengel && p.maengelText) {
-        maengelHtml = `<div style="margin-top:4px;padding:6px 8px;background:#fff3f3;border-radius:4px;font-size:12px;color:#c00;">⚠️ ${p.maengelText}</div>`;
-      }
-
-      let driveHtml = '';
-      if (p.driveFileId) {
-        const driveUrl = `https://drive.google.com/file/d/${p.driveFileId}/view`;
-        driveHtml = `<div style="margin-top:6px;"><a href="${driveUrl}" target="_blank" style="display:inline-block;padding:5px 12px;background:#1a73e8;color:#fff;border-radius:6px;font-size:12px;text-decoration:none;font-weight:500;">📄 Protokoll öffnen</a></div>`;
-      }
-
-      card.innerHTML = `
-        <div style="display:flex;justify-content:space-between;align-items:center;">
-          <span style="font-size:14px;font-weight:500;">${icon} ${datumStr}</span>
-          <span style="font-size:12px;color:#666;">👤 ${p.pruefer || '—'}</span>
-        </div>
-        ${maengelHtml}
-        ${driveHtml}
-      `;
-      gruppe.appendChild(card);
+  if (istLeitern) {
+    // Leitern: nach Leiter-Nr. gruppieren
+    const gruppen = {};
+    protokolle.forEach(p => {
+      const nr = p.leiterNr || p.bereichId;
+      if (!gruppen[nr]) gruppen[nr] = [];
+      gruppen[nr].push(p);
     });
 
-    inhalt.appendChild(gruppe);
+    Object.keys(gruppen).sort().forEach(nr => {
+      const eintraege = gruppen[nr];
+      inhalt.appendChild(renderHistorieGruppe(`Leiter ${nr}`, eintraege));
+    });
+  } else {
+    // Alle anderen Bereiche: einfache Liste ohne Untergruppierung
+    inhalt.appendChild(renderHistorieGruppe(bereichName, protokolle));
+  }
+}
+
+// Hilfsfunktion: rendert eine Gruppe mit Einträgen
+function renderHistorieGruppe(titel, eintraege) {
+  const gruppe = document.createElement('div');
+  gruppe.style.cssText = 'margin-bottom:16px;';
+
+  const letzter = eintraege[0];
+  const ampel = letzter.hatMaengel ? '🔴' : '🟢';
+  const header = document.createElement('div');
+  header.style.cssText = 'font-weight:bold;font-size:15px;padding:8px 12px;background:#f0f4ff;border-radius:8px 8px 0 0;border-bottom:1px solid #dde;display:flex;align-items:center;gap:8px;';
+  header.innerHTML = `${ampel} ${titel} <span style="font-weight:normal;font-size:13px;color:#666">(${eintraege.length} Protokoll${eintraege.length > 1 ? 'e' : ''})</span>`;
+  gruppe.appendChild(header);
+
+  eintraege.forEach((p, idx) => {
+    const d = new Date(p.datum);
+    const datumStr = d.toLocaleDateString('de-DE', { day:'2-digit', month:'2-digit', year:'numeric' });
+    const icon = p.hatMaengel ? '🔴' : '🟢';
+
+    const card = document.createElement('div');
+    card.style.cssText = `padding:10px 12px;background:${idx % 2 === 0 ? '#fff' : '#fafafa'};border-left:3px solid ${p.hatMaengel ? '#c00' : '#2a9d2a'};border-bottom:1px solid #eee;`;
+
+    let maengelHtml = '';
+    if (p.hatMaengel && p.maengelText) {
+      maengelHtml = `<div style="margin-top:4px;padding:6px 8px;background:#fff3f3;border-radius:4px;font-size:12px;color:#c00;">⚠️ ${p.maengelText}</div>`;
+    }
+
+    let driveHtml = '';
+    if (p.driveFileId) {
+      const driveUrl = `https://drive.google.com/file/d/${p.driveFileId}/view`;
+      driveHtml = `<div style="margin-top:6px;"><a href="${driveUrl}" target="_blank" style="display:inline-block;padding:5px 12px;background:#1a73e8;color:#fff;border-radius:6px;font-size:12px;text-decoration:none;font-weight:500;">📄 Protokoll öffnen</a></div>`;
+    }
+
+    card.innerHTML = `
+      <div style="display:flex;justify-content:space-between;align-items:center;">
+        <span style="font-size:14px;font-weight:500;">${icon} ${datumStr}</span>
+        <span style="font-size:12px;color:#666;">👤 ${p.pruefer || '—'}</span>
+      </div>
+      ${maengelHtml}
+      ${driveHtml}
+    `;
+    gruppe.appendChild(card);
   });
+
+  return gruppe;
 }
 
 // ===== MÄNGEL-SCREEN =====

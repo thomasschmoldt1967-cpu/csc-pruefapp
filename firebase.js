@@ -236,6 +236,38 @@ window.fbMangelErledigt = async function(mangelId) {
 };
 
 // ============================================================
+//  Prüfhistorie für einen beliebigen Bereich laden
+//  Gibt alle pruefHistory-Einträge für bereichId zurück,
+//  neueste zuerst
+// ============================================================
+window.fbGetHistorieBereich = async function(bereichId) {
+  try {
+    const snap = await getDocs(collection(db, 'pruefHistory'));
+    const liste = [];
+    snap.docs.forEach(d => {
+      const data = d.data();
+      if (data.bereichId !== bereichId) return;
+      liste.push({
+        id: d.id,
+        bereichId:   data.bereichId   || bereichId,
+        bereichName: data.bereichName || bereichId,
+        listentyp:   data.listentyp   || '',
+        pruefer:     data.pruefer     || '',
+        datum:       data.datum       || '',
+        hatMaengel:  !!data.hatMaengel,
+        maengelText: data.maengelText || '',
+        driveFileId: data.driveFileId || null
+      });
+    });
+    liste.sort((a, b) => new Date(b.datum) - new Date(a.datum));
+    return liste;
+  } catch (e) {
+    console.warn('[Firebase] fbGetHistorieBereich fehlgeschlagen:', e.message);
+    return [];
+  }
+};
+
+// ============================================================
 //  Prüfhistorie für Leitern laden (alle pruefHistory-Einträge
 //  die mit leiter_ beginnen), sortiert nach Datum absteigend
 // ============================================================
