@@ -234,6 +234,39 @@ window.fbMangelErledigt = async function(mangelId) {
 };
 
 // ============================================================
+//  Prüfhistorie für Leitern laden (alle pruefHistory-Einträge
+//  die mit leiter_ beginnen), sortiert nach Datum absteigend
+// ============================================================
+window.fbGetHistorieLeitern = async function() {
+  try {
+    const snap = await getDocs(collection(db, 'pruefHistory'));
+    const liste = [];
+    snap.docs.forEach(d => {
+      if (!d.id.startsWith('leiter_')) return;
+      const data = d.data();
+      liste.push({
+        id: d.id,
+        bereichId:   data.bereichId   || d.id,
+        bereichName: data.bereichName || d.id,
+        listentyp:   data.listentyp   || 'leiterkontrolle',
+        pruefer:     data.pruefer     || '',
+        datum:       data.datum       || '',
+        hatMaengel:  !!data.hatMaengel,
+        maengelText: data.maengelText || '',
+        // Leiter-Nr aus bereichId extrahieren (leiter_L-01 → L-01)
+        leiterNr: (data.bereichId || d.id).replace(/^leiter_/, '')
+      });
+    });
+    // Neueste zuerst
+    liste.sort((a, b) => new Date(b.datum) - new Date(a.datum));
+    return liste;
+  } catch (e) {
+    console.warn('[Firebase] fbGetHistorieLeitern fehlgeschlagen:', e.message);
+    return [];
+  }
+};
+
+// ============================================================
 //  Hilfsfunktion: Tage bis zur nächsten Prüfung
 // ============================================================
 window.fbRestTage = function(datumISO, listentyp) {

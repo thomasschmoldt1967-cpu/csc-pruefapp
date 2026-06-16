@@ -374,6 +374,85 @@ async function renderLeiternFristenliste(bereichId) {
   });
 
   container.appendChild(listDiv);
+
+  // Prüfhistorie-Button unter der Fristenliste
+  const histBtn = document.createElement('button');
+  histBtn.className = 'btn-secondary';
+  histBtn.style.cssText = 'width:100%;margin-top:12px;';
+  histBtn.textContent = '📋 Prüfhistorie ansehen';
+  histBtn.onclick = showHistorieScreen;
+  container.appendChild(histBtn);
+}
+
+// ===== PRÜFHISTORIE SCREEN =====
+async function showHistorieScreen() {
+  const inhalt = document.getElementById('historie-inhalt');
+  inhalt.innerHTML = '<div style="padding:20px;text-align:center;color:#888">Lade Protokolle…</div>';
+  showScreen('historie');
+
+  if (typeof window.fbGetHistorieLeitern !== 'function') {
+    inhalt.innerHTML = '<div style="padding:20px;text-align:center;color:#c00">Firebase nicht verfügbar.</div>';
+    return;
+  }
+
+  const protokolle = await window.fbGetHistorieLeitern();
+
+  if (protokolle.length === 0) {
+    inhalt.innerHTML = '<div style="padding:20px;text-align:center;color:#888">Noch keine Prüfprotokolle vorhanden.</div>';
+    return;
+  }
+
+  // Gruppierung nach Leiter-Nr.
+  const gruppen = {};
+  protokolle.forEach(p => {
+    const nr = p.leiterNr || p.bereichId;
+    if (!gruppen[nr]) gruppen[nr] = [];
+    gruppen[nr].push(p);
+  });
+
+  inhalt.innerHTML = '';
+
+  Object.keys(gruppen).sort().forEach(nr => {
+    const eintraege = gruppen[nr];
+    const gruppe = document.createElement('div');
+    gruppe.className = 'historie-gruppe';
+    gruppe.style.cssText = 'margin-bottom:16px;';
+
+    // Kopfzeile mit letzter Ampel
+    const letzter = eintraege[0]; // neuester zuerst
+    const ampel = letzter.hatMaengel ? '🔴' : '🟢';
+    const header = document.createElement('div');
+    header.className = 'historie-gruppe-header';
+    header.style.cssText = 'font-weight:bold;font-size:15px;padding:8px 12px;background:#f0f4ff;border-radius:8px 8px 0 0;border-bottom:1px solid #dde;display:flex;align-items:center;gap:8px;';
+    header.innerHTML = `${ampel} Leiter ${nr} <span style="font-weight:normal;font-size:13px;color:#666">(${eintraege.length} Protokoll${eintraege.length > 1 ? 'e' : ''})</span>`;
+    gruppe.appendChild(header);
+
+    eintraege.forEach((p, idx) => {
+      const d = new Date(p.datum);
+      const datumStr = d.toLocaleDateString('de-DE', { day:'2-digit', month:'2-digit', year:'numeric' });
+      const icon = p.hatMaengel ? '🔴' : '🟢';
+
+      const card = document.createElement('div');
+      card.className = 'historie-card';
+      card.style.cssText = `padding:10px 12px;background:${idx % 2 === 0 ? '#fff' : '#fafafa'};border-left:3px solid ${p.hatMaengel ? '#c00' : '#2a9d2a'};border-bottom:1px solid #eee;`;
+
+      let maengelHtml = '';
+      if (p.hatMaengel && p.maengelText) {
+        maengelHtml = `<div style="margin-top:4px;padding:6px 8px;background:#fff3f3;border-radius:4px;font-size:12px;color:#c00;">⚠️ ${p.maengelText}</div>`;
+      }
+
+      card.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:14px;font-weight:500;">${icon} ${datumStr}</span>
+          <span style="font-size:12px;color:#666;">👤 ${p.pruefer || '—'}</span>
+        </div>
+        ${maengelHtml}
+      `;
+      gruppe.appendChild(card);
+    });
+
+    inhalt.appendChild(gruppe);
+  });
 }
 
 // ===== MÄNGEL-SCREEN =====
