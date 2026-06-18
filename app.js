@@ -3,14 +3,26 @@
    ============================================================ */
 
 // ===== LOGIN / AUTH =====
-const CSC_USERS = [
-  { name: 'Thomas Schmoldt',    email: 'thomas@csc-hannover.de',    sendTo: 'tschmoldt@csc-hannover.de',        hash: 'd5651848baa6169aa41a065d20fb0f5c2329acf84cb6544369a9b5e1d18323ef' },
-  { name: 'Katharina Schmoldt', email: 'katharina@csc-hannover.de', sendTo: 'reinigung@csc-hannover.de',         hash: 'c9437b3ac9f18eaf498d5576175325b5fae93eb137a5774d59c276a39d3c604f' },
-  { name: 'Fabian Romeike',     email: 'fabian@csc-hannover.de',    sendTo: 'glasreinigung@csc-hannover.de',     hash: 'eeb9f5bdc61ca39d968cab3e00d217a704418facfea9ad384302a8baa39b8bbd' },
-  { name: 'Klaus Stark',        email: 'klaus@csc-hannover.de',     sendTo: 'tschmoldt@csc-hannover.de',        hash: '78b673ed23e33cde5e839668445f6bbde2a41046f9ce716d3236b3f44d652114' },
-];
+// Benutzer werden zur Laufzeit vom Auth-Server geladen (nicht im Code gespeichert)
+let CSC_USERS = [];
+const AUTH_SERVER = 'http://localhost:8766/auth';
 const SESSION_KEY   = 'csc_session';
-const SESSION_HOURS = 24; // Session gültig für 24 Stunden
+const SESSION_HOURS = 24;
+
+async function ladeBenutzerliste() {
+  // DSGVO: Hashes nicht im öffentlichen GitHub-Code — nur vom lokalen Auth-Server laden
+  try {
+    const res = await fetch(AUTH_SERVER, { cache: 'no-store' });
+    if (res.ok) {
+      const data = await res.json();
+      CSC_USERS = data.users || [];
+      return true;
+    }
+  } catch(e) {
+    console.warn('[Auth] Auth-Server nicht erreichbar:', e.message);
+  }
+  return false;
+}
 
 async function sha256(text) {
   const buf = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
@@ -33,6 +45,16 @@ async function doLogin() {
   err.style.display = 'none';
 
   if (!email || !pw) { err.textContent = '⚠️ Bitte E-Mail und Passwort eingeben.'; err.style.display = 'block'; return; }
+
+  // Benutzerliste laden falls noch nicht geschehen
+  if (CSC_USERS.length === 0) {
+    const ok = await ladeBenutzerliste();
+    if (!ok) {
+      err.textContent = '⚠️ Anmeldung momentan nicht möglich. Bitte kurz warten und nochmal versuchen.';
+      err.style.display = 'block';
+      return;
+    }
+  }
 
   const pwHash = await sha256(pw);
   const user = CSC_USERS.find(u => u.email === email && u.hash === pwHash);
@@ -62,6 +84,27 @@ async function doLogin() {
   const bereichId = params.get('bereich');
   if (bereichId) openBereichById(bereichId);
 }
+
+// Benutzerliste beim App-Start vorladen
+ladeBenutzerliste().catch(() => {});
+
+// DSGVO: localStorage-Bereinigung (Fotos + Offline-Queue älter als 30 Tage)
+(function dsgvoLocalStorageBereinigung() {
+  try {
+    const TAGE_30 = 30 * 24 * 60 * 60 * 1000;
+    const jetzt = Date.now();
+    // Offline-Queue: alte Einträge entfernen
+    const queue = JSON.parse(localStorage.getItem('offline_queue') || '[]');
+    const queueNeu = queue.filter(item => (jetzt - (item.ts || 0)) < TAGE_30);
+    if (queueNeu.length < queue.length) {
+      localStorage.setItem('offline_queue', JSON.stringify(queueNeu));
+      console.log(`[DSGVO] ${queue.length - queueNeu.length} alte Queue-Einträge gelöscht`);
+    }
+    // Session prüfen
+    const s = JSON.parse(localStorage.getItem('csc_session') || 'null');
+    if (s && Date.now() > s.expires) localStorage.removeItem('csc_session');
+  } catch(e) { console.warn('[DSGVO] Bereinigung fehlgeschlagen:', e); }
+})();
 
 function doLogout() {
   localStorage.removeItem(SESSION_KEY);
