@@ -889,8 +889,18 @@ async function submitChecklist() {
       driveOk = true;
       driveFileId = driveResult?.id || null;
     } catch (driveErr) {
-      // Offline? → PDF lokal speichern + in Queue eintragen
-      console.warn('[Drive] Upload fehlgeschlagen (offline?):', driveErr.message);
+      console.warn('[Drive] Upload fehlgeschlagen:', driveErr.message);
+      // Bei Token-Ablauf: PDF trotzdem lokal herunterladen
+      if (driveErr.message === 'TOKEN_ABGELAUFEN' || driveErr.name === 'AbortError') {
+        // PDF lokal als Backup speichern
+        const url = URL.createObjectURL(pdfBlob);
+        const a = document.createElement('a');
+        const now = new Date();
+        a.href = url;
+        a.download = `${formatDatumISO(now)}_${currentBereich.id}_BACKUP.pdf`;
+        a.click();
+        setTimeout(() => URL.revokeObjectURL(url), 5000);
+      }
       offlineQueueAdd(pdfBlob);
     }
 
@@ -1789,33 +1799,40 @@ async function generatePDF() {
 // ===== GOOGLE DRIVE UPLOAD =====
 async function uploadToDrive(pdfBlob) {
   const token = await getDriveToken();
-  if (!token) throw new Error('Kein Google Drive Token. Bitte in App-Einstellungen einrichten.');
+  if (!token) throw new Error('Kein Google Drive Token.');
 
   const now = new Date();
   const filename = `${formatDatumISO(now)}_${currentBereich.id}_KW${getKW(now)}.pdf`;
 
-  // Unterordner je Prüfungstyp wählen, Fallback auf Hauptordner
   const unterordner = APP_CONFIG.googleDriveUnterordner || {};
   const folderId = unterordner[currentBereich.liste] || APP_CONFIG.googleDriveFolderId;
 
-  const metadata = {
-    name: filename,
-    parents: [folderId]
-  };
-
+  const metadata = { name: filename, parents: [folderId] };
   const form = new FormData();
   form.append('metadata', new Blob([JSON.stringify(metadata)], { type: 'application/json' }));
   form.append('file', pdfBlob);
 
-  const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
-    method: 'POST',
-    headers: { Authorization: 'Bearer ' + token },
-    body: form
-  });
+  // Timeout nach 15 Sekunden — verhindert ewiges Hängen
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 15000);
+
+  let res;
+  try {
+    res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+      method: 'POST',
+      headers: { Authorization: 'Bearer ' + token },
+      body: form,
+      signal: controller.signal
+    });
+  } finally {
+    clearTimeout(timer);
+  }
 
   if (!res.ok) {
-    const err = await res.json();
-    throw new Error(err.error?.message || 'Upload fehlgeschlagen');
+    const err = await res.json().catch(() => ({}));
+    // Bei 401 (Token abgelaufen): sprechende Fehlermeldung
+    if (res.status === 401) throw new Error('TOKEN_ABGELAUFEN');
+    throw new Error(err.error?.message || `HTTP ${res.status}`);
   }
   const result = await res.json();
   console.log('Drive upload OK:', result.id);
