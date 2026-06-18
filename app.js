@@ -163,8 +163,9 @@ function renderHome() {
   renderMaengelButton();
   // Dashboard Statistik laden
   renderDashboard();
-  // Offline-Queue hochladen falls nötig
+  // Offline-Queue automatisch hochladen + Sync-Button aktualisieren
   offlineQueueFlush().catch(() => {});
+  updateSyncButton();
 
   // Admin-Button: nur für Thomas & Fabian sichtbar
   const session = JSON.parse(localStorage.getItem(SESSION_KEY) || '{}');
@@ -2005,14 +2006,25 @@ function offlineQueueAdd(pdfBlob) {
   a.click();
 }
 
-async function offlineQueueFlush() {
+async function offlineQueueFlush(mitFeedback = false) {
   const queue = JSON.parse(localStorage.getItem('offline_queue') || '[]');
-  if (queue.length === 0) return;
+  if (queue.length === 0) {
+    if (mitFeedback) zeigeSyncStatus('✅ Keine ausstehenden Protokolle — alles bereits auf Drive.', 'gruen');
+    updateSyncButton();
+    return;
+  }
+  if (mitFeedback) zeigeSyncStatus(`⏳ Lade ${queue.length} Protokoll(e) zu Drive hoch…`, 'grau');
   const token = await getDriveToken();
-  if (!token) return;
+  if (!token) {
+    if (mitFeedback) zeigeSyncStatus('❌ Token nicht verfügbar. Bitte kurz warten und nochmal versuchen.', 'rot');
+    return;
+  }
   const remaining = [];
+  let ok = 0;
   for (const item of queue) {
     try {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), 15000);
       const byteStr = atob(item.dataUrl.split(',')[1]);
       const arr = new Uint8Array(byteStr.length);
       for (let i = 0; i < byteStr.length; i++) arr[i] = byteStr.charCodeAt(i);
@@ -2020,20 +2032,53 @@ async function offlineQueueFlush() {
       const form = new FormData();
       form.append('metadata', new Blob([JSON.stringify({ name: item.filename, parents: [item.folderId] })], { type: 'application/json' }));
       form.append('file', blob);
-      const res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
-        method: 'POST', headers: { Authorization: 'Bearer ' + token }, body: form
-      });
-      if (res.ok) {
-        console.log('[Offline] Nachgeladener Upload OK:', item.filename);
-      } else {
-        remaining.push(item);
-      }
+      let res;
+      try {
+        res = await fetch('https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart', {
+          method: 'POST', headers: { Authorization: 'Bearer ' + token }, body: form, signal: controller.signal
+        });
+      } finally { clearTimeout(timer); }
+      if (res.ok) { ok++; console.log('[Sync] Upload OK:', item.filename); }
+      else { remaining.push(item); }
     } catch(e) { remaining.push(item); }
   }
   localStorage.setItem('offline_queue', JSON.stringify(remaining));
-  if (remaining.length < queue.length) {
-    const delta = queue.length - remaining.length;
-    console.log(`[Offline] ${delta} PDF(s) nachträglich hochgeladen.`);
+  updateSyncButton();
+  if (mitFeedback) {
+    if (ok > 0 && remaining.length === 0)
+      zeigeSyncStatus(`✅ ${ok} Protokoll(e) erfolgreich zu Google Drive hochgeladen!`, 'gruen');
+    else if (ok > 0)
+      zeigeSyncStatus(`⚠️ ${ok} hochgeladen, ${remaining.length} fehlgeschlagen. Nochmal versuchen.`, 'gelb');
+    else
+      zeigeSyncStatus('❌ Upload fehlgeschlagen. Internetverbindung prüfen und nochmal versuchen.', 'rot');
+  }
+}
+
+function zeigeSyncStatus(text, farbe) {
+  const el = document.getElementById('sync-status');
+  if (!el) return;
+  const farben = { gruen: '#16a34a', rot: '#dc2626', gelb: '#d97706', grau: '#6b7280' };
+  el.textContent = text;
+  el.style.color = farben[farbe] || '#374151';
+  el.style.display = 'block';
+  if (farbe === 'gruen') setTimeout(() => { el.style.display = 'none'; }, 4000);
+}
+
+function updateSyncButton() {
+  const queue = JSON.parse(localStorage.getItem('offline_queue') || '[]');
+  const btn = document.getElementById('drive-sync-btn');
+  const badge = document.getElementById('sync-badge');
+  if (!btn) return;
+  if (queue.length > 0) {
+    btn.style.background = '#fef3c7';
+    btn.style.borderColor = '#f59e0b';
+    btn.style.color = '#92400e';
+    if (badge) { badge.textContent = queue.length; badge.style.display = 'inline'; }
+  } else {
+    btn.style.background = '#f0fdf4';
+    btn.style.borderColor = '#bbf7d0';
+    btn.style.color = '#16a34a';
+    if (badge) { badge.textContent = ''; badge.style.display = 'none'; }
   }
 }
 
