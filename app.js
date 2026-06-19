@@ -514,7 +514,12 @@ function renderHistorieGruppe(titel, eintraege) {
     let driveHtml = '';
     if (p.driveFileId) {
       const driveUrl = `https://drive.google.com/file/d/${p.driveFileId}/view`;
-      driveHtml = `<div style="margin-top:6px;"><a href="${driveUrl}" target="_blank" style="display:inline-block;padding:5px 12px;background:#1a73e8;color:#fff;border-radius:6px;font-size:12px;text-decoration:none;font-weight:500;">📄 Protokoll öffnen</a></div>`;
+      const fileId = p.driveFileId;
+      const dlFilename = `${p.datum ? p.datum.replace(/\./g,'-') : 'Protokoll'}_${bereichId}.pdf`;
+      driveHtml = `<div style="margin-top:6px;display:flex;gap:8px;flex-wrap:wrap;">
+        <a href="${driveUrl}" target="_blank" style="display:inline-block;padding:5px 12px;background:#1a73e8;color:#fff;border-radius:6px;font-size:12px;text-decoration:none;font-weight:500;">📄 Protokoll öffnen</a>
+        <button onclick="downloadPdfFromDrive('${fileId}','${dlFilename}')" style="padding:5px 12px;background:#34a853;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;">⬇️ PDF herunterladen</button>
+      </div>`;
     }
 
     card.innerHTML = `
@@ -1859,6 +1864,36 @@ async function uploadToDrive(pdfBlob) {
   a.href = url; a.download = filename; a.click();
 
   return result;
+}
+
+async function downloadPdfFromDrive(fileId, filename) {
+  const token = localStorage.getItem('drive_access_token');
+  if (!token) {
+    alert('Kein Drive-Token vorhanden. Bitte einmal neu einloggen.');
+    return;
+  }
+  try {
+    const res = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+      headers: { Authorization: `Bearer ${token}` }
+    });
+    if (!res.ok) {
+      if (res.status === 401) {
+        alert('Drive-Token abgelaufen. Bitte öffne das Protokoll über den blauen Button und lade es dort herunter.');
+      } else {
+        alert(`Fehler beim Laden des PDFs: HTTP ${res.status}`);
+      }
+      return;
+    }
+    const blob = await res.blob();
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename || 'Protokoll.pdf';
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(url), 5000);
+  } catch(e) {
+    alert('PDF-Download fehlgeschlagen: ' + e.message);
+  }
 }
 
 async function getDriveToken() {
