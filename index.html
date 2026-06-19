@@ -49,39 +49,140 @@
       </button>
       <p style="font-size:11.5px;color:#9ca3af;text-align:center;margin:14px 0 0;line-height:1.6">
         Mit der Anmeldung stimmen Sie der Verarbeitung Ihrer Daten gemäß unserer
-        <a href="#" onclick="document.getElementById('ds-modal').style.display='flex';return false;" style="color:#1a3a5c;text-decoration:underline">Datenschutzinformation</a> zu.
+        <a href="#" onclick="document.getElementById('ds-modal').style.display='flex';return false;" style="color:#1a3a5c;text-decoration:underline">Datenschutzerklärung</a> zu.
       </p>
+      <div style="display:flex;justify-content:center;gap:16px;margin-top:8px;font-size:11px">
+        <a href="#" onclick="document.getElementById('impressum-modal').style.display='flex';return false;" style="color:#9ca3af;text-decoration:none;border-bottom:1px dotted #d1d5db">📄 Impressum</a>
+        <a href="#" onclick="document.getElementById('ds-modal').style.display='flex';return false;" style="color:#9ca3af;text-decoration:none;border-bottom:1px dotted #d1d5db">🔒 Datenschutz</a>
+      </div>
     </div>
   </div>
 </div>
 
-<!-- ===== DATENSCHUTZ-MODAL (DSGVO Art. 13) ===== -->
-<div id="ds-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;align-items:center;justify-content:center;padding:16px">
-  <div style="background:#fff;border-radius:16px;max-width:520px;width:100%;max-height:90vh;overflow-y:auto;padding:24px 20px;font-size:13px;line-height:1.7;color:#374151">
-    <h2 style="margin:0 0 14px;font-size:16px;color:#1a3a5c">🔒 Datenschutzinformation (Art. 13 DSGVO)</h2>
-    <p><strong>Verantwortlicher:</strong><br>CSC GmbH Hannover · Gebäudedienste &amp; Höhenarbeiten<br>
-    E-Mail: <a href="mailto:info@csc-hannover.de" style="color:#1a3a5c">info@csc-hannover.de</a> · www.csc-hannover.de</p>
+<!-- ===== DATENSCHUTZ-MODAL (DSGVO Art. 13 / TTDSG) ===== -->
+<div id="ds-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;overflow-y:auto;padding:16px">
+  <div style="background:#fff;border-radius:16px;max-width:580px;margin:20px auto;padding:24px 20px;font-size:13px;line-height:1.7;color:#374151;position:relative">
+    <button onclick="document.getElementById('ds-modal').style.display='none'" style="position:absolute;top:14px;right:14px;background:none;border:none;font-size:1.3rem;cursor:pointer;color:#9ca3af">✕</button>
+    <h2 style="margin:0 0 4px;font-size:16px;color:#1a3a5c">🔒 Datenschutzerklärung</h2>
+    <p style="margin:0 0 14px;font-size:11px;color:#9ca3af">Gemäß Art. 13 DSGVO &amp; TTDSG — CSC Prüf-App — Stand: Juni 2026</p>
+
+    <p><strong>1. Verantwortlicher</strong><br>
+    CSC GmbH · Peiner Straße 39a · 30880 Laatzen<br>
+    Tel: <a href="tel:+4951029319730" style="color:#1a3a5c">05102 9319730</a> · E-Mail: <a href="mailto:info@csc-hannover.de" style="color:#1a3a5c">info@csc-hannover.de</a><br>
+    Geschäftsführer: Thomas Schmoldt<br>
+    <em style="font-size:11px;color:#9ca3af">(Kein Datenschutzbeauftragter — Schwellenwerte gem. § 38 BDSG nicht erreicht)</em></p>
     <hr style="border:none;border-top:1px solid #e5e7eb;margin:12px 0">
-    <p><strong>Zweck &amp; Rechtsgrundlage:</strong><br>
-    Dokumentation von Wartungs- und Sicherheitsprüfungen (Aufzug, Brandschutz, Notbeleuchtung, Leitern, PSAgA) gemäß gesetzlicher Prüfpflichten. Rechtsgrundlage: Art. 6 Abs. 1 lit. c DSGVO (gesetzliche Pflicht) sowie lit. b (Vertragserfüllung).</p>
-    <p><strong>Verarbeitete Daten:</strong><br>
-    Name des Prüfers, Prüfdatum, Prüfergebnis (Ja/Nein), Bemerkungen, Fotos, digitale Unterschrift, Zeitstempel.</p>
-    <p><strong>Empfänger / Auftragsverarbeiter:</strong><br>
-    • <strong>Google LLC</strong> — Drive-Backup (Protokoll-PDFs) &amp; Firebase/Firestore (Ampelstatus, Verlauf) · EU-West-Server · Standardvertragsklauseln (SCC)<br>
-    • <strong>GitHub Inc.</strong> — App-Hosting (GitHub Pages) · nur statische Dateien, keine personenbezogenen Daten</p>
-    <p><strong>Speicherdauer:</strong><br>
-    Prüfprotokolle: 5 Jahre (gesetzliche Aufbewahrungspflicht). Fotos und Offline-Zwischenspeicher: max. 30 Tage im Browserspeicher, danach automatisch gelöscht.</p>
-    <p><strong>Ihre Rechte (Art. 15–22 DSGVO):</strong><br>
-    Auskunft · Berichtigung · Löschung · Einschränkung · Widerspruch<br>
-    Anfragen an: <a href="mailto:info@csc-hannover.de" style="color:#1a3a5c">info@csc-hannover.de</a></p>
-    <p><strong>Beschwerderecht:</strong><br>
-    Landesbeauftragte für Datenschutz Niedersachsen · <a href="https://lfd.niedersachsen.de" target="_blank" style="color:#1a3a5c">lfd.niedersachsen.de</a></p>
-    <button onclick="document.getElementById('ds-modal').style.display='none'"
-      style="margin-top:14px;width:100%;padding:13px;background:#1a3a5c;color:#fff;border:none;border-radius:10px;font-size:15px;cursor:pointer;font-weight:600">
-      Schließen
-    </button>
+
+    <p><strong>2. Zweck &amp; Rechtsgrundlagen</strong><br>
+    Dokumentation von Wartungs- und Sicherheitsprüfungen (Aufzug, Brandschutz, Notbeleuchtung, Leitern, PSAgA) gemäß gesetzlicher Prüfpflichten.<br>
+    • Art. 6 Abs. 1 lit. b DSGVO — Vertragserfüllung<br>
+    • Art. 6 Abs. 1 lit. c DSGVO — gesetzliche Prüfpflicht (TRBS, DGUV, ArbSchG)<br>
+    • Art. 6 Abs. 1 lit. f DSGVO — berechtigtes Interesse (Sicherheitsnachweis)</p>
+    <hr style="border:none;border-top:1px solid #e5e7eb;margin:12px 0">
+
+    <p><strong>3. Verarbeitete Daten</strong><br>
+    Name des Prüfers, E-Mail (Login), Passwort-Hash (SHA-256), Prüfdatum, Prüfergebnis (Ja/Nein), Bemerkungen, Fotos (komprimiert), digitale Unterschrift, Zeitstempel, Audit-Hash (SHA-256 des PDFs).</p>
+    <hr style="border:none;border-top:1px solid #e5e7eb;margin:12px 0">
+
+    <p><strong>4. Lokale Datenspeicherung (§ 25 TTDSG)</strong><br>
+    Ausschließlich technisch notwendige Speicherung (§ 25 Abs. 2 Nr. 2 TTDSG) — kein Consent-Banner erforderlich:<br>
+    • <code style="font-size:11px;background:#f3f4f6;padding:1px 4px;border-radius:3px">csc_session</code> — Login-Session (kein Passwort)<br>
+    • <code style="font-size:11px;background:#f3f4f6;padding:1px 4px;border-radius:3px">csc_gespeicherte_unterschrift</code> — gespeicherte Unterschrift<br>
+    • <code style="font-size:11px;background:#f3f4f6;padding:1px 4px;border-radius:3px">csc_editor_anpassungen</code> — Checklisten-Anpassungen<br>
+    • <code style="font-size:11px;background:#f3f4f6;padding:1px 4px;border-radius:3px">offline_queue</code> — Ausstehende PDFs (max. 30 Tage)<br>
+    • <code style="font-size:11px;background:#f3f4f6;padding:1px 4px;border-radius:3px">csc_cookie_consent</code> — Bestätigung dieses Hinweises<br>
+    <strong>Keine Tracking-, Analyse- oder Werbe-Cookies.</strong></p>
+    <hr style="border:none;border-top:1px solid #e5e7eb;margin:12px 0">
+
+    <p><strong>5. Auftragsverarbeiter &amp; Drittlandtransfer</strong><br>
+    <strong>a) Google LLC</strong> (Firebase/Firestore + Drive-Backup)<br>
+    Google LLC, 1600 Amphitheatre Pkwy, Mountain View, CA 94043, USA<br>
+    Server: EU-West (Frankfurt). Rechtsgrundlage: EU-US DPF + SCC (Art. 46 Abs. 2 lit. c DSGVO)<br>
+    AVV gem. Art. 28 DSGVO abgeschlossen.<br><br>
+    <strong>b) GitHub Inc. / Microsoft</strong> (App-Hosting via GitHub Pages)<br>
+    Nur statische Dateien — keine personenbez. Daten. EU-US DPF + SCC.</p>
+    <hr style="border:none;border-top:1px solid #e5e7eb;margin:12px 0">
+
+    <p><strong>6. Speicherdauer</strong><br>
+    Prüfprotokolle (Drive): 5 Jahre (gesetzliche Aufbewahrungspflicht)<br>
+    Firestore (Ampel, Verlauf, Mängel): bis zur Löschung durch Administrator<br>
+    Fotos &amp; Offline-Queue: max. 30 Tage (automatisch gelöscht)<br>
+    Audit-Trail (PDF-Hashes): 5 Jahre</p>
+    <hr style="border:none;border-top:1px solid #e5e7eb;margin:12px 0">
+
+    <p><strong>7. Ihre Rechte (Art. 15–22 DSGVO)</strong><br>
+    Auskunft · Berichtigung · Löschung · Einschränkung · Widerspruch · Datenübertragbarkeit<br>
+    Widerrufsrecht (Art. 7 Abs. 3 DSGVO) soweit Einwilligung Grundlage.<br>
+    Anfragen: <a href="mailto:info@csc-hannover.de" style="color:#1a3a5c">info@csc-hannover.de</a></p>
+    <hr style="border:none;border-top:1px solid #e5e7eb;margin:12px 0">
+
+    <p><strong>8. Beschwerderecht (Art. 77 DSGVO)</strong><br>
+    Die Landesbeauftragte für den Datenschutz Niedersachsen<br>
+    Prinzenstraße 5 · 30159 Hannover · Tel: 0511 120-4500<br>
+    <a href="https://lfd.niedersachsen.de" target="_blank" style="color:#1a3a5c">lfd.niedersachsen.de</a></p>
+
+    <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+      <button onclick="document.getElementById('ds-modal').style.display='none'"
+        style="flex:1;min-width:120px;padding:13px;background:#1a3a5c;color:#fff;border:none;border-radius:10px;font-size:14px;cursor:pointer;font-weight:600">✅ Verstanden</button>
+      <button onclick="document.getElementById('ds-modal').style.display='none';document.getElementById('impressum-modal').style.display='flex'"
+        style="flex:1;min-width:120px;padding:13px;background:#f1f5f9;color:#374151;border:1px solid #e2e8f0;border-radius:10px;font-size:13px;cursor:pointer">📄 Impressum</button>
+    </div>
   </div>
 </div>
+
+<!-- ===== IMPRESSUM-MODAL (§ 5 DDG) ===== -->
+<div id="impressum-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:9999;overflow-y:auto;padding:16px;align-items:flex-start;justify-content:center">
+  <div style="background:#fff;border-radius:16px;max-width:480px;margin:20px auto;padding:24px 20px;font-size:13px;line-height:1.7;color:#374151;position:relative">
+    <button onclick="document.getElementById('impressum-modal').style.display='none'" style="position:absolute;top:14px;right:14px;background:none;border:none;font-size:1.3rem;cursor:pointer;color:#9ca3af">✕</button>
+    <h2 style="margin:0 0 4px;font-size:16px;color:#1a3a5c">📄 Impressum</h2>
+    <p style="margin:0 0 14px;font-size:11px;color:#9ca3af">Angaben gemäß § 5 DDG (Digitale-Dienste-Gesetz, gültig seit 14.05.2024)</p>
+
+    <p style="margin:0 0 10px"><strong>CSC GmbH</strong><br>Peiner Straße 39a<br>30880 Laatzen</p>
+    <p style="margin:0 0 10px"><strong>Kontakt:</strong><br>
+    Tel: <a href="tel:+4951029319730" style="color:#1a3a5c">05102 9319730</a><br>
+    Fax: 05102 93197-39<br>
+    E-Mail: <a href="mailto:info@csc-hannover.de" style="color:#1a3a5c">info@csc-hannover.de</a><br>
+    Web: <a href="https://www.csc-hannover.de" target="_blank" style="color:#1a3a5c">www.csc-hannover.de</a></p>
+    <p style="margin:0 0 10px"><strong>Rechtsform &amp; Vertretung:</strong><br>
+    Gesellschaft mit beschränkter Haftung (GmbH)<br>
+    Geschäftsführer: Thomas Schmoldt</p>
+    <p style="margin:0 0 10px"><strong>Handelsregister:</strong><br>Amtsgericht Hannover, HRB 204033</p>
+    <p style="margin:0 0 10px"><strong>Umsatzsteuer-ID:</strong><br>DE 240 107 716</p>
+    <hr style="border:none;border-top:1px solid #e5e7eb;margin:12px 0">
+    <p style="margin:0 0 6px"><strong>Verantwortlich für den Inhalt (§ 18 Abs. 2 MStV):</strong><br>Thomas Schmoldt, Peiner Straße 39a, 30880 Laatzen</p>
+    <p style="margin:0 0 10px;font-size:12px;color:#6b7280"><strong>Haftungsausschluss:</strong><br>
+    Als Diensteanbieter sind wir gemäß § 7 Abs. 1 DDG für eigene Inhalte verantwortlich. Nach §§ 8–10 DDG sind wir nicht verpflichtet, übermittelte oder gespeicherte fremde Informationen zu überwachen. Bei Bekanntwerden von Rechtsverletzungen entfernen wir entsprechende Inhalte umgehend.</p>
+    <p style="margin:0 0 14px;font-size:12px;color:#6b7280"><strong>Datenschutz:</strong> Details in unserer
+    <a href="#" onclick="document.getElementById('impressum-modal').style.display='none';document.getElementById('ds-modal').style.display='block'" style="color:#1a3a5c">Datenschutzerklärung</a>.</p>
+
+    <button onclick="document.getElementById('impressum-modal').style.display='none'"
+      style="width:100%;padding:13px;background:#1a3a5c;color:#fff;border:none;border-radius:10px;font-size:14px;cursor:pointer;font-weight:600">Schließen</button>
+  </div>
+</div>
+
+<!-- ===== COOKIE-CONSENT-BANNER (§ 25 TTDSG) ===== -->
+<div id="cookie-banner" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:10000;background:#1a3a5c;color:#fff;padding:14px 16px;box-shadow:0 -4px 16px rgba(0,0,0,.3)">
+  <div style="max-width:700px;margin:0 auto;display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap">
+    <div style="flex:1;min-width:200px">
+      <p style="margin:0 0 4px;font-size:13px;font-weight:700">🍪 Hinweis zur Datenspeicherung (§ 25 TTDSG)</p>
+      <p style="margin:0;font-size:11.5px;line-height:1.5;color:#cbd5e1">
+        Diese App nutzt ausschließlich <strong>technisch notwendigen lokalen Speicher</strong> (localStorage gem. § 25 Abs. 2 Nr. 2 TTDSG) für Session und Einstellungen. <strong>Kein Tracking</strong>.
+        <a href="#" onclick="document.getElementById('cookie-banner').style.display='none';document.getElementById('ds-modal').style.display='block';return false;" style="color:#93c5fd;text-decoration:underline">Datenschutz</a> ·
+        <a href="#" onclick="document.getElementById('cookie-banner').style.display='none';document.getElementById('impressum-modal').style.display='flex';return false;" style="color:#93c5fd;text-decoration:underline">Impressum</a>
+      </p>
+    </div>
+    <button onclick="cscCookieAkzeptieren()" style="padding:10px 18px;background:#16a34a;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;flex-shrink:0">✅ Verstanden</button>
+  </div>
+</div>
+
+<!-- ===== LEGAL-FOOTER (nach Login) ===== -->
+<div id="legal-footer" style="display:none;position:fixed;bottom:0;left:0;right:0;z-index:900;background:rgba(26,58,92,0.92);backdrop-filter:blur(4px);padding:5px 14px;align-items:center;justify-content:center;gap:18px;font-size:11px">
+  <span style="color:rgba(255,255,255,.45)">© 2026 CSC GmbH</span>
+  <a href="#" onclick="document.getElementById('impressum-modal').style.display='flex';return false;" style="color:rgba(255,255,255,.65);text-decoration:none;border-bottom:1px dotted rgba(255,255,255,.3)">📄 Impressum</a>
+  <a href="#" onclick="document.getElementById('ds-modal').style.display='block';return false;" style="color:rgba(255,255,255,.65);text-decoration:none;border-bottom:1px dotted rgba(255,255,255,.3)">🔒 Datenschutz</a>
+</div>
+
+<!-- ===== Login: Impressum-Link ergänzen ===== -->
 
 <!-- ===== SCREEN 1: HOME ===== -->
 <div id="screen-home" class="screen">

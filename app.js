@@ -40,6 +40,7 @@ async function doLogin() {
   showScreen('home');
   document.getElementById('home-user-name').textContent = user.name;
   renderHome();
+  cscShowLegalFooter(true);
 
   const params = new URLSearchParams(window.location.search);
   const bereichId = params.get('bereich');
@@ -106,8 +107,28 @@ let lastX = 0, lastY = 0;
 let fotoListe        = [];   // Array von { dataUrl, name }
 let gfbMitarbeiter   = [];   // Array von { name, sigCanvas }
 
+// ===== LEGAL / COOKIE-CONSENT =====
+function cscCookieAkzeptieren() {
+  localStorage.setItem('csc_cookie_consent', '1');
+  document.getElementById('cookie-banner').style.display = 'none';
+}
+
+function cscPruefeCookieConsent() {
+  if (!localStorage.getItem('csc_cookie_consent')) {
+    document.getElementById('cookie-banner').style.display = 'block';
+  }
+}
+
+function cscShowLegalFooter(show) {
+  const f = document.getElementById('legal-footer');
+  if (f) f.style.display = show ? 'flex' : 'none';
+}
+
 // ===== INIT =====
 document.addEventListener('DOMContentLoaded', () => {
+  // Cookie-Consent beim Start prüfen
+  cscPruefeCookieConsent();
+
   // Service Worker registrieren
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').then(reg => {
@@ -123,6 +144,7 @@ document.addEventListener('DOMContentLoaded', () => {
     showScreen('home');
     document.getElementById('home-user-name').textContent = session.name;
     renderHome();
+    cscShowLegalFooter(true);
     // URL-Parameter: ?bereich=xxx (von QR-Code)
     const params = new URLSearchParams(window.location.search);
     const bereichId = params.get('bereich');
