@@ -3,25 +3,47 @@
    ============================================================ */
 
 // ===== LOGIN / AUTH =====
-// Benutzer werden zur Laufzeit vom Auth-Server geladen (nicht im Code gespeichert)
-let CSC_USERS = [];
-const AUTH_SERVER = 'http://localhost:8766/auth';
+const CSC_USERS = [
+  { name: 'Thomas Schmoldt',    email: 'thomas@csc-hannover.de',    sendTo: 'tschmoldt@csc-hannover.de',        hash: 'd5651848baa6169aa41a065d20fb0f5c2329acf84cb6544369a9b5e1d18323ef' },
+  { name: 'Katharina Schmoldt', email: 'katharina@csc-hannover.de', sendTo: 'reinigung@csc-hannover.de',         hash: 'c9437b3ac9f18eaf498d5576175325b5fae93eb137a5774d59c276a39d3c604f' },
+  { name: 'Fabian Romeike',     email: 'fabian@csc-hannover.de',    sendTo: 'glasreinigung@csc-hannover.de',     hash: 'eeb9f5bdc61ca39d968cab3e00d217a704418facfea9ad384302a8baa39b8bbd' },
+  { name: 'Klaus Stark',        email: 'klaus@csc-hannover.de',     sendTo: 'tschmoldt@csc-hannover.de',        hash: '78b673ed23e33cde5e839668445f6bbde2a41046f9ce716d3236b3f44d652114' },
+];
 const SESSION_KEY   = 'csc_session';
 const SESSION_HOURS = 24;
 
-async function ladeBenutzerliste() {
-  // DSGVO: Hashes nicht im öffentlichen GitHub-Code — nur vom lokalen Auth-Server laden
-  try {
-    const res = await fetch(AUTH_SERVER, { cache: 'no-store' });
-    if (res.ok) {
-      const data = await res.json();
-      CSC_USERS = data.users || [];
-      return true;
-    }
-  } catch(e) {
-    console.warn('[Auth] Auth-Server nicht erreichbar:', e.message);
+async function doLogin() {
+  const email = document.getElementById('login-email').value.trim().toLowerCase();
+  const pw    = document.getElementById('login-password').value;
+  const err   = document.getElementById('login-fehler');
+  err.style.display = 'none';
+
+  if (!email || !pw) { err.textContent = '⚠️ Bitte E-Mail und Passwort eingeben.'; err.style.display = 'block'; return; }
+
+  const pwHash = await sha256(pw);
+  const user = CSC_USERS.find(u => u.email === email && u.hash === pwHash);
+
+  if (!user) {
+    err.textContent = '❌ E-Mail oder Passwort falsch.';
+    err.style.display = 'block';
+    document.getElementById('login-password').value = '';
+    return;
   }
-  return false;
+
+  localStorage.setItem(SESSION_KEY, JSON.stringify({
+    name:    user.name,
+    email:   user.email,
+    sendTo:  user.sendTo || user.email,
+    expires: Date.now() + SESSION_HOURS * 3600 * 1000
+  }));
+
+  showScreen('home');
+  document.getElementById('home-user-name').textContent = user.name;
+  renderHome();
+
+  const params = new URLSearchParams(window.location.search);
+  const bereichId = params.get('bereich');
+  if (bereichId) openBereichById(bereichId);
 }
 
 async function sha256(text) {
@@ -38,57 +60,7 @@ function checkSession() {
   } catch(e) { return null; }
 }
 
-async function doLogin() {
-  const email = document.getElementById('login-email').value.trim().toLowerCase();
-  const pw    = document.getElementById('login-password').value;
-  const err   = document.getElementById('login-fehler');
-  err.style.display = 'none';
-
-  if (!email || !pw) { err.textContent = '⚠️ Bitte E-Mail und Passwort eingeben.'; err.style.display = 'block'; return; }
-
-  // Benutzerliste laden falls noch nicht geschehen
-  if (CSC_USERS.length === 0) {
-    const ok = await ladeBenutzerliste();
-    if (!ok) {
-      err.textContent = '⚠️ Anmeldung momentan nicht möglich. Bitte kurz warten und nochmal versuchen.';
-      err.style.display = 'block';
-      return;
-    }
-  }
-
-  const pwHash = await sha256(pw);
-  const user = CSC_USERS.find(u => u.email === email && u.hash === pwHash);
-
-  if (!user) {
-    err.textContent = '❌ E-Mail oder Passwort falsch.';
-    err.style.display = 'block';
-    document.getElementById('login-password').value = '';
-    return;
-  }
-
-  // Session speichern
-  localStorage.setItem(SESSION_KEY, JSON.stringify({
-    name:    user.name,
-    email:   user.email,
-    sendTo:  user.sendTo || user.email,
-    expires: Date.now() + SESSION_HOURS * 3600 * 1000
-  }));
-
-  // Zur App weiterleiten
-  showScreen('home');
-  document.getElementById('home-user-name').textContent = user.name;
-  renderHome();
-
-  // QR-Parameter verarbeiten falls vorhanden
-  const params = new URLSearchParams(window.location.search);
-  const bereichId = params.get('bereich');
-  if (bereichId) openBereichById(bereichId);
-}
-
-// Benutzerliste beim App-Start vorladen
-ladeBenutzerliste().catch(() => {});
-
-// DSGVO: localStorage-Bereinigung (Fotos + Offline-Queue älter als 30 Tage)
+// DSGVO: localStorage-Bereinigung (Offline-Queue älter als 30 Tage)
 (function dsgvoLocalStorageBereinigung() {
   try {
     const TAGE_30 = 30 * 24 * 60 * 60 * 1000;
