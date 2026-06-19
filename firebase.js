@@ -4,7 +4,7 @@
 // ============================================================
 
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-import { getFirestore, doc, setDoc, getDoc, getDocs, collection, query, where, orderBy, limit, updateDoc, serverTimestamp }
+import { getFirestore, doc, setDoc, getDoc, getDocs, deleteDoc, collection, query, where, orderBy, limit, updateDoc, serverTimestamp }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
 
 const firebaseConfig = {
@@ -310,3 +310,116 @@ window.fbRestTage = function(datumISO, listentyp) {
   const faelligAm = new Date(letztes.getTime() + intervall * 86400000);
   return Math.floor((faelligAm - new Date()) / 86400000);
 };
+
+// ============================================================
+//  FEATURE 1: Editor-Anpassungen geräteübergreifend in Firestore
+//  Speichert unter: editorAnpassungen/{email}
+// ============================================================
+window.fbEditorLade = async function(email) {
+  if (!email) return {};
+  try {
+    const ref  = doc(db, 'editorAnpassungen', email.replace(/[@.]/g, '_'));
+    const snap = await getDoc(ref);
+    if (!snap.exists()) return {};
+    return snap.data().anpassungen || {};
+  } catch(e) {
+    console.warn('[Firebase] Editor laden fehlgeschlagen:', e.message);
+    return {};
+  }
+};
+
+window.fbEditorSpeichere = async function(email, anpassungen) {
+  if (!email) return;
+  try {
+    const ref = doc(db, 'editorAnpassungen', email.replace(/[@.]/g, '_'));
+    await setDoc(ref, { email, anpassungen, geaendertAm: serverTimestamp() });
+  } catch(e) {
+    console.warn('[Firebase] Editor speichern fehlgeschlagen:', e.message);
+  }
+};
+
+// ============================================================
+//  FEATURE 9: Offline-Queue in Firestore speichern/laden
+//  Speichert unter: offlineQueue/{email_timestamp}
+// ============================================================
+window.fbOfflineQueueAdd = async function(email, filename, dataUrl, folderId) {
+  try {
+    const key = `${email.replace(/[@.]/g,'_')}_${Date.now()}`;
+    const ref = doc(db, 'offlineQueue', key);
+    await setDoc(ref, { email, filename, dataUrl, folderId, ts: Date.now() });
+  } catch(e) {
+    console.warn('[Firebase] Offline-Queue (Firestore) speichern fehlgeschlagen:', e.message);
+  }
+};
+
+window.fbOfflineQueueLade = async function(email) {
+  try {
+    const snap = await getDocs(collection(db, 'offlineQueue'));
+    const result = [];
+    snap.docs.forEach(d => {
+      if (d.data().email === email) result.push({ id: d.id, ...d.data() });
+    });
+    return result.sort((a, b) => (a.ts || 0) - (b.ts || 0));
+  } catch(e) {
+    return [];
+  }
+};
+
+window.fbOfflineQueueDelete = async function(docId) {
+  try {
+    await deleteDoc(doc(db, 'offlineQueue', docId));
+  } catch(e) {}
+};
+
+// ============================================================
+//  FEATURE 10: Audit-Trail — PDF-Hash in Firestore speichern
+//  Speichert unter: auditTrail/{bereichId_timestamp}
+// ============================================================
+window.fbSaveAuditHash = async function({ bereichId, listentyp, pruefer, datum, pdfHash, driveFileId }) {
+  try {
+    const key = `${bereichId}_${Date.now()}`;
+    const ref = doc(db, 'auditTrail', key);
+    await setDoc(ref, {
+      bereichId, listentyp, pruefer,
+      datum: datum.toISOString(),
+      pdfHash,        // SHA-256 des PDFs — Manipulationsnachweis
+      driveFileId: driveFileId || null,
+      timestamp: serverTimestamp()
+    });
+  } catch(e) {
+    console.warn('[Firebase] Audit-Trail speichern fehlgeschlagen:', e.message);
+  }
+};
+
+// Alle fälligen / überfälligen Bereiche laden (für Fälligkeits-Übersicht)
+window.fbGetFaelligkeitenUebersicht = async function() {
+  try {
+    const snap = await getDocs(collection(db, 'letztePruefung'));
+    const heute = new Date();
+    const result = [];
+    snap.docs.forEach(d => {
+      const data = d.data();
+      const intervall = INTERVALLE[data.listentyp] || 30;
+      const letztes = new Date(data.datum);
+      const faelligAm = new Date(letztes.getTime() + intervall * 86400000);
+      const restTage  = Math.floor((faelligAm - heute) / 86400000);
+      if (restTage <= 14) { // nur die nächsten 14 Tage anzeigen
+        result.push({ bereichId: d.id, bereichName: data.bereichName, listentyp: data.listentyp, restTage, faelligAm: faelligAm.toISOString() });
+      }
+    });
+    result.sort((a, b) => a.restTage - b.restTage);
+    return result;
+  } catch(e) {
+    return [];
+  }
+};
+
+// Alle offenen Mängel für Reminder-Cron laden
+window.fbGetAlleOffeneMaengel = async function() {
+  try {
+    const q = query(collection(db, 'maengel'), where('status', '==', 'offen'));
+    const snap = await getDocs(q);
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch(e) { return []; }
+};
+

@@ -1,4 +1,4 @@
-const CACHE = 'csc-pruef-v47';
+const CACHE = 'csc-pruef-v48';
 const ASSETS = ['./index.html','./style.css','./app.js','./config.js','./manifest.json','./logo.png','./firebase.js'];
 
 // Install: neuen Cache befüllen
@@ -27,5 +27,33 @@ self.addEventListener('fetch', e => {
         return response;
       })
       .catch(() => caches.match(e.request)) // offline: aus Cache
+  );
+});
+
+// FEATURE 7: Push-Benachrichtigungen empfangen
+self.addEventListener('push', e => {
+  let data = { title: 'CSC Prüf-App', body: 'Neue Benachrichtigung' };
+  try { if (e.data) data = e.data.json(); } catch(err) {}
+  e.waitUntil(
+    self.registration.showNotification(data.title, {
+      body: data.body,
+      icon: './logo.png',
+      badge: './logo.png',
+      tag: 'csc-pruef',
+      data: { url: data.url || '/' }
+    })
+  );
+});
+
+// Klick auf Push-Benachrichtigung → App öffnen
+self.addEventListener('notificationclick', e => {
+  e.notification.close();
+  e.waitUntil(
+    clients.matchAll({ type: 'window' }).then(clientList => {
+      for (const client of clientList) {
+        if ('focus' in client) return client.focus();
+      }
+      return clients.openWindow(e.notification.data?.url || '/');
+    })
   );
 });

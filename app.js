@@ -110,7 +110,10 @@ let gfbMitarbeiter   = [];   // Array von { name, sigCanvas }
 document.addEventListener('DOMContentLoaded', () => {
   // Service Worker registrieren
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('sw.js').catch(() => {});
+    navigator.serviceWorker.register('sw.js').then(reg => {
+      // FEATURE 7: Push-Benachrichtigungen anfragen (nach Login)
+      window._swReg = reg;
+    }).catch(() => {});
   }
 
   // Session prüfen
@@ -124,11 +127,60 @@ document.addEventListener('DOMContentLoaded', () => {
     const params = new URLSearchParams(window.location.search);
     const bereichId = params.get('bereich');
     if (bereichId) openBereichById(bereichId);
+    // Push-Benachrichtigungen aktivieren
+    initPushNotifications();
   } else {
     // Nicht eingeloggt → Login-Screen zeigen
     showScreen('login');
   }
 });
+
+// FEATURE 7: Push-Benachrichtigungen initialisieren
+async function initPushNotifications() {
+  if (!('Notification' in window) || !('PushManager' in window)) return;
+  if (Notification.permission === 'granted') {
+    await subscribePush();
+  } else if (Notification.permission !== 'denied') {
+    // Beim ersten Mal fragen (nur wenn App schon bekannt ist)
+    const asked = localStorage.getItem('csc_push_asked');
+    if (!asked) {
+      localStorage.setItem('csc_push_asked', '1');
+      const perm = await Notification.requestPermission();
+      if (perm === 'granted') await subscribePush();
+    }
+  }
+}
+
+async function subscribePush() {
+  try {
+    if (!window._swReg) return;
+    // VAPID Public Key (öffentlich, sicher im Frontend)
+    const VAPID_PUBLIC = 'BEl62iUYgUivxIkv69yViEuiBIa-Ib9-SkvMeAtA3LFgDzkrxZJjSgSnfckjBJuBkr3qBuyAtnNfm_oM3Z2V';
+    const sub = await window._swReg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC)
+    });
+    console.log('[Push] Abonniert:', sub.endpoint.slice(0, 50) + '...');
+    // Subscription in localStorage für Cron-Job
+    localStorage.setItem('csc_push_subscription', JSON.stringify(sub));
+  } catch(e) {
+    console.log('[Push] Kein Push verfügbar:', e.message);
+  }
+}
+
+function urlBase64ToUint8Array(base64String) {
+  const padding = '='.repeat((4 - base64String.length % 4) % 4);
+  const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
+  const rawData = window.atob(base64);
+  return Uint8Array.from([...rawData].map(c => c.charCodeAt(0)));
+}
+
+// Benachrichtigung lokal senden (ohne Server — direkt im Browser)
+function sendLocalNotification(title, body) {
+  if (Notification.permission === 'granted' && window._swReg) {
+    window._swReg.showNotification(title, { body, icon: './logo.png', badge: './logo.png' });
+  }
+}
 
 // ===== SCREEN MANAGEMENT =====
 function showScreen(name) {
@@ -723,10 +775,24 @@ function fotoHinzufuegen(event) {
   const file = files[0];
   const reader = new FileReader();
   reader.onload = function(e) {
-    const dataUrl = e.target.result;
-    const idx = fotoListe.length;
-    fotoListe.push({ dataUrl, name: file.name });
-    renderFotoVorschau(idx, dataUrl);
+    // FEATURE 4: Foto-Komprimierung — Resize auf max 800px + JPEG 70%
+    const img = new Image();
+    img.onload = function() {
+      const MAX = 800;
+      let w = img.width, h = img.height;
+      if (w > MAX || h > MAX) {
+        if (w > h) { h = Math.round(h * MAX / w); w = MAX; }
+        else { w = Math.round(w * MAX / h); h = MAX; }
+      }
+      const cvs = document.createElement('canvas');
+      cvs.width = w; cvs.height = h;
+      cvs.getContext('2d').drawImage(img, 0, 0, w, h);
+      const dataUrl = cvs.toDataURL('image/jpeg', 0.70);
+      const idx = fotoListe.length;
+      fotoListe.push({ dataUrl, name: file.name });
+      renderFotoVorschau(idx, dataUrl);
+    };
+    img.src = e.target.result;
   };
   reader.readAsDataURL(file);
   event.target.value = '';
@@ -802,11 +868,60 @@ function initSignaturePad() {
     lastX = pos.x; lastY = pos.y;
   }
   sigPad = { canvas, ctx };
+
+  // FEATURE 8: Gespeicherte Unterschrift automatisch einfügen
+  const hasSaved = !!localStorage.getItem('csc_gespeicherte_unterschrift');
+  // Speichern/Laden-Buttons unter dem Canvas
+  const sigContainer = document.getElementById('sig-container');
+  let sigBtns = document.getElementById('sig-extra-btns');
+  if (!sigBtns) {
+    sigBtns = document.createElement('div');
+    sigBtns.id = 'sig-extra-btns';
+    sigBtns.style.cssText = 'display:flex;gap:8px;margin-top:6px;';
+    sigBtns.innerHTML = `
+      <button type="button" class="btn-secondary" style="flex:1;font-size:12px;padding:6px"
+        onclick="saveSignature()">💾 Unterschrift merken</button>
+      <button type="button" id="btn-sig-load" class="btn-secondary"
+        style="flex:1;font-size:12px;padding:6px;${hasSaved ? '' : 'opacity:0.4;cursor:default'}"
+        onclick="loadSavedSignature()" ${hasSaved ? '' : 'disabled'}>
+        ✍️ Gespeicherte laden
+      </button>
+    `;
+    sigContainer.after(sigBtns);
+  } else {
+    // Laden-Button aktivieren/deaktivieren je nach gespeicherter Unterschrift
+    const loadBtn = document.getElementById('btn-sig-load');
+    if (loadBtn) { loadBtn.disabled = !hasSaved; loadBtn.style.opacity = hasSaved ? '1' : '0.4'; }
+  }
+  // Automatisch einfügen wenn gespeichert
+  if (hasSaved) {
+    setTimeout(() => loadSavedSignature(), 100);
+  }
 }
 
 function clearSignature() {
   if (!sigPad) return;
   sigPad.ctx.clearRect(0, 0, sigPad.canvas.width, sigPad.canvas.height);
+}
+
+// FEATURE 8: Gespeicherte Unterschrift laden
+function loadSavedSignature() {
+  const saved = localStorage.getItem('csc_gespeicherte_unterschrift');
+  if (!saved || !sigPad) return;
+  const img = new Image();
+  img.onload = () => {
+    sigPad.ctx.clearRect(0, 0, sigPad.canvas.width, sigPad.canvas.height);
+    sigPad.ctx.drawImage(img, 0, 0, sigPad.canvas.width, sigPad.canvas.height);
+  };
+  img.src = saved;
+}
+
+// Unterschrift im localStorage speichern
+function saveSignature() {
+  if (!sigPad || isSignatureEmpty()) { alert('Bitte zuerst unterschreiben.'); return; }
+  const dataUrl = sigPad.canvas.toDataURL('image/png');
+  localStorage.setItem('csc_gespeicherte_unterschrift', dataUrl);
+  alert('✅ Unterschrift gespeichert! Sie wird bei zukünftigen Prüfungen automatisch eingetragen.');
 }
 
 function isSignatureEmpty() {
@@ -949,6 +1064,23 @@ async function submitChecklist() {
         maengelText: bemerkungText,
         driveFileId: driveFileId
       });
+
+      // FEATURE 10: Audit-Trail — PDF-Hash berechnen und in Firestore speichern
+      try {
+        const pdfArr = await pdfBlob.arrayBuffer();
+        const hashBuf = await crypto.subtle.digest('SHA-256', pdfArr);
+        const pdfHash = Array.from(new Uint8Array(hashBuf)).map(b => b.toString(16).padStart(2,'0')).join('');
+        if (typeof window.fbSaveAuditHash === 'function') {
+          await window.fbSaveAuditHash({
+            bereichId: fbBereichId,
+            listentyp: currentBereich.liste,
+            pruefer: prueferName,
+            datum: new Date(),
+            pdfHash,
+            driveFileId
+          });
+        }
+      } catch(hashErr) { console.warn('[Audit] Hash berechnen fehlgeschlagen:', hashErr.message); }
     }
     // ─────────────────────────────────────────────────────────
 
@@ -1950,24 +2082,83 @@ function handleQRResult(text) {
 }
 
 // ===== RESULT =====
-// ===== PDF per E-Mail senden =====
+// ===== PDF per E-Mail senden (FEATURE 2: Gmail API mit echtem Anhang) =====
 let currentPdfBlob = null;
 
-function emailPDF(toAddress) {
+async function emailPDF(toAddress) {
   if (!currentPdfBlob) return;
   const now = new Date();
   const filename = `${formatDatumISO(now)}_${currentBereich ? currentBereich.id : 'pruefung'}_KW${getKW(now)}.pdf`;
   const bereichName = currentBereich ? currentBereich.name : 'Prüfung';
-  const subject = encodeURIComponent(`CSC Prüfbericht: ${bereichName} vom ${formatDatumISO(now)}`);
-  const body = encodeURIComponent(`Bitte das angehängte Prüf-PDF weiterverarbeiten.\n\nBereich: ${bereichName}\nDatum: ${formatDatum(now)}\n\nCSC Hannover Prüf-App`);
-  // PDF lokal herunterladen (Browser-Download ist nötig da Anhang via mailto nicht geht)
-  const url = URL.createObjectURL(currentPdfBlob);
-  const a = document.createElement('a');
-  a.href = url; a.download = filename; a.click();
-  // Dann mailto öffnen
-  setTimeout(() => {
-    window.location.href = `mailto:${toAddress}?subject=${subject}&body=${body}`;
-  }, 800);
+  const subject = `CSC Prüfbericht: ${bereichName} vom ${formatDatumISO(now)}`;
+  const body = `Anbei das Prüfprotokoll für ${bereichName} vom ${formatDatum(now)}.\n\nCSC Hannover Prüf-App`;
+
+  // Gmail API: PDF als Base64-Anhang
+  try {
+    const token = await getDriveToken();
+    if (!token) throw new Error('Kein Token');
+
+    const pdfBase64 = await blobToBase64(currentPdfBlob);
+    const boundary = 'csc_boundary_' + Date.now();
+    const emailLines = [
+      `From: me`,
+      `To: ${toAddress}`,
+      `Subject: =?UTF-8?B?${btoa(unescape(encodeURIComponent(subject)))}?=`,
+      `MIME-Version: 1.0`,
+      `Content-Type: multipart/mixed; boundary="${boundary}"`,
+      ``,
+      `--${boundary}`,
+      `Content-Type: text/plain; charset=UTF-8`,
+      ``,
+      body,
+      ``,
+      `--${boundary}`,
+      `Content-Type: application/pdf; name="${filename}"`,
+      `Content-Transfer-Encoding: base64`,
+      `Content-Disposition: attachment; filename="${filename}"`,
+      ``,
+      pdfBase64.replace(/^data:application\/pdf;base64,/, ''),
+      ``,
+      `--${boundary}--`
+    ].join('\r\n');
+
+    const emailB64 = btoa(unescape(encodeURIComponent(emailLines)))
+      .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+
+    const res = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
+      method: 'POST',
+      headers: {
+        'Authorization': 'Bearer ' + token,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ raw: emailB64 })
+    });
+
+    if (res.ok) {
+      alert(`✅ E-Mail mit PDF-Anhang wurde an ${toAddress} gesendet!`);
+    } else {
+      const err = await res.json();
+      throw new Error(err.error?.message || 'Gmail-Fehler');
+    }
+  } catch(e) {
+    console.warn('[Gmail] E-Mail senden fehlgeschlagen:', e.message);
+    // Fallback: lokaler Download + mailto
+    const url = URL.createObjectURL(currentPdfBlob);
+    const a = document.createElement('a');
+    a.href = url; a.download = filename; a.click();
+    const subjEnc = encodeURIComponent(subject);
+    const bodyEnc = encodeURIComponent(body + '\n\n(PDF bitte manuell anhängen)');
+    setTimeout(() => { window.location.href = `mailto:${toAddress}?subject=${subjEnc}&body=${bodyEnc}`; }, 800);
+  }
+}
+
+function blobToBase64(blob) {
+  return new Promise((resolve, reject) => {
+    const r = new FileReader();
+    r.onload = () => resolve(r.result);
+    r.onerror = reject;
+    r.readAsDataURL(blob);
+  });
 }
 
 function showResult(success, driveOk, emailTo, errMsg) {
@@ -2044,6 +2235,12 @@ function offlineQueueAdd(pdfBlob) {
       while (queue.length > 5) queue.shift();
       localStorage.setItem('offline_queue', JSON.stringify(queue));
       console.log('[Offline] PDF in Queue gespeichert:', filename);
+
+      // FEATURE 9: Auch in Firestore speichern (geräteübergreifend)
+      const session = checkSession();
+      if (session && typeof window.fbOfflineQueueAdd === 'function') {
+        window.fbOfflineQueueAdd(session.email, filename, e.target.result, folderId).catch(() => {});
+      }
     } catch(err) { console.warn('[Offline] Queue-Fehler:', err); }
   };
   reader.readAsDataURL(pdfBlob);
@@ -2166,6 +2363,25 @@ async function renderDashboard() {
       <span>📊 Geprüft diesen Monat</span><strong>${geprüft} / ${total}</strong>
     </div>
   `;
+
+  // FEATURE 6: Fälligkeits-Übersicht (nächste 14 Tage)
+  if (typeof window.fbGetFaelligkeitenUebersicht === 'function') {
+    const faellig = await window.fbGetFaelligkeitenUebersicht();
+    if (faellig.length > 0) {
+      const ampelIcon = r => r < 0 ? '🔴' : r <= 7 ? '🟡' : '🔵';
+      const ampelColor = r => r < 0 ? '#c0392b' : r <= 7 ? '#e6a817' : '#1a3a5c';
+      const tageText = r => r < 0 ? `Überfällig seit ${Math.abs(r)} Tagen` : r === 0 ? 'Heute fällig!' : `In ${r} Tagen`;
+      let html = '<div style="margin-top:10px;padding-top:10px;border-top:2px solid #e0e0e0"><div style="font-weight:700;color:#1a3a5c;font-size:13px;margin-bottom:8px">📅 Nächste Fälligkeiten (14 Tage)</div>';
+      faellig.forEach(f => {
+        html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #f0f0f0;font-size:12px">
+          <span>${ampelIcon(f.restTage)} ${f.bereichName || f.bereichId}</span>
+          <span style="font-weight:600;color:${ampelColor(f.restTage)}">${tageText(f.restTage)}</span>
+        </div>`;
+      });
+      html += '</div>';
+      el.insertAdjacentHTML('beforeend', html);
+    }
+  }
 }
 
 // ===== LOADING =====
@@ -2190,15 +2406,43 @@ function getKW(d) {
 
 const EDITOR_STORAGE_KEY = 'csc_editor_anpassungen';
 
-// Lade angepasste Punkte aus localStorage (Überschreibungen)
+// FEATURE 1: Editor-Anpassungen laden — zuerst Firestore, dann localStorage als Fallback
+async function editorLadeAnpassungenAsync() {
+  const session = checkSession();
+  if (session && typeof window.fbEditorLade === 'function') {
+    const fsData = await window.fbEditorLade(session.email);
+    if (Object.keys(fsData).length > 0) {
+      // Auch in localStorage cachen für Offline-Nutzung
+      localStorage.setItem(EDITOR_STORAGE_KEY, JSON.stringify(fsData));
+      return fsData;
+    }
+  }
+  try { return JSON.parse(localStorage.getItem(EDITOR_STORAGE_KEY) || '{}'); }
+  catch(e) { return {}; }
+}
+
+// Synchron (für sofortige Nutzung während Render) — aus localStorage-Cache
 function editorLadeAnpassungen() {
   try { return JSON.parse(localStorage.getItem(EDITOR_STORAGE_KEY) || '{}'); }
   catch(e) { return {}; }
 }
 
-// Speichere Anpassungen
+// FEATURE 1: Anpassungen speichern — gleichzeitig in localStorage und Firestore
 function editorSpeichereAnpassungen(data) {
   localStorage.setItem(EDITOR_STORAGE_KEY, JSON.stringify(data));
+  // Async in Firestore speichern
+  const session = checkSession();
+  if (session && typeof window.fbEditorSpeichere === 'function') {
+    window.fbEditorSpeichere(session.email, data).catch(() => {});
+  }
+}
+
+// FEATURE 1: Editor öffnen → Anpassungen aus Firestore laden
+function openEditor() {
+  showScreen('editor');
+  const container = document.getElementById('editor-inhalt');
+  container.innerHTML = '<div style="padding:20px;text-align:center;color:#888">Lade Einstellungen…</div>';
+  editorLadeAnpassungenAsync().then(() => renderEditorHome());
 }
 
 // Gibt die aktuellen Punkte einer Liste zurück (Original + Anpassungen zusammengeführt)
@@ -2221,12 +2465,6 @@ function editorGetPunkte(listeKey) {
     abs.punkte.push(...neuePunkte);
   });
   return abschnitte;
-}
-
-// Editor-Screen öffnen
-function openEditor() {
-  showScreen('editor');
-  renderEditorHome();
 }
 
 // Übersicht aller bearbeitbaren Listen
