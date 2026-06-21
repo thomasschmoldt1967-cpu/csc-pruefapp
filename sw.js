@@ -1,5 +1,5 @@
-const CACHE = 'csc-pruef-v50';
-const ASSETS = ['./index.html','./style.css','./app.js','./config.js','./manifest.json','./logo.png','./firebase.js'];
+const CACHE = 'csc-pruef-v51';
+const ASSETS = ['./index.html','./style.css','./app.js','./config.js','./manifest.json','./logo.png','./firebase.js','./icon-192.png','./icon-512.png'];
 
 // Install: neuen Cache befüllen
 self.addEventListener('install', e => {
