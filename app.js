@@ -2716,3 +2716,151 @@ function editorAllesZuruecksetzen() {
   localStorage.removeItem(EDITOR_STORAGE_KEY);
   renderEditorHome();
 }
+
+// ===== ALLE PROTOKOLLE — Übersicht mit Filter =====
+
+// Gecachte Protokolle für Filter
+let _alleProtokolleCache = [];
+
+const LISTENTYP_LABEL = {
+  aufzug:          '🛗 Aufzug',
+  brandschutztuer: '🚪 Brandschutz',
+  notbeleuchtung:  '💡 Notbeleuchtung',
+  leiterkontrolle: '🪜 Leitern',
+  gfb_szp:         '🧗 GFB SZP',
+  gfb_glasreinigung:'🪟 GFB Glasreinigung'
+};
+
+async function showAlleProtokolleScreen() {
+  showScreen('protokolle');
+
+  const inhalt  = document.getElementById('protokolle-inhalt');
+  const selObjekt = document.getElementById('filter-objekt');
+  const selMA     = document.getElementById('filter-mitarbeiter');
+
+  inhalt.innerHTML = '<div style="padding:20px;text-align:center;color:#888">Lade Protokolle…</div>';
+
+  if (typeof window.fbGetAlleProtokolle !== 'function') {
+    inhalt.innerHTML = '<div style="padding:20px;text-align:center;color:#c00">Firebase nicht verfügbar.</div>';
+    return;
+  }
+
+  const protokolle = await window.fbGetAlleProtokolle();
+  _alleProtokolleCache = protokolle;
+
+  if (protokolle.length === 0) {
+    inhalt.innerHTML = '<div style="padding:20px;text-align:center;color:#888">Noch keine Protokolle vorhanden.</div>';
+    return;
+  }
+
+  // Filter-Dropdowns befüllen
+  const objekte = [...new Set(protokolle.map(p => p.standortName || p.standortId).filter(Boolean))].sort();
+  const mitarbeiter = [...new Set(protokolle.map(p => p.pruefer).filter(Boolean))].sort();
+
+  // Objekte
+  selObjekt.innerHTML = '<option value="">🏢 Alle Objekte</option>';
+  objekte.forEach(o => {
+    const opt = document.createElement('option');
+    opt.value = o;
+    opt.textContent = `🏢 ${o}`;
+    selObjekt.appendChild(opt);
+  });
+
+  // Mitarbeiter
+  selMA.innerHTML = '<option value="">👤 Alle Mitarbeiter</option>';
+  mitarbeiter.forEach(m => {
+    const opt = document.createElement('option');
+    opt.value = m;
+    opt.textContent = `👤 ${m}`;
+    selMA.appendChild(opt);
+  });
+
+  filterProtokolle();
+}
+
+function filterProtokolle() {
+  const inhalt    = document.getElementById('protokolle-inhalt');
+  const anzahlEl  = document.getElementById('protokolle-anzahl');
+  const selObjekt = document.getElementById('filter-objekt');
+  const selMA     = document.getElementById('filter-mitarbeiter');
+
+  if (!inhalt || !_alleProtokolleCache.length) return;
+
+  const filterObjekt = selObjekt ? selObjekt.value : '';
+  const filterMA     = selMA     ? selMA.value     : '';
+
+  let gefiltert = _alleProtokolleCache;
+  if (filterObjekt) gefiltert = gefiltert.filter(p => (p.standortName || p.standortId) === filterObjekt);
+  if (filterMA)     gefiltert = gefiltert.filter(p => p.pruefer === filterMA);
+
+  anzahlEl.textContent = `${gefiltert.length} Protokoll${gefiltert.length !== 1 ? 'e' : ''} gefunden`;
+
+  if (gefiltert.length === 0) {
+    inhalt.innerHTML = '<div style="padding:20px;text-align:center;color:#888">Keine Protokolle für diesen Filter.</div>';
+    return;
+  }
+
+  inhalt.innerHTML = '';
+
+  // Nach Objekt + Bereich gruppieren
+  const gruppen = {};
+  gefiltert.forEach(p => {
+    const key = `${p.standortName || p.standortId || 'Unbekanntes Objekt'}|||${p.bereichName || p.bereichId}`;
+    if (!gruppen[key]) gruppen[key] = [];
+    gruppen[key].push(p);
+  });
+
+  Object.keys(gruppen).sort().forEach(key => {
+    const [objektName, bereichName] = key.split('|||');
+    const eintraege = gruppen[key];
+    const letzter = eintraege[0];
+    const listenLabel = LISTENTYP_LABEL[letzter.listentyp] || letzter.listentyp || 'Prüfung';
+
+    const gruppe = document.createElement('div');
+    gruppe.style.cssText = 'margin-bottom:16px;border-radius:10px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,0.07);';
+
+    const header = document.createElement('div');
+    header.style.cssText = 'font-weight:bold;font-size:14px;padding:10px 14px;background:#1a3a5c;color:#fff;display:flex;justify-content:space-between;align-items:center;';
+    header.innerHTML = `
+      <span>${listenLabel} — ${bereichName}</span>
+      <span style="font-size:11px;font-weight:normal;opacity:0.85;">${objektName}</span>
+    `;
+    gruppe.appendChild(header);
+
+    eintraege.forEach((p, idx) => {
+      const d     = new Date(p.datum);
+      const datum = d.toLocaleDateString('de-DE', { day:'2-digit', month:'2-digit', year:'numeric' });
+      const icon  = p.hatMaengel ? '🔴' : '🟢';
+
+      const card = document.createElement('div');
+      card.style.cssText = `padding:10px 14px;background:${idx % 2 === 0 ? '#fff' : '#fafafa'};border-left:3px solid ${p.hatMaengel ? '#c00' : '#2a9d2a'};border-bottom:1px solid #eee;`;
+
+      let maengelHtml = '';
+      if (p.hatMaengel && p.maengelText) {
+        maengelHtml = `<div style="margin-top:4px;padding:5px 8px;background:#fff3f3;border-radius:4px;font-size:12px;color:#c00;">⚠️ ${p.maengelText}</div>`;
+      }
+
+      let driveHtml = '';
+      if (p.driveFileId) {
+        const driveUrl  = `https://drive.google.com/file/d/${p.driveFileId}/view`;
+        const dlName    = `${p.datum ? p.datum.replace(/\./g,'-') : 'Protokoll'}_${p.bereichId}.pdf`;
+        driveHtml = `<div style="margin-top:6px;display:flex;gap:8px;flex-wrap:wrap;">
+          <a href="${driveUrl}" target="_blank" style="display:inline-block;padding:5px 12px;background:#1a73e8;color:#fff;border-radius:6px;font-size:12px;text-decoration:none;font-weight:500;">📄 Öffnen</a>
+          <button onclick="downloadPdfFromDrive('${p.driveFileId}','${dlName}')" style="padding:5px 12px;background:#34a853;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;">⬇️ PDF</button>
+        </div>`;
+      }
+
+      card.innerHTML = `
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:14px;font-weight:500;">${icon} ${datum}</span>
+          <span style="font-size:12px;color:#666;">👤 ${p.pruefer || '—'}</span>
+        </div>
+        ${maengelHtml}
+        ${driveHtml}
+      `;
+      gruppe.appendChild(card);
+    });
+
+    inhalt.appendChild(gruppe);
+  });
+}

@@ -205,6 +205,14 @@
     <div id="dashboard-stats" class="dashboard-box"></div>
     <div id="standort-liste"></div>
 
+    <!-- Protokoll-Übersicht Button -->
+    <div style="margin-top:16px;">
+      <button onclick="showAlleProtokolleScreen()"
+        style="width:100%;padding:14px;border-radius:10px;border:1px solid #c8d8f0;background:#f0f4ff;color:#1a3a5c;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+        📋 Alle Protokolle anzeigen
+      </button>
+    </div>
+
     <!-- Drive Sync Button -->
     <div style="margin-top:20px;padding-top:16px;border-top:1px solid #e0e0e0">
       <button id="drive-sync-btn" onclick="offlineQueueFlush(true)"
@@ -345,6 +353,35 @@
   </div>
   <div class="content" id="historie-inhalt">
     <div style="padding:20px;text-align:center;color:#888">Lade Protokolle…</div>
+  </div>
+</div>
+
+<!-- ===== SCREEN: ALLE PROTOKOLLE (mit Filter) ===== -->
+<div id="screen-protokolle" class="screen">
+  <div class="header">
+    <button class="btn-back" onclick="showScreen('home')">‹ Zurück</button>
+    <div class="header-title">📋 Alle Protokolle</div>
+  </div>
+  <div class="content">
+    <!-- Filter-Bereich -->
+    <div style="background:#f0f4ff;border-radius:10px;padding:12px 14px;margin-bottom:14px;">
+      <div style="font-size:13px;font-weight:600;color:#1a3a5c;margin-bottom:8px;">🔍 Filtern nach:</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <select id="filter-objekt" onchange="filterProtokolle()"
+          style="width:100%;padding:9px 12px;border:1px solid #c8d8f0;border-radius:8px;font-size:14px;background:#fff;color:#1a3a5c;">
+          <option value="">🏢 Alle Objekte</option>
+        </select>
+        <select id="filter-mitarbeiter" onchange="filterProtokolle()"
+          style="width:100%;padding:9px 12px;border:1px solid #c8d8f0;border-radius:8px;font-size:14px;background:#fff;color:#1a3a5c;">
+          <option value="">👤 Alle Mitarbeiter</option>
+        </select>
+      </div>
+      <div id="protokolle-anzahl" style="font-size:12px;color:#666;margin-top:8px;text-align:right;"></div>
+    </div>
+    <!-- Protokoll-Liste -->
+    <div id="protokolle-inhalt">
+      <div style="padding:20px;text-align:center;color:#888">Lade Protokolle…</div>
+    </div>
   </div>
 </div>
 

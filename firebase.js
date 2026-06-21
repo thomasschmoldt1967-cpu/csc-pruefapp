@@ -414,6 +414,38 @@ window.fbGetFaelligkeitenUebersicht = async function() {
   }
 };
 
+// ============================================================
+//  Alle Prüfprotokolle laden (für globale Protokoll-Übersicht)
+//  Gibt alle pruefHistory-Einträge zurück, neueste zuerst
+// ============================================================
+window.fbGetAlleProtokolle = async function() {
+  try {
+    const snap = await getDocs(collection(db, 'pruefHistory'));
+    const liste = [];
+    snap.docs.forEach(d => {
+      const data = d.data();
+      liste.push({
+        id:          d.id,
+        bereichId:   data.bereichId   || d.id,
+        bereichName: data.bereichName || d.id,
+        standortId:  data.standortId  || '',
+        standortName:data.standortName|| '',
+        listentyp:   data.listentyp   || '',
+        pruefer:     data.pruefer     || '',
+        datum:       data.datum       || '',
+        hatMaengel:  !!data.hatMaengel,
+        maengelText: data.maengelText || '',
+        driveFileId: data.driveFileId || null
+      });
+    });
+    liste.sort((a, b) => new Date(b.datum) - new Date(a.datum));
+    return liste;
+  } catch (e) {
+    console.warn('[Firebase] fbGetAlleProtokolle fehlgeschlagen:', e.message);
+    return [];
+  }
+};
+
 // Alle offenen Mängel für Reminder-Cron laden
 window.fbGetAlleOffeneMaengel = async function() {
   try {
