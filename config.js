@@ -94,45 +94,6 @@ const APP_CONFIG = {
     },
 
     // Weiterer Standort: { id: "...", name: "...", gruppen: [...] }
-    // FEATURE 3: Zweiter Standort (Vorlage — Namen/IDs anpassen wenn neues Objekt kommt)
-    {
-      id: "neues_objekt",
-      name: "📍 Neues Objekt (Vorlage)",
-      gruppen: [
-        {
-          id: "aufzug",
-          name: "Aufzug",
-          icon: "🛗",
-          bereiche: [
-            // Beispiel: { id: "aufzug_no_1", name: "Aufzug 1", liste: "aufzug" },
-          ]
-        },
-        {
-          id: "brandschutz",
-          name: "Brandschutztüren",
-          icon: "🚪",
-          bereiche: [
-            // Beispiel: { id: "bst_no_eg", name: "EG", liste: "brandschutztuer" },
-          ]
-        },
-        {
-          id: "notbeleuchtung",
-          name: "Notbeleuchtung",
-          icon: "💡",
-          bereiche: [
-            // Beispiel: { id: "notbel_no_1", name: "Treppenhaus 1", liste: "notbeleuchtung" },
-          ]
-        },
-        {
-          id: "leitern",
-          name: "Leitern",
-          icon: "🪜",
-          bereiche: [
-            // Beispiel: { id: "leiter_sammel_no", name: "Leitern", liste: "leiterkontrolle" },
-          ]
-        },
-      ]
-    },
   ],
 
   listen: {
