@@ -34,8 +34,8 @@ body {
 
 /* ===== HEADER ===== */
 .header {
-  background: var(--primary);
-  color: white;
+  background: #ffffff;
+  color: var(--primary);
   padding: 14px 16px;
   display: flex;
   align-items: center;
@@ -43,13 +43,13 @@ body {
   position: sticky;
   top: 0;
   z-index: 100;
-  box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+  box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+  border-bottom: 2px solid #e8a020;
 }
 .header-logo {
   height: 36px;
   width: auto;
   margin-left: auto;
-  background: white;
   border-radius: 4px;
   padding: 2px 6px;
 }
@@ -62,7 +62,7 @@ body {
 .btn-back {
   background: none;
   border: none;
-  color: white;
+  color: var(--primary);
   font-size: 20px;
   cursor: pointer;
   padding: 4px 8px 4px 0;
