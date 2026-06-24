@@ -20,10 +20,19 @@ async function doLogin() {
 
   if (!email || !pw) { err.textContent = '⚠️ Bitte E-Mail und Passwort eingeben.'; err.style.display = 'block'; return; }
 
-  const pwHash = await sha256(pw);
-  const user = CSC_USERS.find(u => u.email === email && u.hash === pwHash);
+  // Lokale Zuordnung (Name + sendTo) aus CSC_USERS
+  const userMeta = CSC_USERS.find(u => u.email === email);
+  if (!userMeta) {
+    err.textContent = '❌ E-Mail oder Passwort falsch.';
+    err.style.display = 'block';
+    document.getElementById('login-password').value = '';
+    return;
+  }
 
-  if (!user) {
+  try {
+    // Firebase Authentication
+    await window.fbSignIn(email, pw);
+  } catch(e) {
     err.textContent = '❌ E-Mail oder Passwort falsch.';
     err.style.display = 'block';
     document.getElementById('login-password').value = '';
@@ -31,14 +40,14 @@ async function doLogin() {
   }
 
   localStorage.setItem(SESSION_KEY, JSON.stringify({
-    name:    user.name,
-    email:   user.email,
-    sendTo:  user.sendTo || user.email,
+    name:    userMeta.name,
+    email:   userMeta.email,
+    sendTo:  userMeta.sendTo || userMeta.email,
     expires: Date.now() + SESSION_HOURS * 3600 * 1000
   }));
 
   showScreen('home');
-  document.getElementById('home-user-name').textContent = user.name;
+  document.getElementById('home-user-name').textContent = userMeta.name;
   renderHome();
   cscShowLegalFooter(true);
 
@@ -84,6 +93,7 @@ function doLogout() {
   document.getElementById('login-email').value = '';
   document.getElementById('login-password').value = '';
   document.getElementById('login-fehler').style.display = 'none';
+  if (window.fbSignOut) window.fbSignOut().catch(() => {});
   showScreen('login');
 }
 
