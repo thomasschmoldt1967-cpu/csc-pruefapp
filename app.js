@@ -2780,13 +2780,48 @@ async function renderDashboard() {
       const ampelIcon = r => r < 0 ? '🔴' : r <= 7 ? '🟡' : '🔵';
       const ampelColor = r => r < 0 ? '#c0392b' : r <= 7 ? '#e6a817' : '#1a3a5c';
       const tageText = r => r < 0 ? `Überfällig seit ${Math.abs(r)} Tagen` : r === 0 ? 'Heute fällig!' : `In ${r} Tagen`;
-      let html = '<div style="margin-top:10px;padding-top:10px;border-top:2px solid #e0e0e0"><div style="font-weight:700;color:#1a3a5c;font-size:13px;margin-bottom:8px">📅 Nächste Fälligkeiten (14 Tage)</div>';
+
+      // Nach Kategorie gruppieren
+      const KATEGORIE_LABEL = {
+        aufzug: '🛗 Aufzug',
+        brandschutztuer: '🚪 Brandschutz',
+        notbeleuchtung: '💡 Notbeleuchtung',
+        leiterkontrolle: '🪜 Leitern',
+        gfb_szp: '🧗 GFU/SZP',
+        gfb_glasreinigung: '🪟 GFU/Glasreinigung',
+      };
+      const gruppen = {};
       faellig.forEach(f => {
-        html += `<div style="display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid #f0f0f0;font-size:12px">
-          <span>${ampelIcon(f.restTage)} ${f.bereichName || f.bereichId}</span>
-          <span style="font-weight:600;color:${ampelColor(f.restTage)}">${tageText(f.restTage)}</span>
-        </div>`;
+        const kat = f.listentyp || 'sonstige';
+        if (!gruppen[kat]) gruppen[kat] = [];
+        gruppen[kat].push(f);
       });
+
+      let html = `<div style="margin-top:10px;padding-top:10px;border-top:2px solid #e0e0e0">
+        <div style="font-weight:700;color:#1a3a5c;font-size:13px;margin-bottom:8px">📅 Nächste Fälligkeiten (14 Tage)</div>`;
+
+      Object.entries(gruppen).forEach(([kat, items]) => {
+        const katLabel = KATEGORIE_LABEL[kat] || `📋 ${kat}`;
+        html += `<div style="font-size:11px;font-weight:700;color:#6b7280;text-transform:uppercase;letter-spacing:.05em;margin:8px 0 4px">${katLabel}</div>`;
+        items.forEach(f => {
+          const farbe = ampelColor(f.restTage);
+          const bg = f.restTage < 0 ? '#fef2f2' : f.restTage <= 7 ? '#fffbeb' : '#eff6ff';
+          const border = f.restTage < 0 ? '#fca5a5' : f.restTage <= 7 ? '#fde68a' : '#bfdbfe';
+          html += `<div onclick="openBereichById('${f.bereichId}')"
+            style="display:flex;justify-content:space-between;align-items:center;padding:8px 10px;
+                   margin-bottom:4px;border-radius:8px;background:${bg};border:1px solid ${border};
+                   cursor:pointer;transition:opacity .15s"
+            onmouseover="this.style.opacity='.8'" onmouseout="this.style.opacity='1'">
+            <span style="font-size:12px;font-weight:600;color:#1a3a5c">
+              ${ampelIcon(f.restTage)} ${f.bereichName || f.bereichId}
+            </span>
+            <span style="font-size:11px;font-weight:700;color:${farbe};white-space:nowrap;margin-left:8px">
+              ${tageText(f.restTage)} ›
+            </span>
+          </div>`;
+        });
+      });
+
       html += '</div>';
       el.insertAdjacentHTML('beforeend', html);
     }
