@@ -95,7 +95,7 @@ window.fbGetAmpel = async function(bereichId, listentyp) {
     const letztes  = new Date(data.datum);
     const intervall= INTERVALLE[listentyp] || 30;
     const faelligAm= new Date(letztes.getTime() + intervall * 86400000);
-    const heute    = new Date();
+    const heute    = new Date(); heute.setHours(0,0,0,0); faelligAm.setHours(0,0,0,0);
     const restTage = Math.floor((faelligAm - heute) / 86400000);
 
     if (restTage < 0)  return 'rot';
@@ -136,8 +136,9 @@ window.fbGetAmpelLeitern = async function() {
     Object.entries(results).forEach(([id, data]) => {
       const letztes   = new Date(data.datum);
       const intervall = INTERVALLE['leiterkontrolle'] || 365;
-      const faelligAm = new Date(letztes.getTime() + intervall * 86400000);
-      const restTage  = Math.floor((faelligAm - new Date()) / 86400000);
+      const faelligAm = new Date(letztes.getTime() + intervall * 86400000); faelligAm.setHours(0,0,0,0);
+      const _h1 = new Date(); _h1.setHours(0,0,0,0);
+      const restTage  = Math.floor((faelligAm - _h1) / 86400000);
       if (restTage < 0)  ampeln[id] = 'rot';
       else if (restTage <= 7) ampeln[id] = 'gelb';
       else ampeln[id] = 'gruen';
@@ -162,8 +163,9 @@ window.fbGetAlleLeiternDaten = async function() {
       if (!d.id.startsWith('leiter_')) return;
       const data = d.data();
       const letztes   = new Date(data.datum);
-      const faelligAm = new Date(letztes.getTime() + intervall * 86400000);
-      const restTage  = Math.floor((faelligAm - new Date()) / 86400000);
+      const faelligAm = new Date(letztes.getTime() + intervall * 86400000); faelligAm.setHours(0,0,0,0);
+      const _h2 = new Date(); _h2.setHours(0,0,0,0);
+      const restTage  = Math.floor((faelligAm - _h2) / 86400000);
       let ampel = 'gruen';
       if (restTage < 0)       ampel = 'rot';
       else if (restTage <= 60) ampel = 'gelb';
@@ -395,13 +397,13 @@ window.fbSaveAuditHash = async function({ bereichId, listentyp, pruefer, datum, 
 window.fbGetFaelligkeitenUebersicht = async function() {
   try {
     const snap = await getDocs(collection(db, 'letztePruefung'));
-    const heute = new Date();
+    const heute = new Date(); heute.setHours(0,0,0,0);
     const result = [];
     snap.docs.forEach(d => {
       const data = d.data();
       const intervall = INTERVALLE[data.listentyp] || 30;
       const letztes = new Date(data.datum);
-      const faelligAm = new Date(letztes.getTime() + intervall * 86400000);
+      const faelligAm = new Date(letztes.getTime() + intervall * 86400000); faelligAm.setHours(0,0,0,0);
       const restTage  = Math.floor((faelligAm - heute) / 86400000);
       if (restTage <= 14) { // nächste 14 Tage anzeigen (2 Prüfzyklen bei wöchentlichen Intervallen)
         result.push({ bereichId: d.id, bereichName: data.bereichName, listentyp: data.listentyp, restTage, faelligAm: faelligAm.toISOString() });
