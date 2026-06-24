@@ -403,7 +403,7 @@ window.fbGetFaelligkeitenUebersicht = async function() {
       const letztes = new Date(data.datum);
       const faelligAm = new Date(letztes.getTime() + intervall * 86400000);
       const restTage  = Math.floor((faelligAm - heute) / 86400000);
-      if (restTage <= 14) { // nur die nächsten 14 Tage anzeigen
+      if (restTage <= 30) { // nächste 30 Tage anzeigen
         result.push({ bereichId: d.id, bereichName: data.bereichName, listentyp: data.listentyp, restTage, faelligAm: faelligAm.toISOString() });
       }
     });

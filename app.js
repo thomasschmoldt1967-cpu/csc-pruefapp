@@ -2798,7 +2798,7 @@ async function renderDashboard() {
       });
 
       let html = `<div style="margin-top:10px;padding-top:10px;border-top:2px solid #e0e0e0">
-        <div style="font-weight:700;color:#1a3a5c;font-size:13px;margin-bottom:8px">📅 Nächste Fälligkeiten (14 Tage)</div>`;
+        <div style="font-weight:700;color:#1a3a5c;font-size:13px;margin-bottom:8px">📅 Nächste Fälligkeiten (30 Tage)</div>`;
 
       Object.entries(gruppen).forEach(([kat, items]) => {
         const katLabel = KATEGORIE_LABEL[kat] || `📋 ${kat}`;
