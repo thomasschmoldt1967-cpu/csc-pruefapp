@@ -2196,6 +2196,124 @@ async function generatePDF() {
         'Unterweisung vor jedem Einsatz und mindestens 1× jährlich; Nachweis aufbewahren (mind. 2 Jahre)',
       ], '◉', y);
 
+      // ══════════════════════════════════════
+      // SEITE: RETTUNGSPLAN GLASREINIGUNG
+      // ══════════════════════════════════════
+      doc.addPage(); y = PT;
+      gfbHeader(doc, 'Glasreinigung – inkl. Höhenarbeit mittels SZP / PSAgA');
+      y = 26;
+
+      // Titel
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(16); doc.setTextColor(200, 0, 0);
+      doc.text('⚠  RETTUNGSPLAN  ⚠', 105, y + 8, { align: 'center' });
+      y += 14;
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(26, 58, 92);
+      doc.text('Glasreinigung / SZP – Rettung nach UNTEN zum Boden', 105, y, { align: 'center' });
+      y += 6;
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(80, 80, 80);
+      doc.text('Gemäß DGUV Vorschrift 1  •  DIN EN 363  •  DGUV Regel 112-198', 105, y, { align: 'center' });
+      y += 10;
+
+      // Notruf-Box links + Hängetrauma-Warnung rechts
+      doc.setFillColor(200, 0, 0);
+      doc.rect(PL, y, 55, 18, 'F');
+      doc.setTextColor(255, 255, 255);
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(10);
+      doc.text('NOTRUF', PL + 27, y + 7, { align: 'center' });
+      doc.setFontSize(16);
+      doc.text('112', PL + 27, y + 15, { align: 'center' });
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
+      doc.text('Feuerwehr / Rettungsdienst', PL + 27, y + 20, { align: 'center' });
+
+      doc.setFillColor(255, 240, 180);
+      doc.rect(PL + 60, y, PW - 60, 18, 'F');
+      doc.setTextColor(150, 60, 0);
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(10);
+      doc.text('RETTUNG MUSS INNERHALB', PL + 62, y + 7);
+      doc.setFontSize(11);
+      doc.text('VON 15 MINUTEN ERFOLGEN!', PL + 62, y + 13);
+      doc.setFontSize(8); doc.setFont('helvetica', 'normal');
+      doc.text('(Hängetrauma-Risiko!)', PL + 62, y + 18);
+      y += 24;
+      doc.setTextColor(0);
+
+      // Zweispaltig: Gefährdungen | Rettungsgerät
+      const gColW = (PW - 4) / 2;
+      const gCol1x = PL, gCol2x = PL + gColW + 4;
+
+      doc.setFillColor(26, 58, 92);
+      doc.rect(gCol1x, y, gColW, 7, 'F');
+      doc.rect(gCol2x, y, gColW, 7, 'F');
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(255, 255, 255);
+      doc.text('GEFÄHRDUNGEN & MASSNAHMEN', gCol1x + 2, y + 5);
+      doc.text('ERFORDERLICHES RETTUNGSGERÄT', gCol2x + 2, y + 5);
+      y += 10; doc.setTextColor(0);
+
+      const gGefItems = [
+        'Hängetrauma: Rettung < 15 Min. – gut angepasster Gurt – Beinschlaufen entlasten',
+        'Absturz des Retters: PSA in Rückhaltefunktion, Seillänge kurz halten',
+        'Ankerpunktversagen bei 2 Personen: geeigneten AP wählen, separat für Rettungsgerät',
+      ];
+      const gRetItems = [
+        'Abseilgerät (Zulassung 2 Personen)',
+        'Auffanggurt + Verbindungsmittel',
+        'Kantenschutz',
+        'Erste-Hilfe-Verbandskasten',
+        'Rettung durch Teampartner',
+      ];
+
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
+      let gy1 = y, gy2 = y;
+      gGefItems.forEach(t => {
+        const lines = doc.splitTextToSize('⚠  ' + t, gColW - 4);
+        doc.text(lines, gCol1x + 2, gy1);
+        gy1 += lines.length * 4.5 + 2;
+      });
+      gRetItems.forEach(t => {
+        const lines = doc.splitTextToSize('✔  ' + t, gColW - 4);
+        doc.text(lines, gCol2x + 2, gy2);
+        gy2 += lines.length * 4.5 + 2;
+      });
+      y = Math.max(gy1, gy2) + 6;
+
+      // Schritt-für-Schritt
+      doc.setFillColor(26, 58, 92);
+      doc.rect(PL, y, PW, 7, 'F');
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(255, 255, 255);
+      doc.text('DURCHFÜHRUNG DER RETTUNG – SCHRITT FÜR SCHRITT:', PL + 2, y + 5);
+      y += 10; doc.setTextColor(0);
+
+      const gSchritte = [
+        'Teampartner (MA 1) sichert sich selbst – Verbindungsmittel kurz einstellen – Kontakt zur verunglückten Person aufnehmen. Verletzungen feststellen, beruhigen!',
+        'NOTRUF 112 absetzen! Meldung: WER? WAS ist passiert? WO genau? WIE VIELE Verletzte?',
+        'Geeigneten Anschlagpunkt für das Rettungsgerät auswählen (vorzugsweise separat von den Arbeitsseilen).',
+        'Kantenschutz anbringen falls notwendig – dabei Eigensicherung beachten!',
+        'Verunglückte Person so anschlagen (Abseilgerät am Ankerpunkt), dass ein Ablassen möglich ist.',
+        'Abgestürzten aus hängender Position kontrolliert nach UNTEN zum Boden abseilen.',
+        'Vor dem Abseilen: Hindernisse im Abseilweg prüfen!',
+        'Übernahme der verletzten Person aus dem geöffneten System (Bodennähe) mit zwei Personen.',
+        'Erste-Hilfe-Maßnahmen einleiten – je nach Verletzung handeln.',
+        'Auf den Notarzt warten – auch ohne äußere Verletzungszeichen ärztlich untersuchen lassen (Hängetrauma möglich)!',
+      ];
+
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
+      gSchritte.forEach((s, i) => {
+        if (y > 268) { doc.addPage(); y = PT + 8; }
+        const lines = doc.splitTextToSize(s, PW - 12);
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
+        doc.text(String(i + 1), PL + 2, y);
+        doc.setFont('helvetica', 'normal');
+        doc.text(lines, PL + 8, y);
+        y += lines.length * 5 + 2;
+      });
+
+      // Ersthelfer-Box
+      y += 4;
+      doc.setFillColor(238, 242, 247); doc.rect(PL, y, PW, 10, 'F');
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(26, 58, 92);
+      doc.text('Ersthelfer: Alle MA    ·    Verbandskasten: Am Einsatzort    ·    Notruf: 112', PL + 2, y + 6);
+      doc.setTextColor(0);
+
     } // end gfb_glasreinigung
 
   } // end isGFBpdf
