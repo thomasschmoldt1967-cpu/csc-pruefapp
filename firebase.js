@@ -23,10 +23,10 @@ const db    = getFirestore(fbApp);
 //  Prüf-Intervalle (Tage) je Listentyp
 // ============================================================
 const INTERVALLE = {
-  aufzug:           30,
-  brandschutztuer:  30,
-  notbeleuchtung:   30,
-  leiterkontrolle: 365,
+  aufzug:           7,    // wöchentlich (donnerstags)
+  brandschutztuer:  7,    // wöchentlich
+  notbeleuchtung:   7,    // wöchentlich
+  leiterkontrolle: 365,   // jährlich
   gfb_szp:         365,
   gfb_glasreinigung:365,
 };
@@ -99,7 +99,7 @@ window.fbGetAmpel = async function(bereichId, listentyp) {
     const restTage = Math.floor((faelligAm - heute) / 86400000);
 
     if (restTage < 0)  return 'rot';
-    if (restTage <= 7) return 'gelb';
+    if (restTage <= 3) return 'gelb';   // bei 7-Tage-Intervall: 3 Tage Vorwarnung
     return 'gruen';
   } catch (e) {
     return 'unbekannt';
@@ -403,7 +403,7 @@ window.fbGetFaelligkeitenUebersicht = async function() {
       const letztes = new Date(data.datum);
       const faelligAm = new Date(letztes.getTime() + intervall * 86400000);
       const restTage  = Math.floor((faelligAm - heute) / 86400000);
-      if (restTage <= 30) { // nächste 30 Tage anzeigen
+      if (restTage <= 14) { // nächste 14 Tage anzeigen (2 Prüfzyklen bei wöchentlichen Intervallen)
         result.push({ bereichId: d.id, bereichName: data.bereichName, listentyp: data.listentyp, restTage, faelligAm: faelligAm.toISOString() });
       }
     });
