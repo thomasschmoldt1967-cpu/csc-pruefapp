@@ -6,6 +6,8 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
 import { getFirestore, doc, setDoc, getDoc, getDocs, deleteDoc, collection, query, where, orderBy, limit, updateDoc, serverTimestamp }
   from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged }
+  from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-auth.js';
 
 const firebaseConfig = {
   apiKey:            "AIzaSyCvyN25-m4LQI4Sdr7B8B4gMeTfqTPPjq0",
@@ -18,6 +20,7 @@ const firebaseConfig = {
 
 const fbApp = initializeApp(firebaseConfig);
 const db    = getFirestore(fbApp);
+const auth  = getAuth(fbApp);
 
 // ============================================================
 //  Prüf-Intervalle (Tage) je Listentyp
@@ -457,3 +460,27 @@ window.fbGetAlleOffeneMaengel = async function() {
   } catch(e) { return []; }
 };
 
+// ============================================================
+//  Firebase Authentication
+// ============================================================
+
+// Login mit E-Mail + Passwort → gibt Firebase-User zurück
+window.fbSignIn = async function(email, password) {
+  const cred = await signInWithEmailAndPassword(auth, email, password);
+  return cred.user;
+};
+
+// Logout
+window.fbSignOut = async function() {
+  await signOut(auth);
+};
+
+// Auth-Status-Listener (ruft callback(user) auf bei Login/Logout)
+window.fbOnAuthStateChanged = function(callback) {
+  return onAuthStateChanged(auth, callback);
+};
+
+// Aktuellen User zurückgeben
+window.fbCurrentUser = function() {
+  return auth.currentUser;
+};
