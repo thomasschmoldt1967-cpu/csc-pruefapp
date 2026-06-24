@@ -754,6 +754,18 @@ function renderChecklist() {
   document.getElementById('gfb-ma-liste').innerHTML = '';
   gfbMitarbeiter = [];
 
+  // GFB Glasreinigung: Dan als vorausgefüllten Mitarbeiter hinzufügen
+  if (currentBereich && currentBereich.liste === 'gfb_glasreinigung') {
+    setTimeout(() => {
+      gfbMaHinzufuegen();
+      const nameInput = document.getElementById('gfb-ma-name-0');
+      if (nameInput) {
+        nameInput.value = 'Dan';
+        gfbMitarbeiter[0].name = 'Dan';
+      }
+    }, 80);
+  }
+
   // Prüfer-Buttons je nach Typ anpassen
   const prueferButtons = document.querySelector('.pruefer-buttons');
   if (isGFB) {
@@ -1766,18 +1778,206 @@ async function generatePDF() {
       // Abschnitt 7 BA PSAgA ENTFERNT (rot markiert)
 
     } // end gfb_szp
+
+    // ══════════════════════════════════════
+    // GFB GLASREINIGUNG: Betriebsanweisungsseiten
+    // ══════════════════════════════════════
+    if (currentBereich.liste === 'gfb_glasreinigung') {
+
+      // SEITE: BETRIEBSANWEISUNG PSA GEGEN ABSTURZ (PSAgA)
+      doc.addPage(); y = PT;
+      gfbHeader(doc, 'Glasreinigung – inkl. Höhenarbeit mittels SZP / PSAgA');
+      y = 28;
+
+      doc.setFillColor(238, 242, 247); doc.rect(PL, y-3, PW, 8, 'F');
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(26, 58, 92);
+      doc.text('BETRIEBSANWEISUNG – PSA GEGEN ABSTURZ (PSAgA)', PL+2, y+3); y += 11; doc.setTextColor(0);
+      doc.setFont('helvetica', 'italic'); doc.setFontSize(8); doc.setTextColor(80,80,80);
+      doc.text('Persönliche Schutzausrüstung gegen Absturz – Auffanggurt, Verbindungsmittel, Auffangsystem', PL+2, y); y += 7; doc.setTextColor(0);
+
+      y = gfbAbschnitt(doc, '1', 'ANWENDUNGSBEREICH', y);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
+      const baAnw1 = doc.splitTextToSize('Diese Betriebsanweisung gilt für alle Mitarbeiter, die PSA gegen Absturz (PSAgA) verwenden. PSAgA kommt zum Einsatz, wenn aufgrund einer Gefährdungsbeurteilung Absturzgefahren vorliegen und bauliche oder technische Schutzmaßnahmen nicht ausreichend sind. Gilt für Rückhalte-, Arbeitspositionierungs- und Auffangsysteme gemäß DIN EN 358, DIN EN 361, DIN EN 363.', PW-4);
+      doc.text(baAnw1, PL+2, y); y += baAnw1.length * 4.5 + 4;
+
+      y = gfbAbschnitt(doc, '2', 'GEFAHREN FÜR MENSCH UND UMWELT', y);
+      y = gfbListe(doc, [
+        'Absturz aus der Höhe – tödliche Verletzungsgefahr',
+        'Pendelsturz – Anprallen an feste Gegenstände',
+        'Hängetrauma (orthostatischer Schock) – bereits nach wenigen Minuten lebensbedrohlich',
+        'Materialversagen durch falsche Benutzung, fehlende Prüfung oder Beschädigung',
+        'Versagen des Anschlagpunktes – ungeprüfte oder ungeeignete Ankerpunkte',
+        'Veränderte oder manipulierte Ausrüstung – nie eigenmächtig verändern!',
+      ], '⚠', y);
+
+      y = gfbAbschnitt(doc, '3', 'SCHUTZMASSNAHMEN UND VERHALTENSREGELN', y);
+      y = gfbListe(doc, [
+        'Personen müssen körperlich und geistig für diese Tätigkeiten geeignet sein (ärztliches Attest empfohlen)',
+        'Personen unter Einfluss von Alkohol, Drogen oder beeinträchtigenden Medikamenten dürfen nicht eingesetzt werden',
+        'Gurtpflicht ab 2 m vor der Absturzkante – Anschlagen an geeigneten Haltepunkten (mind. 9 kN)',
+        'Nur geprüfte, zugelassene PSAgA in betriebssicherem Zustand verwenden (Sachkundigenprüfung 1× jährlich)',
+        'Vor jeder Benutzung Sichtprüfung aller Ausrüstungsgegenstände durchführen',
+        'Buddy-Check: Gegenseitige Überprüfung von Gurt, Verbindungsmittel und Ankerpunkt',
+        'Mindestens 2 Personen auf jeder Baustelle – Teamarbeit, Sicht- und Rufkontakt halten',
+        'Jegliche Arbeiten durch anwesende Aufsichtsperson überwachen lassen',
+        'Absperrungen zum Schutz Dritter errichten (Absperrband + Hinweisschilder)',
+        'Zusätzliche PSA je nach Tätigkeit tragen (Helm, S3-Schuhe, Schutzhandschuhe)',
+      ], '✔', y);
+
+      y = gfbAbschnitt(doc, '4', 'VERHALTEN BEI STÖRUNGEN / MÄNGELN', y);
+      y = gfbListe(doc, [
+        'Jeden Mangel an der PSAgA vor Nutzung dem Vorgesetzten melden',
+        'PSAgA NICHT benutzen wenn: Funktionsweise beeinträchtigt / Sturz beansprucht / Beschädigungen sichtbar',
+        'Nach einem Absturz: PSAgA außer Betrieb nehmen – Sachkundige Prüfung vor Wiederverwendung!',
+      ], '✕', y);
+
+      if (y > 215) { doc.addPage(); y = PT + 8; gfbHeader(doc, 'Glasreinigung – inkl. Höhenarbeit mittels SZP / PSAgA'); y = 28; }
+
+      y = gfbAbschnitt(doc, '5', 'ERSTE HILFE UND VERHALTEN IM NOTFALL', y);
+      // Notruf-Box
+      doc.setFillColor(200, 0, 0); doc.rect(PL, y, 40, 14, 'F');
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(20); doc.setTextColor(255,255,255);
+      doc.text('112', PL+20, y+10, { align: 'center' });
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(0);
+      doc.text('NOTRUF', PL+42, y+4);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
+      const notfallItems1 = [
+        'Ruhe bewahren – Überblick verschaffen',
+        'Rettung gemäß Notfall-/Rettungsplan (Rettung nach UNTEN)',
+        'Notruf 112: WER? WAS? WO? WIE VIELE?',
+        'Erste-Hilfe-Maßnahmen einleiten',
+        'Rettung aus hängender Situation innerhalb 15–20 Minuten (Hängetrauma!)',
+        'Auch ohne äußere Verletzungszeichen: Arzt aufsuchen!',
+        'Arbeitsunfälle und Beinaheunfälle sofort dem Aufsichtsführenden und der BG melden',
+      ];
+      let yn = y + 16;
+      notfallItems1.forEach(t => {
+        const ls = doc.splitTextToSize(t, PW - 12);
+        doc.text('▶', PL+2, yn); doc.text(ls, PL+8, yn); yn += ls.length * 4.5 + 1;
+      });
+      y = yn + 4;
+
+      y = gfbAbschnitt(doc, '6', 'INSTANDHALTUNG, PRÜFUNG UND UNTERWEISUNG', y);
+      y = gfbListe(doc, [
+        'Vor, nach und während jeder Benutzung: Sichtprüfung des eingesetzten Materials',
+        'Sachkundigenprüfung gemäß DGUV Grundsatz 312-906 alle 12 Monate durch Sachkundige',
+        'Material in nicht einwandfreiem Zustand sofort aussondern und kennzeichnen',
+        'Unterweisung gemäß BGR 198 vor jedem Einsatz und mindestens 1× jährlich',
+        'Jeder Anwender benötigt einen gültigen Erste-Hilfe-Kurs (mind. 8 Stunden)',
+        'Prüfprotokoll und Unterweisungsnachweis aufbewahren (mind. 2 Jahre)',
+      ], '◉', y);
+
+      // SEITE: BETRIEBSANWEISUNG GLASREINIGUNG
+      doc.addPage(); y = PT;
+      gfbHeader(doc, 'Glasreinigung – inkl. Höhenarbeit mittels SZP / PSAgA');
+      y = 28;
+
+      doc.setFillColor(238, 242, 247); doc.rect(PL, y-3, PW, 8, 'F');
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(26, 58, 92);
+      doc.text('BETRIEBSANWEISUNG – GLASREINIGUNG', PL+2, y+3); y += 11; doc.setTextColor(0);
+      doc.setFont('helvetica', 'italic'); doc.setFontSize(8); doc.setTextColor(80,80,80);
+      doc.text('Reinigung von Glasflächen, Fenstern, Fassaden, Glasdächern und Lichthöfen – inkl. Höhenarbeit mittels SZP / PSAgA', PL+2, y); y += 7; doc.setTextColor(0);
+
+      y = gfbAbschnitt(doc, '1', 'ANWENDUNGSBEREICH', y);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
+      const baAnw2 = doc.splitTextToSize('Diese Betriebsanweisung gilt für alle Mitarbeiter der CSC GmbH, die Glasreinigungsarbeiten an Gebäuden ausführen. Dazu gehören Fenster- und Fassadenreinigung, Reinigung von Glasdächern, Atrien, Lichthöfen, Vordächern, Wintergärten und Brüstungsverglasungen, einschließlich Tätigkeiten mit Hebebühne, Leiter, Teleskopstange sowie Seilzugangs- und Positionierungstechniken (SZP) mit PSA gegen Absturz (PSAgA). Grundlage: ArbSchG, BetrSichV, DGUV Vorschrift 1, DGUV Vorschrift 38, DGUV Information 201-056, DGUV Regel 112-198/199, TRBS 2121 Teil 3, TRGS 401.', PW-4);
+      doc.text(baAnw2, PL+2, y); y += baAnw2.length * 4.5 + 4;
+
+      y = gfbAbschnitt(doc, '2', 'GEFAHREN FÜR MENSCH UND UMWELT', y);
+      y = gfbListe(doc, [
+        'Absturz von Leitern, Hebebühnen, Fensterbänken, Brüstungen – tödliche Verletzungsgefahr',
+        'Hängetrauma (orthostatischer Schock) nach Sturz im Seil – innerhalb weniger Minuten lebensbedrohlich',
+        'Glasbruch / Durchbruch durch nicht durchsturzsichere Verglasung (Glasdach, Lichtkuppeln)',
+        'Schnittverletzungen durch scharfe Klingen am Glasschaber und Glasbruchstücke',
+        'Augenverletzungen durch Spritzer von Reinigungsmitteln und Glassplitter',
+        'Verätzungen, Hautreizungen durch alkalische und saure Reiniger',
+        'Infektionsgefahr durch Vogelkot, Taubenexkremente, Schimmel an Fassaden',
+        'Stromschlag durch beschädigte Elektrogeräte oder Nässe in Verbindung mit Strom',
+        'Rutsch- und Stolpergefahr auf nassen, glatten Glas- und Steinflächen',
+      ], '⚠', y);
+
+      if (y > 195) { doc.addPage(); y = PT + 8; gfbHeader(doc, 'Glasreinigung – inkl. Höhenarbeit mittels SZP / PSAgA'); y = 28; }
+
+      y = gfbAbschnitt(doc, '3', 'SCHUTZMASSNAHMEN UND VERHALTENSREGELN', y);
+      y = gfbListe(doc, [
+        'Schutzbrille EN 166 bei Über-Kopf-Arbeit, Reinigern und Klingengebrauch verpflichtend',
+        'Bei Sprühnebel / lösemittelhaltigen Reinigern: Atemschutz mind. FFP2; bei Vogelkot/Schimmel FFP3 + Einweganzug',
+        'Sicherheitsschuhe S3, Schutzhelm mit Kinnriemen (EN 397), Warnkleidung EN ISO 20471 Kl. 2',
+        'Schutzhandschuhe nach SDB (Nitril/Butyl, schnittfest EN 388 für Klingenarbeiten)',
+        'Werkzeuge gegen Herabfallen sichern: Lanyards, Werkzeugschnüre, Werkzeugpouches',
+        'Bodenbereich absperren: Bauzaun oder Absperrband + Hinweisschilder; bei Publikumsverkehr Bodenposten',
+        'Bei SZP/PSAgA: Gurtpflicht, Buddy-Check, mind. 2 Personen, Sicht- und Rufkontakt',
+        'Wetterbedingungen prüfen: bei Wind > 6 Bft, Gewitter, Eis, Schnee → Tätigkeit einstellen',
+        'Alleinarbeit verboten. Ausschließlich zugelassene Reinigungsmittel mit aktuellem Sicherheitsdatenblatt verwenden',
+        'Personen unter Einfluss von Alkohol, Drogen oder Medikamenten dürfen nicht eingesetzt werden',
+      ], '✔', y);
+
+      if (y > 210) { doc.addPage(); y = PT + 8; gfbHeader(doc, 'Glasreinigung – inkl. Höhenarbeit mittels SZP / PSAgA'); y = 28; }
+
+      y = gfbAbschnitt(doc, '4', 'VERHALTEN BEI STÖRUNGEN UND MÄNGELN', y);
+      y = gfbListe(doc, [
+        'Beschädigte Reinigungsgeräte, Klingen, Teleskopstangen oder PSAgA-Komponenten vor Nutzung dem Vorgesetzten melden',
+        'Glasbruch oder Beschädigung am Objekt sofort stoppen, sichern und melden',
+        'Bei Verunreinigung durch Chemikalien: Bereich sperren, Sicherheitsdatenblatt konsultieren',
+      ], '✕', y);
+
+      y = gfbAbschnitt(doc, '5', 'ERSTE HILFE UND VERHALTEN IM NOTFALL', y);
+      doc.setFillColor(200, 0, 0); doc.rect(PL, y, 40, 14, 'F');
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(20); doc.setTextColor(255,255,255);
+      doc.text('112', PL+20, y+10, { align: 'center' });
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(0);
+      doc.text('NOTRUF', PL+42, y+4);
+      doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
+      const notfallItems2 = [
+        'Ruhe bewahren – Eigensicherung beachten – Überblick verschaffen',
+        'Notruf 112: WER? WAS? WO? WIE VIELE? – WARTEN auf Rückfragen',
+        'Bei Sturz im Seil: Rettung nach UNTEN zum Boden – innerhalb 15–20 Minuten (Hängetrauma!)',
+        'Bei Schnittverletzungen: starke Blutung mit Druckverband stillen; Glassplitter NICHT entfernen',
+        'Bei Augenkontakt mit Chemie: Augendusche / klares Wasser mind. 15 Min. spülen',
+        'Bei Hautkontakt mit Reinigungsmitteln: kontaminierte Kleidung entfernen, Haut spülen, SDB bereithalten',
+        'Bei Einatmen von Aerosolen: betroffene Person an frische Luft, ruhig lagern',
+        'Auch ohne äußere Verletzungszeichen ärztliche Untersuchung – insbesondere nach Sturz, Hängetrauma, Chemikalienkontakt',
+        'Arbeitsunfälle und Beinaheunfälle umgehend dem Aufsichtsführenden und der BG BAU melden',
+      ];
+      let yn2 = y + 16;
+      notfallItems2.forEach(t => {
+        if (yn2 > 275) { doc.addPage(); yn2 = PT + 8; gfbHeader(doc, 'Glasreinigung – inkl. Höhenarbeit mittels SZP / PSAgA'); yn2 = 28; }
+        const ls = doc.splitTextToSize(t, PW - 12);
+        doc.text('▶', PL+2, yn2); doc.text(ls, PL+8, yn2); yn2 += ls.length * 4.5 + 1;
+      });
+      y = yn2 + 4;
+
+      if (y > 215) { doc.addPage(); y = PT + 8; gfbHeader(doc, 'Glasreinigung – inkl. Höhenarbeit mittels SZP / PSAgA'); y = 28; }
+      y = gfbAbschnitt(doc, '6', 'INSTANDHALTUNG, PRÜFUNG UND UNTERWEISUNG', y);
+      y = gfbListe(doc, [
+        'Vor, nach und während jeder Benutzung Sichtprüfung aller Arbeitsmittel und PSA',
+        'PSAgA: jährliche Sachkundigenprüfung nach DGUV Grundsatz 312-906 / DGUV Regel 112-198',
+        'Leitern und Hubarbeitsbühnen: regelmäßige Prüfung nach BetrSichV § 14 (jährlich durch befähigte Person)',
+        'Reinigungsmittel: aktuelle Sicherheitsdatenblätter vorhalten; Gefahrstoffverzeichnis pflegen',
+        'Unterweisung vor jedem Einsatz und mindestens 1× jährlich; Nachweis aufbewahren (mind. 2 Jahre)',
+      ], '◉', y);
+
+    } // end gfb_glasreinigung
+
   } // end isGFBpdf
 
   // ===== GFB: Unterweisungsliste (Seite 11–12 im Original) =====
   if (isGFBpdf) {
+    const isGlas = (currentBereich.liste === 'gfb_glasreinigung');
+    const uwUntertitel = isGlas
+      ? 'Glasreinigung – inkl. Höhenarbeit mittels SZP / PSAgA'
+      : 'Seilunterstützte Zugangs- und Positionierungstechniken (SZP) / PSAgA';
+    const uwNorm = isGlas
+      ? 'Erstellt gemäß ArbSchG § 5 / DGUV Vorschrift 1 § 3 / DGUV Information 201-056'
+      : 'Erstellt gemäß ArbSchG § 5 / DGUV Vorschrift 1 § 3 / DIN EN 363';
     // Seite 11: Einsatz- und Objektdaten + Unterweisungsthemen
     doc.addPage(); y = PT;
     doc.setFillColor(26, 58, 92); doc.rect(0, 0, 210, 22, 'F');
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(14); doc.setFont('helvetica', 'bold'); doc.text('GEFÄHRDUNGSBEURTEILUNG', PL, 10);
     doc.setFontSize(9); doc.setFont('helvetica', 'normal');
-    doc.text('Seilunterstützte Zugangs- und Positionierungstechniken (SZP) / PSAgA', PL, 17);
-    doc.setFontSize(8); doc.text('Erstellt gemäß ArbSchG § 5 / DGUV Vorschrift 1 § 3 / DIN EN 363', PL, 21);
+    doc.text(uwUntertitel, PL, 17);
+    doc.setFontSize(8); doc.text(uwNorm, PL, 21);
     doc.setTextColor(0); y = 28;
 
     // Abschnitt 1: Einsatz- und Objektdaten
@@ -1788,7 +1988,7 @@ async function generatePDF() {
     const uwFelder = [
       ['Unternehmen:', 'CSC GmbH', 'Datum der Unterweisung:', formatDatum(now).split(' ')[0]],
       ['Objekt / Einsatzort:', gfbObjekt || '', 'Unterweisender (Aufsichtsführender):', pruefer],
-      ['Art der Unterweisung:', 'Gefährdungsbeurteilung SZP', 'Bezug zu Gefährdungsbeurteilung:', 'GFB SZP'],
+      ['Art der Unterweisung:', isGlas ? 'Gefährdungsbeurteilung Glasreinigung' : 'Gefährdungsbeurteilung SZP', 'Bezug zu Gefährdungsbeurteilung:', isGlas ? 'GFB Glasreinigung' : 'GFB SZP'],
     ];
     uwFelder.forEach(([l1, v1, l2, v2]) => {
       doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(26, 58, 92);
@@ -1818,7 +2018,8 @@ async function generatePDF() {
     doc.text(uwEinleit, PL+2, y); y += uwEinleit.length*5+4;
 
     doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
-    const uwBest = doc.splitTextToSize('Ich wurde gemäß der Gefährdungsbeurteilung/Objektsicherheitsbeurteilung, dem Notfall- und Rettungsplan sowie der Betriebsanweisung SZP unterwiesen.', PW-4);
+    const uwBestText = isGlas ? 'Ich wurde gemäß der Gefährdungsbeurteilung, den Betriebsanweisungen PSAgA und Glasreinigung sowie dem Notfall- und Rettungsplan unterwiesen.' : 'Ich wurde gemäß der Gefährdungsbeurteilung/Objektsicherheitsbeurteilung, dem Notfall- und Rettungsplan sowie der Betriebsanweisung SZP unterwiesen.';
+    const uwBest = doc.splitTextToSize(uwBestText, PW-4);
     doc.text(uwBest, PL+2, y); y += uwBest.length*5+2;
     doc.setFont('helvetica', 'normal');
     doc.text('Diese habe ich gelesen und verstanden. Alle Fragen wurden beantwortet.', PL+2, y); y += 8;
@@ -1826,7 +2027,7 @@ async function generatePDF() {
     doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
     doc.text('Besprochene Themen:', PL+2, y); y += 7;
 
-    const uwThemen = [
+    const uwThemenSZP = [
       'Rettung einer verletzten Person grundsätzlich nach UNTEN zum Boden (Rettungsplan bekannt)',
       'Es wird grundsätzlich im Team gearbeitet – Sicht- und Rufkontakt jederzeit halten',
       'Ausrüstung vor jedem Einsatz auf Betriebssicherheit prüfen (Sichtprüfung)',
@@ -1844,6 +2045,25 @@ async function generatePDF() {
       'Notrufnummern und betriebsinterne Notfallnummer bekannt (112 / 110)',
       'Sammelplatz und Evakuierungsplan bekannt',
     ];
+    const uwThemenGlas = [
+      'Betriebsanweisung PSA gegen Absturz (PSAgA) gelesen und verstanden',
+      'Betriebsanweisung Glasreinigung gelesen und verstanden',
+      'Gurtpflicht ab 2 m vor der Absturzkante – Anschlagen an geeigneten Haltepunkten (mind. 9 kN)',
+      'Buddy-Check: gegenseitige Überprüfung von Gurt, Verbindungsmittel und Ankerpunkt',
+      'Rettung nach Sturz im Seil grundsätzlich nach UNTEN – innerhalb 15–20 Minuten (Hängetrauma!)',
+      'Alleinarbeit verboten – mindestens 2 Personen, Sicht- und Rufkontakt jederzeit halten',
+      'Sichtprüfung aller PSAgA und Arbeitsmittel vor jedem Einsatz (Gurt, Seile, Karabiner)',
+      'Bodenbereich unterhalb des Arbeitsplatzes absperren (Absperrband + Hinweisschilder)',
+      'Werkzeuge und Klingen gegen Herabfallen sichern (Lanyards, Werkzeugpouches)',
+      'Schutzbrille bei Über-Kopf-Arbeit und Klingengebrauch verpflichtend tragen',
+      'Atemschutz mind. FFP2 bei Sprühnebel; FFP3 + Schutzanzug bei Vogelkot/Schimmel',
+      'Sicherheitsschuhe S3, Helm mit Kinnriemen, Schutzhandschuhe (schnittfest für Klingen)',
+      'Ausschließlich Reinigungsmittel mit aktuellem Sicherheitsdatenblatt (SDB) verwenden',
+      'Wetterbedingungen prüfen: bei Wind > 6 Bft, Gewitter, Eis oder Schnee → Stopp',
+      'Notrufnummern bekannt (112 / 110); Ersthelfer und Verbandskasten-Standort bekannt',
+      'Arbeitsunfälle und Beinaheunfälle sofort dem Aufsichtsführenden und der BG BAU melden',
+    ];
+    const uwThemen = isGlas ? uwThemenGlas : uwThemenSZP;
     uwThemen.forEach((t, i) => {
       if (y > 268) { doc.addPage(); y = PT + 8; }
       doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(26,58,92);
@@ -1861,8 +2081,8 @@ async function generatePDF() {
     doc.setTextColor(255, 255, 255);
     doc.setFontSize(14); doc.setFont('helvetica', 'bold'); doc.text('GEFÄHRDUNGSBEURTEILUNG', PL, 10);
     doc.setFontSize(9); doc.setFont('helvetica', 'normal');
-    doc.text('Seilunterstützte Zugangs- und Positionierungstechniken (SZP) / PSAgA', PL, 17);
-    doc.setFontSize(8); doc.text('Erstellt gemäß ArbSchG § 5 / DGUV Vorschrift 1 § 3 / DIN EN 363', PL, 21);
+    doc.text(uwUntertitel, PL, 17);
+    doc.setFontSize(8); doc.text(uwNorm, PL, 21);
     doc.setTextColor(0); y = 28;
 
     doc.setFillColor(238, 242, 247); doc.rect(PL, y-3, PW, 8, 'F');
@@ -1918,8 +2138,8 @@ async function generatePDF() {
     doc.setFont('helvetica', 'normal'); doc.setFontSize(9);
     doc.text(`Unterweisender (Name, Vorname): `, PL+2, y);
     doc.setFont('helvetica', 'bold'); doc.text(pruefer, PL+62, y); y += 7;
-    doc.setFont('helvetica', 'normal'); doc.text('Funktion / SZP-Level: ', PL+2, y);
-    doc.setFont('helvetica', 'bold'); doc.text('3', PL+44, y);
+    doc.setFont('helvetica', 'normal'); doc.text(isGlas ? 'Funktion / Qualifikation: ' : 'Funktion / SZP-Level: ', PL+2, y);
+    doc.setFont('helvetica', 'bold'); doc.text(isGlas ? 'Aufsichtsführender' : '3', PL+44, y);
     doc.setFont('helvetica', 'normal'); doc.text(`Datum: ${formatDatum(now).split(' ')[0]}`, PL+100, y); y += 10;
 
     // Unterschrift Unterweisender — aus dem Unterschriftsfeld der App
@@ -1932,7 +2152,8 @@ async function generatePDF() {
     doc.setFontSize(8); doc.setTextColor(100,100,100);
     doc.text('Unterschrift des Unterweisenden', PL, y); y += 6;
     doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
-    const bestText = doc.splitTextToSize('Hiermit bestätige ich, dass alle oben genannten Mitarbeiter über die aufgeführten Sicherheitsthemen unterwiesen wurden. Die Unterweisung erfolgte gemäß ArbSchG § 12, DGUV Vorschrift 1 § 4 sowie der betrieblichen Gefährdungsbeurteilung SZP.', PW/2);
+    const bestTextStr = isGlas ? 'Hiermit bestätige ich, dass alle oben genannten Mitarbeiter über die Betriebsanweisungen PSAgA und Glasreinigung sowie alle aufgeführten Sicherheitsthemen unterwiesen wurden. Die Unterweisung erfolgte gemäß ArbSchG § 12, DGUV Vorschrift 1 § 4 sowie der betrieblichen Gefährdungsbeurteilung Glasreinigung.' : 'Hiermit bestätige ich, dass alle oben genannten Mitarbeiter über die aufgeführten Sicherheitsthemen unterwiesen wurden. Die Unterweisung erfolgte gemäß ArbSchG § 12, DGUV Vorschrift 1 § 4 sowie der betrieblichen Gefährdungsbeurteilung SZP.';
+    const bestText = doc.splitTextToSize(bestTextStr, PW/2);
     doc.text(bestText, PL+80, y - bestText.length*4 - 6); y += 4;
     doc.setTextColor(80,80,80);
     doc.text('Aufbewahrung: Mindestens 1 Jahr nach der Unterweisung.', PL, y);
