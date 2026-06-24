@@ -1,4 +1,5 @@
-const CACHE = 'csc-pruef-v61';
+const CACHE_NAME = 'csc-pruef-v64';
+const CACHE = CACHE_NAME;
 const ASSETS = ['./index.html','./style.css','./app.js','./config.js','./manifest.json','./logo.png','./firebase.js','./icon-192.png','./icon-512.png'];
 
 // Install: neuen Cache befüllen
