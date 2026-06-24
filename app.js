@@ -741,9 +741,9 @@ function renderChecklist() {
   const isGFB = (currentBereich.liste === 'gfb_szp' || currentBereich.liste === 'gfb_glasreinigung');
   gfbFelderBox.style.display = isGFB ? 'block' : 'none';
 
-  // BA-Hinweis nur bei GFB Glasreinigung
-  const baHinweis = document.getElementById('gfb-ba-hinweis');
-  if (baHinweis) baHinweis.style.display = (currentBereich.liste === 'gfb_glasreinigung') ? 'block' : 'none';
+  // BA-Button nur bei GFB Glasreinigung
+  const baBtnBox = document.getElementById('gfb-ba-btn-box');
+  if (baBtnBox) baBtnBox.style.display = (currentBereich.liste === 'gfb_glasreinigung') ? 'block' : 'none';
 
   // Labels Unterschrift / Name je nach Typ anpassen
   document.getElementById('unterschrift-label').textContent = isGFB ? 'Unterschrift Aufsichtsführender:' : 'Unterschrift Prüfer:';
@@ -976,6 +976,168 @@ function selectPruefer(name) {
   document.querySelectorAll('.btn-pruefer').forEach(b => {
     b.classList.toggle('active', b.textContent === name);
   });
+}
+
+
+
+// ===== BA-MODAL: BETRIEBSANWEISUNG & RETTUNGSPLAN =====
+
+const BA_INHALTE = {
+  psaga: `
+    <div style="background:#eef2f7;border-left:4px solid #1a3a5c;padding:8px 12px;border-radius:4px;margin-bottom:14px;">
+      <strong style="color:#1a3a5c;">PSA gegen Absturz (PSAgA)</strong><br>
+      <span style="font-size:12px;color:#555;">Persönliche Schutzausrüstung – Auffanggurt, Verbindungsmittel, Auffangsystem</span>
+    </div>
+    <p style="font-size:12px;color:#555;margin:0 0 12px 0;">Gilt gemäß DIN EN 358, DIN EN 361, DIN EN 363</p>
+
+    <div style="background:#fff3cd;border-left:4px solid #e6a817;padding:8px 12px;border-radius:4px;margin-bottom:12px;font-size:12px;">
+      <strong>⚠ Gefahren:</strong> Absturz (tödlich) · Pendelsturz · Hängetrauma (bereits nach Minuten lebensbedrohlich) · Materialversagen · Ankerpunktversagen
+    </div>
+
+    <strong style="color:#1a3a5c;">✔ Schutzmaßnahmen:</strong>
+    <ul style="margin:6px 0 12px 16px;padding:0;font-size:13px;">
+      <li>Gurtpflicht ab <strong>2 m</strong> vor der Absturzkante – Anschlagen an geeigneten Haltepunkten (mind. 9 kN)</li>
+      <li>Nur geprüfte, zugelassene PSAgA verwenden (Sachkundigenprüfung <strong>1× jährlich</strong>)</li>
+      <li>Vor jeder Benutzung <strong>Sichtprüfung</strong> aller Ausrüstungsgegenstände</li>
+      <li><strong>Buddy-Check:</strong> gegenseitige Überprüfung von Gurt, Verbindungsmittel und Ankerpunkt</li>
+      <li>Mind. <strong>2 Personen</strong> auf jeder Baustelle – Sicht- und Rufkontakt halten</li>
+      <li>Alle Arbeiten durch anwesende <strong>Aufsichtsperson</strong> überwachen lassen</li>
+      <li>Absperrungen errichten (Absperrband + Hinweisschilder)</li>
+      <li>Zusätzliche PSA: Helm, S3-Schuhe, Schutzhandschuhe</li>
+    </ul>
+
+    <div style="background:#ffeaea;border-left:4px solid #c00;padding:10px 12px;border-radius:4px;font-size:13px;">
+      <strong style="color:#c00;">🚨 Erste Hilfe – NOTRUF 112</strong><br>
+      ▶ Rettung nach <strong>UNTEN</strong> (Rettungsplan beachten)<br>
+      ▶ Rettung aus hängender Lage innerhalb <strong>15–20 Minuten</strong> (Hängetrauma!)<br>
+      ▶ Auch ohne Verletzungszeichen: <strong>Arzt aufsuchen!</strong>
+    </div>
+
+    <div style="margin-top:12px;font-size:12px;color:#555;">
+      ◉ Sachkundigenprüfung nach DGUV 312-906 alle 12 Monate &nbsp;·&nbsp; Prüfprotokoll mind. 2 Jahre aufbewahren
+    </div>`,
+
+  glas: `
+    <div style="background:#eef2f7;border-left:4px solid #1a3a5c;padding:8px 12px;border-radius:4px;margin-bottom:14px;">
+      <strong style="color:#1a3a5c;">Betriebsanweisung Glasreinigung</strong><br>
+      <span style="font-size:12px;color:#555;">Fenster, Fassaden, Glasdächer, Lichthöfe – inkl. Höhenarbeit mittels SZP / PSAgA</span>
+    </div>
+    <p style="font-size:12px;color:#555;margin:0 0 12px 0;">Grundlage: ArbSchG · DGUV Vorschrift 1 · DGUV Information 201-056 · DGUV Regel 112-198/199 · TRBS 2121 Teil 3</p>
+
+    <div style="background:#fff3cd;border-left:4px solid #e6a817;padding:8px 12px;border-radius:4px;margin-bottom:12px;font-size:12px;">
+      <strong>⚠ Gefahren:</strong> Absturz · Hängetrauma · Glasbruch/Durchbruch · Schnittverletzungen · Verätzungen · Vogelkot/Schimmel (Infektion) · Stromschlag · Rutschgefahr
+    </div>
+
+    <strong style="color:#1a3a5c;">✔ Schutzmaßnahmen:</strong>
+    <ul style="margin:6px 0 12px 16px;padding:0;font-size:13px;">
+      <li><strong>Schutzbrille EN 166</strong> bei Über-Kopf-Arbeit und Klingengebrauch (Pflicht)</li>
+      <li>Atemschutz mind. <strong>FFP2</strong> bei Sprühnebel; <strong>FFP3 + Schutzanzug</strong> bei Vogelkot/Schimmel</li>
+      <li>Sicherheitsschuhe S3, <strong>Helm</strong> mit Kinnriemen (EN 397), Warnkleidung EN ISO 20471 Kl. 2</li>
+      <li>Schutzhandschuhe (schnittfest EN 388 für Klingenarbeiten)</li>
+      <li>Werkzeuge gegen Herabfallen sichern (Lanyards, Werkzeugpouches)</li>
+      <li>Bodenbereich <strong>absperren</strong> – Absperrband + Hinweisschilder; bei Publikum Bodenposten</li>
+      <li>Bei Wind <strong>&gt; 6 Bft</strong>, Gewitter, Eis oder Schnee → <strong>Tätigkeit einstellen!</strong></li>
+      <li><strong>Alleinarbeit verboten</strong> – mind. 2 Personen, Sicht- und Rufkontakt</li>
+      <li>Nur Reinigungsmittel mit aktuellem <strong>Sicherheitsdatenblatt (SDB)</strong> verwenden</li>
+      <li>Personen unter Alkohol/Drogen/Medikamenten dürfen <strong>nicht eingesetzt</strong> werden</li>
+    </ul>
+
+    <div style="background:#ffeaea;border-left:4px solid #c00;padding:10px 12px;border-radius:4px;font-size:13px;">
+      <strong style="color:#c00;">🚨 Erste Hilfe – NOTRUF 112</strong><br>
+      ▶ Sturz im Seil → Rettung nach <strong>UNTEN</strong>, innerhalb <strong>15–20 Min.</strong> (Hängetrauma!)<br>
+      ▶ Schnittwunden → Druckverband; Glassplitter <strong>NICHT entfernen</strong><br>
+      ▶ Chemie im Auge → min. <strong>15 Min.</strong> mit klarem Wasser spülen<br>
+      ▶ Nach Sturz/Hängetrauma/Chemikalienkontakt immer <strong>Arzt aufsuchen</strong>
+    </div>
+
+    <div style="margin-top:12px;font-size:12px;color:#555;">
+      ◉ PSAgA jährliche Sachkundigenprüfung nach DGUV 312-906 &nbsp;·&nbsp; Leitern/Hubarbeitsbühnen jährlich nach BetrSichV § 14
+    </div>`,
+
+  rettung: `
+    <div style="background:#ffeaea;border-left:4px solid #c00;padding:10px 12px;border-radius:4px;margin-bottom:16px;text-align:center;">
+      <div style="font-size:28px;font-weight:900;color:#c00;letter-spacing:2px;">⚠  RETTUNGSPLAN  ⚠</div>
+      <div style="font-size:13px;font-weight:700;color:#1a3a5c;margin-top:4px;">Glasreinigung / SZP – Rettung nach UNTEN</div>
+      <div style="font-size:11px;color:#555;">Gemäß DGUV Vorschrift 1 · DIN EN 363</div>
+    </div>
+
+    <div style="background:#c00;color:#fff;border-radius:8px;padding:12px 16px;text-align:center;margin-bottom:16px;font-size:22px;font-weight:900;letter-spacing:3px;">
+      112
+    </div>
+
+    <div style="font-size:13px;">
+      <div style="display:flex;gap:10px;margin-bottom:10px;">
+        <span style="background:#1a3a5c;color:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:700;font-size:12px;">1</span>
+        <span><strong>Ruhe bewahren</strong> – Eigensicherung beachten – Überblick verschaffen</span>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:10px;">
+        <span style="background:#1a3a5c;color:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:700;font-size:12px;">2</span>
+        <span>Notruf <strong>112</strong>: WER? WAS? WO? WIE VIELE? – auf Rückfragen warten</span>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:10px;background:#fff3cd;padding:8px;border-radius:6px;">
+        <span style="background:#e6a817;color:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:700;font-size:12px;">3</span>
+        <span>Verunglückten Person aus hängender Lage retten – Rettung grundsätzlich <strong>nach UNTEN zum Boden</strong></span>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:10px;background:#ffeaea;padding:8px;border-radius:6px;">
+        <span style="background:#c00;color:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:700;font-size:12px;">!</span>
+        <span><strong>Hängetrauma-Gefahr:</strong> Rettung muss innerhalb <strong>15–20 Minuten</strong> erfolgen – auch ohne Sturz!</span>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:10px;">
+        <span style="background:#1a3a5c;color:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:700;font-size:12px;">4</span>
+        <span>Erste-Hilfe-Maßnahmen einleiten (Ersthelfer: alle MA aus SZP)</span>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:10px;">
+        <span style="background:#1a3a5c;color:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:700;font-size:12px;">5</span>
+        <span>Gerettete Person <strong>flach lagern</strong> (NICHT aufrecht setzen – Hängetraumaschutz)</span>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:10px;">
+        <span style="background:#1a3a5c;color:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:700;font-size:12px;">6</span>
+        <span>Auch ohne äußere Verletzungen: <strong>Arzt aufsuchen!</strong></span>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:10px;">
+        <span style="background:#1a3a5c;color:#fff;border-radius:50%;width:24px;height:24px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:700;font-size:12px;">7</span>
+        <span>Arbeitsunfall dem Aufsichtsführenden und der <strong>BG BAU melden</strong> (DGUV Vorschrift 1 § 24)</span>
+      </div>
+    </div>
+
+    <div style="margin-top:14px;padding:10px;background:#eef2f7;border-radius:6px;font-size:12px;color:#1a3a5c;">
+      <strong>Ersthelfer:</strong> Alle MA aus SZP &nbsp;·&nbsp; <strong>Verbandskasten:</strong> Am Einsatzort &nbsp;·&nbsp; <strong>Notruf:</strong> 112
+    </div>`
+};
+
+let _baAktivTab = 'psaga';
+
+function baModalOeffnen() {
+  _baAktivTab = 'psaga';
+  baTabWechseln('psaga');
+  document.getElementById('ba-modal-overlay').style.display = 'block';
+  document.body.style.overflow = 'hidden';
+}
+
+function baModalSchliessen(e) {
+  if (e && e.target !== document.getElementById('ba-modal-overlay')) return;
+  document.getElementById('ba-modal-overlay').style.display = 'none';
+  document.body.style.overflow = '';
+}
+
+function baTabWechseln(tab) {
+  _baAktivTab = tab;
+  const tabs = ['psaga', 'glas', 'rettung'];
+  tabs.forEach(t => {
+    const btn = document.getElementById('ba-tab-' + t);
+    if (!btn) return;
+    if (t === tab) {
+      btn.style.color = '#1a3a5c';
+      btn.style.fontWeight = '700';
+      btn.style.borderBottom = '3px solid #1a3a5c';
+    } else {
+      btn.style.color = '#666';
+      btn.style.fontWeight = '400';
+      btn.style.borderBottom = '3px solid transparent';
+    }
+  });
+  const inhalt = document.getElementById('ba-modal-inhalt');
+  if (inhalt) inhalt.innerHTML = BA_INHALTE[tab] || '';
 }
 
 // ===== GFB MITARBEITER =====
