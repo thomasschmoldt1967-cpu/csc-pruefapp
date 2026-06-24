@@ -994,75 +994,138 @@ function selectPruefer(name) {
 
 const BA_INHALTE = {
   psaga: `
-    <div style="background:#eef2f7;border-left:4px solid #1a3a5c;padding:8px 12px;border-radius:4px;margin-bottom:14px;">
-      <strong style="color:#1a3a5c;">PSA gegen Absturz (PSAgA)</strong><br>
-      <span style="font-size:12px;color:#555;">Persönliche Schutzausrüstung – Auffanggurt, Verbindungsmittel, Auffangsystem</span>
-    </div>
-    <p style="font-size:12px;color:#555;margin:0 0 12px 0;">Gilt gemäß DIN EN 358, DIN EN 361, DIN EN 363</p>
-
-    <div style="background:#fff3cd;border-left:4px solid #e6a817;padding:8px 12px;border-radius:4px;margin-bottom:12px;font-size:12px;">
-      <strong>⚠ Gefahren:</strong> Absturz (tödlich) · Pendelsturz · Hängetrauma (bereits nach Minuten lebensbedrohlich) · Materialversagen · Ankerpunktversagen
+    <div style="background:#eef2f7;border-left:4px solid #1a3a5c;padding:8px 12px;border-radius:4px;margin-bottom:10px;">
+      <strong style="color:#1a3a5c;">BETRIEBSANWEISUNG – PSA GEGEN ABSTURZ (PSAgA)</strong><br>
+      <span style="font-size:11px;color:#555;font-style:italic;">Persönliche Schutzausrüstung gegen Absturz – Auffanggurt, Verbindungsmittel, Auffangsystem</span>
     </div>
 
-    <strong style="color:#1a3a5c;">✔ Schutzmaßnahmen:</strong>
-    <ul style="margin:6px 0 12px 16px;padding:0;font-size:13px;">
-      <li>Gurtpflicht ab <strong>2 m</strong> vor der Absturzkante – Anschlagen an geeigneten Haltepunkten (mind. 9 kN)</li>
-      <li>Nur geprüfte, zugelassene PSAgA verwenden (Sachkundigenprüfung <strong>1× jährlich</strong>)</li>
-      <li>Vor jeder Benutzung <strong>Sichtprüfung</strong> aller Ausrüstungsgegenstände</li>
-      <li><strong>Buddy-Check:</strong> gegenseitige Überprüfung von Gurt, Verbindungsmittel und Ankerpunkt</li>
-      <li>Mind. <strong>2 Personen</strong> auf jeder Baustelle – Sicht- und Rufkontakt halten</li>
-      <li>Alle Arbeiten durch anwesende <strong>Aufsichtsperson</strong> überwachen lassen</li>
-      <li>Absperrungen errichten (Absperrband + Hinweisschilder)</li>
-      <li>Zusätzliche PSA: Helm, S3-Schuhe, Schutzhandschuhe</li>
+    <div style="background:#1a3a5c;color:#fff;padding:5px 10px;border-radius:4px;font-size:12px;font-weight:700;margin-bottom:4px;">1 &nbsp;ANWENDUNGSBEREICH</div>
+    <p style="font-size:12px;margin:4px 0 10px 0;color:#222;">Diese Betriebsanweisung gilt für alle Mitarbeiter, die PSA gegen Absturz (PSAgA) verwenden. PSAgA kommt zum Einsatz, wenn aufgrund einer Gefährdungsbeurteilung Absturzgefahren vorliegen und bauliche oder technische Schutzmaßnahmen nicht ausreichend sind. Gilt für Rückhalte-, Arbeitspositionierungs- und Auffangsysteme gemäß DIN EN 358, DIN EN 361, DIN EN 363.</p>
+
+    <div style="background:#1a3a5c;color:#fff;padding:5px 10px;border-radius:4px;font-size:12px;font-weight:700;margin-bottom:4px;">2 &nbsp;GEFAHREN FÜR MENSCH UND UMWELT</div>
+    <ul style="margin:4px 0 10px 16px;padding:0;font-size:12px;">
+      <li>Absturz aus der Höhe – tödliche Verletzungsgefahr</li>
+      <li>Pendelsturz – Anprallen an feste Gegenstände</li>
+      <li>Hängetrauma (orthostatischer Schock) – bereits nach wenigen Minuten lebensbedrohlich</li>
+      <li>Materialversagen durch falsche Benutzung, fehlende Prüfung oder Beschädigung</li>
+      <li>Versagen des Anschlagpunktes – ungeprüfte oder ungeeignete Ankerpunkte</li>
+      <li>Veränderte oder manipulierte Ausrüstung – nie eigenmächtig verändern!</li>
     </ul>
 
-    <div style="background:#ffeaea;border-left:4px solid #c00;padding:10px 12px;border-radius:4px;font-size:13px;">
-      <strong style="color:#c00;">🚨 Erste Hilfe – NOTRUF 112</strong><br>
-      ▶ Rettung nach <strong>UNTEN</strong> (Rettungsplan beachten)<br>
-      ▶ Rettung aus hängender Lage innerhalb <strong>15–20 Minuten</strong> (Hängetrauma!)<br>
-      ▶ Auch ohne Verletzungszeichen: <strong>Arzt aufsuchen!</strong>
-    </div>
+    <div style="background:#1a3a5c;color:#fff;padding:5px 10px;border-radius:4px;font-size:12px;font-weight:700;margin-bottom:4px;">3 &nbsp;SCHUTZMASSNAHMEN UND VERHALTENSREGELN</div>
+    <ul style="margin:4px 0 10px 16px;padding:0;font-size:12px;">
+      <li>Personen müssen körperlich und geistig für diese Tätigkeiten geeignet sein (ärztliches Attest empfohlen)</li>
+      <li>Personen unter Einfluss von Alkohol, Drogen oder beeinträchtigenden Medikamenten dürfen nicht eingesetzt werden</li>
+      <li>Gurtpflicht ab <strong>2 m</strong> vor der Absturzkante – Anschlagen an geeigneten Haltepunkten (mind. 9 kN)</li>
+      <li>Nur geprüfte, zugelassene PSAgA in betriebssicherem Zustand verwenden (Sachkundigenprüfung <strong>1× jährlich</strong>)</li>
+      <li>Vor jeder Benutzung <strong>Sichtprüfung</strong> aller Ausrüstungsgegenstände durchführen</li>
+      <li><strong>Buddy-Check:</strong> Gegenseitige Überprüfung von Gurt, Verbindungsmittel und Ankerpunkt</li>
+      <li>Mindestens <strong>2 Personen</strong> auf jeder Baustelle – Teamarbeit, Sicht- und Rufkontakt halten</li>
+      <li>Jegliche Arbeiten durch anwesende <strong>Aufsichtsperson</strong> überwachen lassen</li>
+      <li>Absperrungen zum Schutz Dritter errichten (Absperrband + Hinweisschilder)</li>
+      <li>Zusätzliche PSA je nach Tätigkeit tragen (Helm, S3-Schuhe, Schutzhandschuhe)</li>
+    </ul>
 
-    <div style="margin-top:12px;font-size:12px;color:#555;">
-      ◉ Sachkundigenprüfung nach DGUV 312-906 alle 12 Monate &nbsp;·&nbsp; Prüfprotokoll mind. 2 Jahre aufbewahren
-    </div>`,
+    <div style="background:#1a3a5c;color:#fff;padding:5px 10px;border-radius:4px;font-size:12px;font-weight:700;margin-bottom:4px;">4 &nbsp;VERHALTEN BEI STÖRUNGEN / MÄNGELN</div>
+    <ul style="margin:4px 0 10px 16px;padding:0;font-size:12px;">
+      <li>Jeden Mangel an der PSAgA vor Nutzung dem Vorgesetzten melden</li>
+      <li>PSAgA NICHT benutzen wenn: Funktionsweise beeinträchtigt / Sturz beansprucht / Beschädigungen sichtbar</li>
+      <li>Nach einem Absturz: PSAgA außer Betrieb nehmen – Sachkundige Prüfung vor Wiederverwendung!</li>
+    </ul>
+
+    <div style="background:#1a3a5c;color:#fff;padding:5px 10px;border-radius:4px;font-size:12px;font-weight:700;margin-bottom:4px;">5 &nbsp;ERSTE HILFE UND VERHALTEN IM NOTFALL</div>
+    <div style="display:flex;align-items:center;gap:10px;margin:6px 0 6px 0;">
+      <div style="background:#c00;color:#fff;border-radius:6px;padding:4px 14px;font-size:20px;font-weight:900;letter-spacing:2px;">112</div>
+      <span style="font-size:12px;font-weight:700;">NOTRUF</span>
+    </div>
+    <ul style="margin:4px 0 10px 16px;padding:0;font-size:12px;">
+      <li>Ruhe bewahren – Überblick verschaffen</li>
+      <li>Rettung gemäß Notfall-/Rettungsplan (Rettung nach <strong>UNTEN</strong>)</li>
+      <li>Notruf <strong>112</strong>: WER? WAS? WO? WIE VIELE?</li>
+      <li>Erste-Hilfe-Maßnahmen einleiten</li>
+      <li>Rettung aus hängender Situation innerhalb <strong>15–20 Minuten</strong> (Hängetrauma!)</li>
+      <li>Auch ohne äußere Verletzungszeichen: <strong>Arzt aufsuchen!</strong></li>
+      <li>Arbeitsunfälle und Beinaheunfälle sofort dem Aufsichtsführenden und der BG melden</li>
+    </ul>
+
+    <div style="background:#1a3a5c;color:#fff;padding:5px 10px;border-radius:4px;font-size:12px;font-weight:700;margin-bottom:4px;">6 &nbsp;INSTANDHALTUNG, PRÜFUNG UND UNTERWEISUNG</div>
+    <ul style="margin:4px 0 10px 16px;padding:0;font-size:12px;">
+      <li>Vor, nach und während jeder Benutzung: Sichtprüfung des eingesetzten Materials</li>
+      <li>Sachkundigenprüfung gemäß DGUV Grundsatz 312-906 alle <strong>12 Monate</strong> durch Sachkundige</li>
+      <li>Material in nicht einwandfreiem Zustand sofort aussondern und kennzeichnen</li>
+      <li>Unterweisung gemäß BGR 198 vor jedem Einsatz und mindestens <strong>1× jährlich</strong></li>
+      <li>Jeder Anwender benötigt einen gültigen Erste-Hilfe-Kurs (mind. 8 Stunden)</li>
+      <li>Prüfprotokoll und Unterweisungsnachweis aufbewahren (mind. 2 Jahre)</li>
+    </ul>`,
 
   glas: `
-    <div style="background:#eef2f7;border-left:4px solid #1a3a5c;padding:8px 12px;border-radius:4px;margin-bottom:14px;">
-      <strong style="color:#1a3a5c;">Betriebsanweisung Glasreinigung</strong><br>
-      <span style="font-size:12px;color:#555;">Fenster, Fassaden, Glasdächer, Lichthöfe – inkl. Höhenarbeit mittels SZP / PSAgA</span>
-    </div>
-    <p style="font-size:12px;color:#555;margin:0 0 12px 0;">Grundlage: ArbSchG · DGUV Vorschrift 1 · DGUV Information 201-056 · DGUV Regel 112-198/199 · TRBS 2121 Teil 3</p>
-
-    <div style="background:#fff3cd;border-left:4px solid #e6a817;padding:8px 12px;border-radius:4px;margin-bottom:12px;font-size:12px;">
-      <strong>⚠ Gefahren:</strong> Absturz · Hängetrauma · Glasbruch/Durchbruch · Schnittverletzungen · Verätzungen · Vogelkot/Schimmel (Infektion) · Stromschlag · Rutschgefahr
+    <div style="background:#eef2f7;border-left:4px solid #1a3a5c;padding:8px 12px;border-radius:4px;margin-bottom:10px;">
+      <strong style="color:#1a3a5c;">BETRIEBSANWEISUNG – GLASREINIGUNG</strong><br>
+      <span style="font-size:11px;color:#555;font-style:italic;">Reinigung von Glasflächen, Fenstern, Fassaden, Glasdächern und Lichthöfen – inkl. Höhenarbeit mittels SZP / PSAgA</span>
     </div>
 
-    <strong style="color:#1a3a5c;">✔ Schutzmaßnahmen:</strong>
-    <ul style="margin:6px 0 12px 16px;padding:0;font-size:13px;">
-      <li><strong>Schutzbrille EN 166</strong> bei Über-Kopf-Arbeit und Klingengebrauch (Pflicht)</li>
-      <li>Atemschutz mind. <strong>FFP2</strong> bei Sprühnebel; <strong>FFP3 + Schutzanzug</strong> bei Vogelkot/Schimmel</li>
-      <li>Sicherheitsschuhe S3, <strong>Helm</strong> mit Kinnriemen (EN 397), Warnkleidung EN ISO 20471 Kl. 2</li>
-      <li>Schutzhandschuhe (schnittfest EN 388 für Klingenarbeiten)</li>
-      <li>Werkzeuge gegen Herabfallen sichern (Lanyards, Werkzeugpouches)</li>
-      <li>Bodenbereich <strong>absperren</strong> – Absperrband + Hinweisschilder; bei Publikum Bodenposten</li>
-      <li>Bei Wind <strong>&gt; 6 Bft</strong>, Gewitter, Eis oder Schnee → <strong>Tätigkeit einstellen!</strong></li>
-      <li><strong>Alleinarbeit verboten</strong> – mind. 2 Personen, Sicht- und Rufkontakt</li>
-      <li>Nur Reinigungsmittel mit aktuellem <strong>Sicherheitsdatenblatt (SDB)</strong> verwenden</li>
-      <li>Personen unter Alkohol/Drogen/Medikamenten dürfen <strong>nicht eingesetzt</strong> werden</li>
+    <div style="background:#1a3a5c;color:#fff;padding:5px 10px;border-radius:4px;font-size:12px;font-weight:700;margin-bottom:4px;">1 &nbsp;ANWENDUNGSBEREICH</div>
+    <p style="font-size:12px;margin:4px 0 10px 0;color:#222;">Diese Betriebsanweisung gilt für alle Mitarbeiter der CSC GmbH, die Glasreinigungsarbeiten an Gebäuden ausführen. Dazu gehören Fenster- und Fassadenreinigung, Reinigung von Glasdächern, Atrien, Lichthöfen, Vordächern, Wintergärten und Brüstungsverglasungen, einschließlich Tätigkeiten mit Hebebühne, Leiter, Teleskopstange sowie Seilzugangs- und Positionierungstechniken (SZP) mit PSA gegen Absturz (PSAgA). Grundlage: ArbSchG, BetrSichV, DGUV Vorschrift 1, DGUV Vorschrift 38, DGUV Information 201-056, DGUV Regel 112-198/199, TRBS 2121 Teil 3, TRGS 401.</p>
+
+    <div style="background:#1a3a5c;color:#fff;padding:5px 10px;border-radius:4px;font-size:12px;font-weight:700;margin-bottom:4px;">2 &nbsp;GEFAHREN FÜR MENSCH UND UMWELT</div>
+    <ul style="margin:4px 0 10px 16px;padding:0;font-size:12px;">
+      <li>Absturz von Leitern, Hebebühnen, Fensterbänken, Brüstungen – tödliche Verletzungsgefahr</li>
+      <li>Hängetrauma (orthostatischer Schock) nach Sturz im Seil – innerhalb weniger Minuten lebensbedrohlich</li>
+      <li>Glasbruch / Durchbruch durch nicht durchsturzsichere Verglasung (Glasdach, Lichtkuppeln)</li>
+      <li>Schnittverletzungen durch scharfe Klingen am Glasschaber und Glasbruchstücke</li>
+      <li>Augenverletzungen durch Spritzer von Reinigungsmitteln und Glassplitter</li>
+      <li>Verätzungen, Hautreizungen durch alkalische und saure Reiniger</li>
+      <li>Infektionsgefahr durch Vogelkot, Taubenexkremente, Schimmel an Fassaden</li>
+      <li>Stromschlag durch beschädigte Elektrogeräte oder Nässe in Verbindung mit Strom</li>
+      <li>Rutsch- und Stolpergefahr auf nassen, glatten Glas- und Steinflächen</li>
     </ul>
 
-    <div style="background:#ffeaea;border-left:4px solid #c00;padding:10px 12px;border-radius:4px;font-size:13px;">
-      <strong style="color:#c00;">🚨 Erste Hilfe – NOTRUF 112</strong><br>
-      ▶ Sturz im Seil → Rettung nach <strong>UNTEN</strong>, innerhalb <strong>15–20 Min.</strong> (Hängetrauma!)<br>
-      ▶ Schnittwunden → Druckverband; Glassplitter <strong>NICHT entfernen</strong><br>
-      ▶ Chemie im Auge → min. <strong>15 Min.</strong> mit klarem Wasser spülen<br>
-      ▶ Nach Sturz/Hängetrauma/Chemikalienkontakt immer <strong>Arzt aufsuchen</strong>
-    </div>
+    <div style="background:#1a3a5c;color:#fff;padding:5px 10px;border-radius:4px;font-size:12px;font-weight:700;margin-bottom:4px;">3 &nbsp;SCHUTZMASSNAHMEN UND VERHALTENSREGELN</div>
+    <ul style="margin:4px 0 10px 16px;padding:0;font-size:12px;">
+      <li><strong>Schutzbrille EN 166</strong> bei Über-Kopf-Arbeit, Reinigern und Klingengebrauch verpflichtend</li>
+      <li>Bei Sprühnebel / lösemittelhaltigen Reinigern: Atemschutz mind. <strong>FFP2</strong>; bei Vogelkot/Schimmel <strong>FFP3 + Einweganzug</strong></li>
+      <li>Sicherheitsschuhe S3, Schutzhelm mit Kinnriemen (EN 397), Warnkleidung EN ISO 20471 Kl. 2</li>
+      <li>Schutzhandschuhe nach SDB (Nitril/Butyl, schnittfest EN 388 für Klingenarbeiten)</li>
+      <li>Werkzeuge gegen Herabfallen sichern: Lanyards, Werkzeugschnüre, Werkzeugpouches</li>
+      <li>Bodenbereich absperren: Bauzaun oder Absperrband + Hinweisschilder; bei Publikumsverkehr Bodenposten</li>
+      <li>Bei SZP/PSAgA: Gurtpflicht, Buddy-Check, mind. 2 Personen, Sicht- und Rufkontakt</li>
+      <li>Wetterbedingungen prüfen: bei Wind &gt; 6 Bft, Gewitter, Eis, Schnee → <strong>Tätigkeit einstellen</strong></li>
+      <li>Alleinarbeit verboten. Ausschließlich zugelassene Reinigungsmittel mit aktuellem Sicherheitsdatenblatt verwenden</li>
+      <li>Personen unter Einfluss von Alkohol, Drogen oder Medikamenten dürfen nicht eingesetzt werden</li>
+    </ul>
 
-    <div style="margin-top:12px;font-size:12px;color:#555;">
-      ◉ PSAgA jährliche Sachkundigenprüfung nach DGUV 312-906 &nbsp;·&nbsp; Leitern/Hubarbeitsbühnen jährlich nach BetrSichV § 14
-    </div>`,
+    <div style="background:#1a3a5c;color:#fff;padding:5px 10px;border-radius:4px;font-size:12px;font-weight:700;margin-bottom:4px;">4 &nbsp;VERHALTEN BEI STÖRUNGEN UND MÄNGELN</div>
+    <ul style="margin:4px 0 10px 16px;padding:0;font-size:12px;">
+      <li>Beschädigte Reinigungsgeräte, Klingen, Teleskopstangen oder PSAgA-Komponenten vor Nutzung dem Vorgesetzten melden</li>
+      <li>Glasbruch oder Beschädigung am Objekt sofort stoppen, sichern und melden</li>
+      <li>Bei Verunreinigung durch Chemikalien: Bereich sperren, Sicherheitsdatenblatt konsultieren</li>
+    </ul>
+
+    <div style="background:#1a3a5c;color:#fff;padding:5px 10px;border-radius:4px;font-size:12px;font-weight:700;margin-bottom:4px;">5 &nbsp;ERSTE HILFE UND VERHALTEN IM NOTFALL</div>
+    <div style="display:flex;align-items:center;gap:10px;margin:6px 0 6px 0;">
+      <div style="background:#c00;color:#fff;border-radius:6px;padding:4px 14px;font-size:20px;font-weight:900;letter-spacing:2px;">112</div>
+      <span style="font-size:12px;font-weight:700;">NOTRUF</span>
+    </div>
+    <ul style="margin:4px 0 10px 16px;padding:0;font-size:12px;">
+      <li>Ruhe bewahren – Eigensicherung beachten – Überblick verschaffen</li>
+      <li>Notruf <strong>112</strong>: WER? WAS? WO? WIE VIELE? – WARTEN auf Rückfragen</li>
+      <li>Bei Sturz im Seil: Rettung nach <strong>UNTEN</strong> zum Boden – innerhalb <strong>15–20 Minuten</strong> (Hängetrauma!)</li>
+      <li>Bei Schnittverletzungen: starke Blutung mit Druckverband stillen; Glassplitter <strong>NICHT entfernen</strong></li>
+      <li>Bei Augenkontakt mit Chemie: Augendusche / klares Wasser mind. <strong>15 Min.</strong> spülen</li>
+      <li>Bei Hautkontakt mit Reinigungsmitteln: kontaminierte Kleidung entfernen, Haut spülen, SDB bereithalten</li>
+      <li>Bei Einatmen von Aerosolen: betroffene Person an frische Luft, ruhig lagern</li>
+      <li>Auch ohne äußere Verletzungszeichen ärztliche Untersuchung – insbesondere nach Sturz, Hängetrauma, Chemikalienkontakt</li>
+      <li>Arbeitsunfälle und Beinaheunfälle umgehend dem Aufsichtsführenden und der BG BAU melden</li>
+    </ul>
+
+    <div style="background:#1a3a5c;color:#fff;padding:5px 10px;border-radius:4px;font-size:12px;font-weight:700;margin-bottom:4px;">6 &nbsp;INSTANDHALTUNG, PRÜFUNG UND UNTERWEISUNG</div>
+    <ul style="margin:4px 0 10px 16px;padding:0;font-size:12px;">
+      <li>Vor, nach und während jeder Benutzung Sichtprüfung aller Arbeitsmittel und PSA</li>
+      <li>PSAgA: jährliche Sachkundigenprüfung nach DGUV Grundsatz 312-906 / DGUV Regel 112-198</li>
+      <li>Leitern und Hubarbeitsbühnen: regelmäßige Prüfung nach BetrSichV § 14 (jährlich durch befähigte Person)</li>
+      <li>Reinigungsmittel: aktuelle Sicherheitsdatenblätter vorhalten; Gefahrstoffverzeichnis pflegen</li>
+      <li>Unterweisung vor jedem Einsatz und mindestens <strong>1× jährlich</strong>; Nachweis aufbewahren (mind. 2 Jahre)</li>
+    </ul>`,
 
   rettung: `
     <div style="background:#ffeaea;border-left:4px solid #c00;padding:10px 12px;border-radius:4px;margin-bottom:16px;text-align:center;">
