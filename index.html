@@ -435,7 +435,7 @@
 <script src="app.js"></script>
 <!-- ===== MODAL: BETRIEBSANWEISUNG & RETTUNGSPLAN ===== -->
 <div id="ba-modal-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.55); z-index:9999; overflow-y:auto; -webkit-overflow-scrolling:touch;" onclick="baModalSchliessen(event)">
-  <div id="ba-modal-box" style="position:relative; background:#fff; margin:20px auto; max-width:620px; border-radius:12px; overflow:hidden; box-shadow:0 8px 32px rgba(0,0,0,0.3);">
+  <div id="ba-modal-box" style="position:relative; background:#fff; margin:20px auto; max-width:620px; border-radius:12px; overflow:hidden; box-shadow:0 8px 32px rgba(0,0,0,0.3); display:flex; flex-direction:column; max-height:calc(100vh - 40px);">
     <!-- Header -->
     <div style="background:#1a3a5c; color:#fff; padding:14px 16px; display:flex; align-items:center; justify-content:space-between; position:sticky; top:0; z-index:2;">
       <div>
@@ -451,7 +451,7 @@
       <button id="ba-tab-rettung" onclick="baTabWechseln('rettung')" style="padding:10px 14px; border:none; background:transparent; font-size:13px; color:#666; border-bottom:3px solid transparent; cursor:pointer; margin-bottom:-2px;">🚨 Rettungsplan</button>
     </div>
     <!-- Inhalt -->
-    <div id="ba-modal-inhalt" style="padding:16px; font-size:13px; line-height:1.6; color:#222;"></div>
+    <div id="ba-modal-inhalt" style="padding:16px; font-size:13px; line-height:1.6; color:#222; overflow-y:auto; flex:1 1 auto; -webkit-overflow-scrolling:touch;"></div>
   </div>
 </div>
 
