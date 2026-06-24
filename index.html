@@ -256,6 +256,23 @@
   </div>
   <div class="content" id="checklist-content">
     <div id="checklist-meta" class="meta-box"></div>
+
+    <!-- GFB-Felder: Objekt / Auftraggeber / Ansprechpartner — ganz oben -->
+    <div class="aufzug-nr-box" id="gfb-felder-box" style="display:none">
+      <label>Objekt / Einsatzort:</label>
+      <input type="text" id="gfb-objekt" placeholder="z. B. Musterstraße 1, Hannover">
+      <label style="margin-top:10px">Auftraggeber / Kunde:</label>
+      <input type="text" id="gfb-auftraggeber" placeholder="z. B. Musterfirma GmbH">
+      <label style="margin-top:10px">Ansprechpartner vor Ort:</label>
+      <input type="text" id="gfb-ansprechpartner" placeholder="z. B. Max Mustermann">
+    </div>
+
+    <!-- BA-Hinweis für GFB Glasreinigung — wird per JS eingeblendet -->
+    <div id="gfb-ba-hinweis" style="display:none; margin:10px 0 6px 0; padding:10px 14px; background:#eef2f7; border-left:4px solid #1a3a5c; border-radius:6px; font-size:13px; color:#1a3a5c;">
+      <strong>📄 Betriebsanweisungen im PDF enthalten:</strong><br>
+      <span style="font-weight:normal; color:#333;">BA PSA gegen Absturz (PSAgA) &amp; BA Glasreinigung werden automatisch als Seiten im PDF eingefügt.</span>
+    </div>
+
     <div id="checklist-abschnitte"></div>
     <div class="aufzug-nr-box" id="standort-box">
       <label>Standort:</label>
@@ -271,14 +288,7 @@
       <label style="margin-top:10px">Leiter-Typ / Inventar-Nr.:</label>
       <input type="text" id="leiter-typ" placeholder="z. B. Stehleiter 3m, Anlegeleiter ...">
     </div>
-    <div class="aufzug-nr-box" id="gfb-felder-box" style="display:none">
-      <label>Objekt / Einsatzort:</label>
-      <input type="text" id="gfb-objekt" placeholder="z. B. Musterstraße 1, Hannover">
-      <label style="margin-top:10px">Auftraggeber / Kunde:</label>
-      <input type="text" id="gfb-auftraggeber" placeholder="z. B. Musterfirma GmbH">
-      <label style="margin-top:10px">Ansprechpartner vor Ort:</label>
-      <input type="text" id="gfb-ansprechpartner" placeholder="z. B. Max Mustermann">
-    </div>
+
     <div class="bemerkung-box">
       <label>Bemerkungen / Mängel:</label>
       <textarea id="bemerkung" rows="3" placeholder="Optional: Mängel oder Hinweise eintragen..."></textarea>

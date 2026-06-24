@@ -741,6 +741,10 @@ function renderChecklist() {
   const isGFB = (currentBereich.liste === 'gfb_szp' || currentBereich.liste === 'gfb_glasreinigung');
   gfbFelderBox.style.display = isGFB ? 'block' : 'none';
 
+  // BA-Hinweis nur bei GFB Glasreinigung
+  const baHinweis = document.getElementById('gfb-ba-hinweis');
+  if (baHinweis) baHinweis.style.display = (currentBereich.liste === 'gfb_glasreinigung') ? 'block' : 'none';
+
   // Labels Unterschrift / Name je nach Typ anpassen
   document.getElementById('unterschrift-label').textContent = isGFB ? 'Unterschrift Aufsichtsführender:' : 'Unterschrift Prüfer:';
   document.getElementById('pruefer-label').textContent = isGFB ? 'Name Aufsichtsführender:' : 'Name Prüfer:';
