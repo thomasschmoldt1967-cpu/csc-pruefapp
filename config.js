@@ -25,6 +25,7 @@ const APP_CONFIG = {
     {
       id: "raschplatz5",
       name: "Prüfungen",
+      objekt: "Apothekerkammer",
 
       // Bereiche werden in Gruppen (Ordner) zusammengefasst
       gruppen: [

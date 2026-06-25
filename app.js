@@ -797,7 +797,7 @@ function renderChecklist() {
   }
 
   // Felder leeren / Standardwerte setzen
-  document.getElementById('formular-standort').value = 'Raschplatz 5';
+  document.getElementById('formular-standort').value = (currentStandort && currentStandort.objekt) ? currentStandort.objekt : 'Raschplatz 5';
   document.getElementById('aufzug-nr').value = '';
   document.getElementById('leiter-nr').value = '';
   document.getElementById('leiter-typ').value = '';
