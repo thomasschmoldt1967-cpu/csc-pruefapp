@@ -16,8 +16,9 @@ const APP_CONFIG = {
     brandschutztuer:  "1gzXpsDtFatEjQqxmpoPWyhyI0LoRBzvx",
     notbeleuchtung:   "1ZnXMl4vCNsYrbdu2i3d2_kKgYrkN6Fps",
     leiterkontrolle:  "1iwyyDvyFTl0Jz2wTlfNQkgNRqDHt1oZ-",
-    gfb_szp:          "1z58qrJWXWHQF4KQe3VUHMbS4nc2Zt761",  // GFU/SZP
-    gfb_glasreinigung:"14NjHFg8ekBHJ85Hiaa1hlPhZn5Se7XVa",  // GFU/Glasreinigung
+    gfb_szp:            "1z58qrJWXWHQF4KQe3VUHMbS4nc2Zt761",  // GFU/SZP
+    gfb_glasreinigung:  "14NjHFg8ekBHJ85Hiava1hlPhZn5Se7XVa",  // GFU/Glasreinigung
+    fusswegreinigung:   "1PendBTPwGultV9MzKcRoBoKfqUYXBVn3",  // Fußweg-Reinigung (Hauptordner, bis eigener Ordner angelegt)
   },
 
   standorte: [
@@ -65,6 +66,16 @@ const APP_CONFIG = {
           icon: "🪜",
           bereiche: [
             { id: "leiter_sammel", name: "Leitern", liste: "leiterkontrolle" },
+          ]
+        },
+        {
+          id: "fusswege",
+          name: "Fußweg-Reinigung",
+          icon: "🧹",
+          bereiche: [
+            { id: "fussweg_eingang1",     name: "Eingang 1",           liste: "fusswegreinigung" },
+            { id: "fussweg_eingang2",     name: "Eingang 2",           liste: "fusswegreinigung" },
+            { id: "fussweg_tiefgarage",   name: "Zufahrt Tiefgarage",  liste: "fusswegreinigung" },
           ]
         },
       ]
@@ -239,6 +250,52 @@ const APP_CONFIG = {
     },
 
     // Neue Liste hinzufügen: { titel: "...", abschnitte: [...] }
+
+    // ===== Fußweg-Reinigung =====
+    fusswegreinigung: {
+      titel: "Fußweg-Reinigung",
+      untertitel: "Kontrollgang und Reinigungsnachweis Außenanlagen",
+      intervall: "Wöchentlich",
+      abschnitte: [
+        {
+          titel: "Reinigungszustand Belag",
+          punkte: [
+            { id: "fw1", text: "Fußwegfläche vollständig gefegt (Laub, Sand, Schmutz entfernt)." },
+            { id: "fw2", text: "Keine Verschmutzungen durch Öl, Farbe oder ähnliche Stoffe vorhanden." },
+            { id: "fw3", text: "Rinnen, Abläufe und Gullys freigeräumt und ungehindert durchgängig." },
+          ]
+        },
+        {
+          titel: "Sicherheit & Begehbarkeit",
+          punkte: [
+            { id: "fw4", text: "Keine losen, aufgebrochenen oder absackenden Pflastersteine / Bodenplatten." },
+            { id: "fw5", text: "Keine Stolperstellen durch vorstehende Kanten oder Wurzelaufbrüche." },
+            { id: "fw6", text: "Bereiche vor Eingangstüren und Stufenstufen rutschhemmend und sauber." },
+          ]
+        },
+        {
+          titel: "Winterdienst / Witterung",
+          punkte: [
+            { id: "fw7", text: "Bei Frost/Schnee: Flächen geräumt und ausreichend abgestumpft (Splitt/Salz)." },
+            { id: "fw8", text: "Streugut-Vorrat ausreichend vorhanden." },
+          ]
+        },
+        {
+          titel: "Zustand der Außenanlagen",
+          punkte: [
+            { id: "fw9",  text: "Absperrungen, Poller und Hinweisschilder vollständig und unbeschädigt." },
+            { id: "fw10", text: "Beleuchtung der Außenfläche / des Zuwegs funktioniert (Sichtkontrolle)." },
+            { id: "fw11", text: "Keine Fremdobjekte, Sperrmüll oder unbefugte Ablagerungen auf den Flächen." },
+          ]
+        },
+        {
+          titel: "Gesamtzustand & Ergebnis",
+          punkte: [
+            { id: "fw12", text: "Bereich insgesamt gereinigt und verkehrssicher — keine Mängel erkennbar." },
+          ]
+        }
+      ]
+    },
 
     // ===== GFB SZP: Gefährdungsbeurteilung Seil-Zugangs-Technik =====
     gfb_szp: {

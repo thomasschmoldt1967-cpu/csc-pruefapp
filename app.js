@@ -318,11 +318,11 @@ async function renderMaengelButton() {
 }
 
 function iconClass(liste) {
-  const map = { aufzug: 'icon-aufzug', brandschutztuer: 'icon-brandschutz', notbeleuchtung: 'icon-notbel', leiterkontrolle: 'icon-leiter', gfb_szp: 'icon-gruppe', gfb_glasreinigung: 'icon-gruppe' };
+  const map = { aufzug: 'icon-aufzug', brandschutztuer: 'icon-brandschutz', notbeleuchtung: 'icon-notbel', leiterkontrolle: 'icon-leiter', gfb_szp: 'icon-gruppe', gfb_glasreinigung: 'icon-gruppe', fusswegreinigung: 'icon-notbel' };
   return map[liste] || 'icon-default';
 }
 function listeIcon(liste) {
-  const map = { aufzug: '🛗', brandschutztuer: '🚪', notbeleuchtung: '💡', leiterkontrolle: '🪜', gfb_szp: '🧗', gfb_glasreinigung: '🪟' };
+  const map = { aufzug: '🛗', brandschutztuer: '🚪', notbeleuchtung: '💡', leiterkontrolle: '🪜', gfb_szp: '🧗', gfb_glasreinigung: '🪟', fusswegreinigung: '🧹' };
   return map[liste] || '📋';
 }
 function listeTitel(listeId) {
@@ -3025,6 +3025,7 @@ async function renderDashboard() {
         leiterkontrolle: '🪜 Leitern',
         gfb_szp: '🧗 GFU/SZP',
         gfb_glasreinigung: '🪟 GFU/Glasreinigung',
+        fusswegreinigung: '🧹 Fußweg-Reinigung',
       };
       const gruppen = {};
       faellig.forEach(f => {
@@ -3157,6 +3158,7 @@ function renderEditorHome() {
     leiterkontrolle:  '🪜 Leitern',
     gfb_szp:          '🧗 GFB Seil-Zugangs-Technik',
     gfb_glasreinigung:'🪟 GFB Glasreinigung',
+    fusswegreinigung: '🧹 Fußweg-Reinigung',
   };
   container.innerHTML = `
     <div style="padding:8px 0 16px 0;color:#555;font-size:13px">
@@ -3386,7 +3388,8 @@ const LISTENTYP_LABEL = {
   notbeleuchtung:  '💡 Notbeleuchtung',
   leiterkontrolle: '🪜 Leitern',
   gfb_szp:         '🧗 GFB SZP',
-  gfb_glasreinigung:'🪟 GFB Glasreinigung'
+  gfb_glasreinigung:'🪟 GFB Glasreinigung',
+  fusswegreinigung: '🧹 Fußweg-Reinigung',
 };
 
 async function showAlleProtokolleScreen() {

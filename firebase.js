@@ -38,12 +38,13 @@ const authReady = new Promise(resolve => {
 //  Prüf-Intervalle (Tage) je Listentyp
 // ============================================================
 const INTERVALLE = {
-  aufzug:           7,    // wöchentlich (donnerstags)
-  brandschutztuer:  7,    // wöchentlich
-  notbeleuchtung:   7,    // wöchentlich
-  leiterkontrolle: 365,   // jährlich
-  gfb_szp:         365,
+  aufzug:             7,    // wöchentlich (donnerstags)
+  brandschutztuer:    7,    // wöchentlich
+  notbeleuchtung:     7,    // wöchentlich
+  leiterkontrolle:  365,    // jährlich
+  gfb_szp:          365,
   gfb_glasreinigung:365,
+  fusswegreinigung:   7,    // wöchentlich
 };
 
 // ============================================================
