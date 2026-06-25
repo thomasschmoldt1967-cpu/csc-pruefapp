@@ -2871,7 +2871,27 @@ function offlineQueueAdd(pdfBlob) {
 }
 
 async function offlineQueueFlush(mitFeedback = false) {
-  const queue = JSON.parse(localStorage.getItem('offline_queue') || '[]');
+  // localStorage-Queue laden
+  let queue = JSON.parse(localStorage.getItem('offline_queue') || '[]');
+
+  // Firestore-Queue zusätzlich laden (geräteübergreifend)
+  const session = checkSession();
+  let firestoreQueue = [];
+  if (session && typeof window.fbOfflineQueueLade === 'function') {
+    try {
+      firestoreQueue = await window.fbOfflineQueueLade(session.email);
+      console.log('[Sync] Firestore-Queue geladen:', firestoreQueue.length, 'Einträge');
+    } catch(e) { console.warn('[Sync] Firestore-Queue Ladefehler:', e); }
+  }
+
+  // Deduplizieren: Firestore-Einträge die noch nicht in localStorage sind, hinzufügen
+  const localFilenames = new Set(queue.map(i => i.filename));
+  for (const fi of firestoreQueue) {
+    if (!localFilenames.has(fi.filename)) {
+      queue.push({ dataUrl: fi.dataUrl, filename: fi.filename, folderId: fi.folderId, ts: fi.ts, firestoreId: fi.id });
+    }
+  }
+
   if (queue.length === 0) {
     if (mitFeedback) zeigeSyncStatus('✅ Keine ausstehenden Protokolle — alles bereits auf Drive.', 'gruen');
     updateSyncButton();
@@ -2902,11 +2922,19 @@ async function offlineQueueFlush(mitFeedback = false) {
           method: 'POST', headers: { Authorization: 'Bearer ' + token }, body: form, signal: controller.signal
         });
       } finally { clearTimeout(timer); }
-      if (res.ok) { ok++; console.log('[Sync] Upload OK:', item.filename); }
-      else { remaining.push(item); }
+      if (res.ok) {
+        ok++;
+        console.log('[Sync] Upload OK:', item.filename);
+        // Firestore-Eintrag löschen wenn erfolgreich
+        if (item.firestoreId && typeof window.fbOfflineQueueDelete === 'function') {
+          window.fbOfflineQueueDelete(item.firestoreId).catch(() => {});
+        }
+      } else { remaining.push(item); }
     } catch(e) { remaining.push(item); }
   }
-  localStorage.setItem('offline_queue', JSON.stringify(remaining));
+  // Nur localStorage-Einträge (ohne firestoreId) als "verbleibend" speichern
+  const remainingLocal = remaining.filter(i => !i.firestoreId);
+  localStorage.setItem('offline_queue', JSON.stringify(remainingLocal));
   updateSyncButton();
   if (mitFeedback) {
     if (ok > 0 && remaining.length === 0)
