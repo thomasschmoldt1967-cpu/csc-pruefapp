@@ -599,7 +599,7 @@ function renderHistorieGruppe(titel, eintraege) {
     if (p.driveFileId) {
       const driveUrl = `https://drive.google.com/file/d/${p.driveFileId}/view`;
       const fileId = p.driveFileId;
-      const dlFilename = `${p.datum ? p.datum.replace(/\./g,'-') : 'Protokoll'}_${bereichId}.pdf`;
+      const dlFilename = `${p.datum ? p.datum.replace(/\./g,'-') : 'Protokoll'}_${p.bereichId || titel}.pdf`;
       driveHtml = `<div style="margin-top:6px;display:flex;gap:8px;flex-wrap:wrap;">
         <a href="${driveUrl}" target="_blank" style="display:inline-block;padding:5px 12px;background:#1a73e8;color:#fff;border-radius:6px;font-size:12px;text-decoration:none;font-weight:500;">📄 Protokoll öffnen</a>
         <button onclick="downloadPdfFromDrive('${fileId}','${dlFilename}')" style="padding:5px 12px;background:#34a853;color:#fff;border:none;border-radius:6px;font-size:12px;font-weight:500;cursor:pointer;">⬇️ PDF herunterladen</button>
