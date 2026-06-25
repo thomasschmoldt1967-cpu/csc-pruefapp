@@ -23,6 +23,18 @@ const db    = getFirestore(fbApp);
 const auth  = getAuth(fbApp);
 
 // ============================================================
+//  Auth-Ready Promise — wartet bis Firebase Auth-State bekannt
+//  (verhindert PERMISSION_DENIED bei Firestore-Reads kurz nach
+//  dem App-Start bevor onAuthStateChanged feuert)
+// ============================================================
+const authReady = new Promise(resolve => {
+  const unsubscribe = onAuthStateChanged(auth, user => {
+    unsubscribe();
+    resolve(user);
+  });
+});
+
+// ============================================================
 //  Prüf-Intervalle (Tage) je Listentyp
 // ============================================================
 const INTERVALLE = {
@@ -90,6 +102,7 @@ window.fbSavePruefung = async function({
 // ============================================================
 window.fbGetAmpel = async function(bereichId, listentyp) {
   try {
+    await authReady;
     const ref  = doc(db, 'letztePruefung', bereichId);
     const snap = await getDoc(ref);
     if (!snap.exists()) return 'unbekannt';
@@ -127,6 +140,7 @@ window.fbGetAmpelAlle = async function(bereiche) {
 // ============================================================
 window.fbGetAmpelLeitern = async function() {
   try {
+    await authReady;
     const snap = await getDocs(collection(db, 'letztePruefung'));
     const results = {};
     snap.docs.forEach(d => {
@@ -159,6 +173,7 @@ window.fbGetAmpelLeitern = async function() {
 // ============================================================
 window.fbGetAlleLeiternDaten = async function() {
   try {
+    await authReady;
     const snap = await getDocs(collection(db, 'letztePruefung'));
     const liste = [];
     const intervall = INTERVALLE['leiterkontrolle'] || 365;
@@ -203,6 +218,7 @@ window.fbGetAlleLeiternDaten = async function() {
 // ============================================================
 window.fbGetLetztePruefung = async function(bereichId) {
   try {
+    await authReady;
     const ref  = doc(db, 'letztePruefung', bereichId);
     const snap = await getDoc(ref);
     return snap.exists() ? snap.data() : null;
@@ -214,6 +230,7 @@ window.fbGetLetztePruefung = async function(bereichId) {
 // ============================================================
 window.fbGetOffeneMaengel = async function() {
   try {
+    await authReady;
     const q    = query(collection(db, 'maengel'), where('status', '==', 'offen'));
     const snap = await getDocs(q);
     return snap.docs.map(d => ({ id: d.id, ...d.data() }));
@@ -247,6 +264,7 @@ window.fbMangelErledigt = async function(mangelId) {
 // ============================================================
 window.fbGetHistorieBereich = async function(bereichId) {
   try {
+    await authReady;
     const snap = await getDocs(collection(db, 'pruefHistory'));
     const liste = [];
     snap.docs.forEach(d => {
@@ -278,6 +296,7 @@ window.fbGetHistorieBereich = async function(bereichId) {
 // ============================================================
 window.fbGetHistorieLeitern = async function() {
   try {
+    await authReady;
     const snap = await getDocs(collection(db, 'pruefHistory'));
     const liste = [];
     snap.docs.forEach(d => {
@@ -399,6 +418,7 @@ window.fbSaveAuditHash = async function({ bereichId, listentyp, pruefer, datum, 
 // Alle fälligen / überfälligen Bereiche laden (für Fälligkeits-Übersicht)
 window.fbGetFaelligkeitenUebersicht = async function() {
   try {
+    await authReady;
     const snap = await getDocs(collection(db, 'letztePruefung'));
     const heute = new Date(); heute.setHours(0,0,0,0);
     const result = [];
@@ -425,6 +445,7 @@ window.fbGetFaelligkeitenUebersicht = async function() {
 // ============================================================
 window.fbGetAlleProtokolle = async function() {
   try {
+    await authReady;
     const snap = await getDocs(collection(db, 'pruefHistory'));
     const liste = [];
     snap.docs.forEach(d => {
