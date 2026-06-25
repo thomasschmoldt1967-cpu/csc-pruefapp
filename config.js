@@ -255,7 +255,7 @@ const APP_CONFIG = {
     fusswegreinigung: {
       titel: "Fußweg-Reinigung",
       untertitel: "Kontrollgang und Reinigungsnachweis Außenanlagen",
-      intervall: "Wöchentlich",
+      intervall: "Wöchentlich (donnerstags)",
       abschnitte: [
         {
           titel: "Reinigungszustand Belag",
