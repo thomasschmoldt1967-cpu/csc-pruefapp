@@ -1299,9 +1299,8 @@ async function submitChecklist() {
       driveFileId = driveResult?.id || null;
     } catch (driveErr) {
       console.warn('[Drive] Upload fehlgeschlagen:', driveErr.message);
-      // Bei Token-Ablauf: PDF trotzdem lokal herunterladen
-      if (driveErr.message === 'TOKEN_ABGELAUFEN' || driveErr.name === 'AbortError') {
-        // PDF lokal als Backup speichern
+      // PDF immer lokal herunterladen als Backup
+      try {
         const url = URL.createObjectURL(pdfBlob);
         const a = document.createElement('a');
         const now = new Date();
@@ -1309,8 +1308,12 @@ async function submitChecklist() {
         a.download = `${formatDatumISO(now)}_${currentBereich.id}_BACKUP.pdf`;
         a.click();
         setTimeout(() => URL.revokeObjectURL(url), 5000);
-      }
+      } catch(dlErr) { console.warn('[Backup-Download] fehlgeschlagen:', dlErr.message); }
       offlineQueueAdd(pdfBlob);
+      // Fehlermeldung merken für showResult
+      window._driveUploadFehler = driveErr.message === 'TOKEN_ABGELAUFEN'
+        ? 'TOKEN_ABGELAUFEN'
+        : 'UPLOAD_FEHLER';
     }
 
     // ── Firebase: Prüfung speichern ──────────────────────────
@@ -2780,8 +2783,22 @@ function showResult(success, driveOk, emailTo, errMsg) {
     text.textContent = 'Prüfung gespeichert!';
     if (driveOk) {
       sub.textContent = `PDF in Google Drive abgelegt · ${formatDatum(new Date())}`;
+      window._driveUploadFehler = null;
     } else {
-      sub.textContent = `⚠️ Offline – PDF lokal gespeichert. Wird hochgeladen sobald online.`;
+      // Drive-Upload fehlgeschlagen — deutliche Warnung
+      const fehlerTyp = window._driveUploadFehler || 'UPLOAD_FEHLER';
+      icon.textContent = '⚠️';
+      text.textContent = 'Prüfung lokal gespeichert – Drive-Upload fehlgeschlagen!';
+      if (fehlerTyp === 'TOKEN_ABGELAUFEN') {
+        sub.innerHTML = `<span style="color:#c00;font-weight:700;">🔴 Google Drive Verbindung abgelaufen!</span><br>
+Das PDF wurde auf diesem Gerät gespeichert (Downloads-Ordner).<br>
+<strong>Bitte Thomas Schmoldt informieren</strong> – der Upload wird automatisch nachgeholt.`;
+      } else {
+        sub.innerHTML = `<span style="color:#c00;font-weight:700;">🔴 Kein Internet oder Drive-Fehler!</span><br>
+Das PDF wurde auf diesem Gerät gespeichert (Downloads-Ordner).<br>
+Sobald wieder online: im Home-Screen auf 🔄 tippen zum Nachholen.`;
+      }
+      window._driveUploadFehler = null;
     }
     // E-Mail-Button
     if (emailBtn) {
