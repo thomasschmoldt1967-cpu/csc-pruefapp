@@ -74,9 +74,7 @@ const APP_CONFIG = {
           name: "Fußweg-Reinigung",
           icon: "🧹",
           bereiche: [
-            { id: "fussweg_eingang1",     name: "Eingang 1",           liste: "fusswegreinigung" },
-            { id: "fussweg_eingang2",     name: "Eingang 2",           liste: "fusswegreinigung" },
-            { id: "fussweg_tiefgarage",   name: "Zufahrt Tiefgarage",  liste: "fusswegreinigung" },
+            { id: "fussweg_gesamt", name: "Fußwege & Zufahrt", liste: "fusswegreinigung" },
           ]
         },
       ]
@@ -259,42 +257,47 @@ const APP_CONFIG = {
       intervall: "Wöchentlich (donnerstags)",
       abschnitte: [
         {
-          titel: "Reinigungszustand Belag",
+          titel: "Eingang 1",
           punkte: [
-            { id: "fw1", text: "Fußwegfläche vollständig gefegt (Laub, Sand, Schmutz entfernt)." },
-            { id: "fw2", text: "Keine Verschmutzungen durch Öl, Farbe oder ähnliche Stoffe vorhanden." },
-            { id: "fw3", text: "Rinnen, Abläufe und Gullys freigeräumt und ungehindert durchgängig." },
+            { id: "fw1_1", text: "Fußwegfläche vollständig gefegt (Laub, Sand, Schmutz entfernt)." },
+            { id: "fw1_2", text: "Keine Verschmutzungen durch Öl, Farbe oder ähnliche Stoffe vorhanden." },
+            { id: "fw1_3", text: "Rinnen, Abläufe und Gullys freigeräumt und ungehindert durchgängig." },
+            { id: "fw1_4", text: "Keine losen, aufgebrochenen oder absackenden Pflastersteine / Bodenplatten." },
+            { id: "fw1_5", text: "Keine Stolperstellen durch vorstehende Kanten oder Wurzelaufbrüche." },
+            { id: "fw1_6", text: "Bereich vor Eingangstür rutschhemmend und sauber." },
+            { id: "fw1_7", text: "Bei Frost/Schnee: Fläche geräumt und ausreichend abgestumpft (Splitt/Salz)." },
+            { id: "fw1_8", text: "Beleuchtung funktioniert (Sichtkontrolle)." },
+            { id: "fw1_9", text: "Keine Fremdobjekte oder unbefugte Ablagerungen auf der Fläche." },
           ]
         },
         {
-          titel: "Sicherheit & Begehbarkeit",
+          titel: "Eingang 2",
           punkte: [
-            { id: "fw4", text: "Keine losen, aufgebrochenen oder absackenden Pflastersteine / Bodenplatten." },
-            { id: "fw5", text: "Keine Stolperstellen durch vorstehende Kanten oder Wurzelaufbrüche." },
-            { id: "fw6", text: "Bereiche vor Eingangstüren und Stufenstufen rutschhemmend und sauber." },
+            { id: "fw2_1", text: "Fußwegfläche vollständig gefegt (Laub, Sand, Schmutz entfernt)." },
+            { id: "fw2_2", text: "Keine Verschmutzungen durch Öl, Farbe oder ähnliche Stoffe vorhanden." },
+            { id: "fw2_3", text: "Rinnen, Abläufe und Gullys freigeräumt und ungehindert durchgängig." },
+            { id: "fw2_4", text: "Keine losen, aufgebrochenen oder absackenden Pflastersteine / Bodenplatten." },
+            { id: "fw2_5", text: "Keine Stolperstellen durch vorstehende Kanten oder Wurzelaufbrüche." },
+            { id: "fw2_6", text: "Bereich vor Eingangstür rutschhemmend und sauber." },
+            { id: "fw2_7", text: "Bei Frost/Schnee: Fläche geräumt und ausreichend abgestumpft (Splitt/Salz)." },
+            { id: "fw2_8", text: "Beleuchtung funktioniert (Sichtkontrolle)." },
+            { id: "fw2_9", text: "Keine Fremdobjekte oder unbefugte Ablagerungen auf der Fläche." },
           ]
         },
         {
-          titel: "Winterdienst / Witterung",
+          titel: "Zufahrt Tiefgarage",
           punkte: [
-            { id: "fw7", text: "Bei Frost/Schnee: Flächen geräumt und ausreichend abgestumpft (Splitt/Salz)." },
-            { id: "fw8", text: "Streugut-Vorrat ausreichend vorhanden." },
+            { id: "fw3_1", text: "Fußwegfläche / Zufahrt vollständig gefegt (Laub, Sand, Schmutz entfernt)." },
+            { id: "fw3_2", text: "Keine Verschmutzungen durch Öl, Farbe oder ähnliche Stoffe vorhanden." },
+            { id: "fw3_3", text: "Rinnen, Abläufe und Gullys freigeräumt und ungehindert durchgängig." },
+            { id: "fw3_4", text: "Keine losen, aufgebrochenen oder absackenden Platten / Belagssteine." },
+            { id: "fw3_5", text: "Keine Stolperstellen, Schäden oder Fahrbahnmängel erkennbar." },
+            { id: "fw3_6", text: "Bei Frost/Schnee: Zufahrt geräumt und ausreichend abgestumpft (Splitt/Salz)." },
+            { id: "fw3_7", text: "Absperrungen, Poller und Hinweisschilder vollständig und unbeschädigt." },
+            { id: "fw3_8", text: "Beleuchtung der Zufahrt funktioniert (Sichtkontrolle)." },
+            { id: "fw3_9", text: "Keine Fremdobjekte, Sperrmüll oder unbefugte Ablagerungen auf der Zufahrt." },
           ]
         },
-        {
-          titel: "Zustand der Außenanlagen",
-          punkte: [
-            { id: "fw9",  text: "Absperrungen, Poller und Hinweisschilder vollständig und unbeschädigt." },
-            { id: "fw10", text: "Beleuchtung der Außenfläche / des Zuwegs funktioniert (Sichtkontrolle)." },
-            { id: "fw11", text: "Keine Fremdobjekte, Sperrmüll oder unbefugte Ablagerungen auf den Flächen." },
-          ]
-        },
-        {
-          titel: "Gesamtzustand & Ergebnis",
-          punkte: [
-            { id: "fw12", text: "Bereich insgesamt gereinigt und verkehrssicher — keine Mängel erkennbar." },
-          ]
-        }
       ]
     },
 
