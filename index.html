@@ -387,12 +387,19 @@
           style="width:100%;padding:9px 12px;border:1px solid #c8d8f0;border-radius:8px;font-size:14px;background:#fff;color:#1a3a5c;">
           <option value="">🏢 Alle Objekte</option>
         </select>
+        <select id="filter-pruefpunkt" onchange="filterProtokolle()"
+          style="width:100%;padding:9px 12px;border:1px solid #c8d8f0;border-radius:8px;font-size:14px;background:#fff;color:#1a3a5c;">
+          <option value="">🔧 Alle Prüfpunkte</option>
+        </select>
         <select id="filter-mitarbeiter" onchange="filterProtokolle()"
           style="width:100%;padding:9px 12px;border:1px solid #c8d8f0;border-radius:8px;font-size:14px;background:#fff;color:#1a3a5c;">
           <option value="">👤 Alle Mitarbeiter</option>
         </select>
       </div>
-      <div id="protokolle-anzahl" style="font-size:12px;color:#666;margin-top:8px;text-align:right;"></div>
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-top:8px;">
+        <button onclick="filterZuruecksetzen()" style="font-size:12px;padding:4px 10px;background:#e8edf5;color:#1a3a5c;border:none;border-radius:6px;cursor:pointer;">✕ Filter zurücksetzen</button>
+        <div id="protokolle-anzahl" style="font-size:12px;color:#666;"></div>
+      </div>
     </div>
     <!-- Protokoll-Liste -->
     <div id="protokolle-inhalt">

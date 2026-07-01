@@ -3415,8 +3415,11 @@ async function showAlleProtokolleScreen() {
   }
 
   // Filter-Dropdowns befüllen
-  const objekte = [...new Set(protokolle.map(p => p.standortName || p.standortId).filter(Boolean))].sort();
+  const objekte     = [...new Set(protokolle.map(p => p.standortName || p.standortId).filter(Boolean))].sort();
+  const pruefpunkte = [...new Set(protokolle.map(p => p.listentyp).filter(Boolean))].sort();
   const mitarbeiter = [...new Set(protokolle.map(p => p.pruefer).filter(Boolean))].sort();
+
+  const selPruefpunkt = document.getElementById('filter-pruefpunkt');
 
   // Objekte
   selObjekt.innerHTML = '<option value="">🏢 Alle Objekte</option>';
@@ -3426,6 +3429,17 @@ async function showAlleProtokolleScreen() {
     opt.textContent = `🏢 ${o}`;
     selObjekt.appendChild(opt);
   });
+
+  // Prüfpunkte (Listentypen)
+  if (selPruefpunkt) {
+    selPruefpunkt.innerHTML = '<option value="">🔧 Alle Prüfpunkte</option>';
+    pruefpunkte.forEach(lt => {
+      const opt = document.createElement('option');
+      opt.value = lt;
+      opt.textContent = LISTENTYP_LABEL[lt] || lt;
+      selPruefpunkt.appendChild(opt);
+    });
+  }
 
   // Mitarbeiter
   selMA.innerHTML = '<option value="">👤 Alle Mitarbeiter</option>';
@@ -3443,16 +3457,26 @@ function filterProtokolle() {
   const inhalt    = document.getElementById('protokolle-inhalt');
   const anzahlEl  = document.getElementById('protokolle-anzahl');
   const selObjekt = document.getElementById('filter-objekt');
+  const selPruefpunkt = document.getElementById('filter-pruefpunkt');
   const selMA     = document.getElementById('filter-mitarbeiter');
 
   if (!inhalt || !_alleProtokolleCache.length) return;
 
-  const filterObjekt = selObjekt ? selObjekt.value : '';
-  const filterMA     = selMA     ? selMA.value     : '';
+  const filterObjekt     = selObjekt     ? selObjekt.value     : '';
+  const filterPruefpunkt = selPruefpunkt ? selPruefpunkt.value : '';
+  const filterMA         = selMA         ? selMA.value         : '';
 
   let gefiltert = _alleProtokolleCache;
-  if (filterObjekt) gefiltert = gefiltert.filter(p => (p.standortName || p.standortId) === filterObjekt);
-  if (filterMA)     gefiltert = gefiltert.filter(p => p.pruefer === filterMA);
+  if (filterObjekt)     gefiltert = gefiltert.filter(p => (p.standortName || p.standortId) === filterObjekt);
+  if (filterPruefpunkt) gefiltert = gefiltert.filter(p => p.listentyp === filterPruefpunkt);
+  if (filterMA)         gefiltert = gefiltert.filter(p => p.pruefer === filterMA);
+
+  // Aktive Filter optisch hervorheben
+  [selObjekt, selPruefpunkt, selMA].forEach(sel => {
+    if (!sel) return;
+    sel.style.borderColor = sel.value ? '#1a73e8' : '#c8d8f0';
+    sel.style.background  = sel.value ? '#eef4ff' : '#fff';
+  });
 
   anzahlEl.textContent = `${gefiltert.length} Protokoll${gefiltert.length !== 1 ? 'e' : ''} gefunden`;
 
@@ -3524,4 +3548,17 @@ function filterProtokolle() {
 
     inhalt.appendChild(gruppe);
   });
+}
+
+function filterZuruecksetzen() {
+  const selObjekt     = document.getElementById('filter-objekt');
+  const selPruefpunkt = document.getElementById('filter-pruefpunkt');
+  const selMA         = document.getElementById('filter-mitarbeiter');
+  [selObjekt, selPruefpunkt, selMA].forEach(sel => {
+    if (!sel) return;
+    sel.value = '';
+    sel.style.borderColor = '#c8d8f0';
+    sel.style.background  = '#fff';
+  });
+  filterProtokolle();
 }
