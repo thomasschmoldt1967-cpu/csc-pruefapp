@@ -751,9 +751,9 @@ function renderChecklist() {
   const isGFB = (currentBereich.liste === 'gfb_szp' || currentBereich.liste === 'gfb_glasreinigung');
   gfbFelderBox.style.display = isGFB ? 'block' : 'none';
 
-  // BA-Button nur bei GFB Glasreinigung
+  // BA-Button bei GFB SZP und GFB Glasreinigung
   const baBtnBox = document.getElementById('gfb-ba-btn-box');
-  if (baBtnBox) baBtnBox.style.display = (currentBereich.liste === 'gfb_glasreinigung') ? 'block' : 'none';
+  if (baBtnBox) baBtnBox.style.display = isGFB ? 'block' : 'none';
 
   // Labels Unterschrift / Name je nach Typ anpassen
   document.getElementById('unterschrift-label').textContent = isGFB ? 'Unterschrift Aufsichtsführender:' : 'Unterschrift Prüfer:';
