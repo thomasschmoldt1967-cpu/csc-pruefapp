@@ -993,6 +993,157 @@ function selectPruefer(name) {
 // ===== BA-MODAL: BETRIEBSANWEISUNG & RETTUNGSPLAN =====
 
 const BA_INHALTE = {
+
+  // ── SZP: BA Seilzugangs- und Positionierungstechnik (Tab "glas" bei SZP) ──
+  szp: `
+    <div style="background:#eef2f7;border-left:4px solid #1a3a5c;padding:8px 12px;border-radius:4px;margin-bottom:10px;">
+      <strong style="color:#1a3a5c;">BETRIEBSANWEISUNG – SEILZUGANGS- UND POSITIONIERUNGSTECHNIKEN (SZP)</strong><br>
+      <span style="font-size:11px;color:#555;font-style:italic;">Seilunterstützte Zugangs- und Positionierungstechniken – Rope Access · Gemäß DIN EN 363 · FISAT-Richtlinien · TRBS 2121 Teil 3 · BGR 198</span>
+    </div>
+
+    <div style="background:#1a3a5c;color:#fff;padding:5px 10px;border-radius:4px;font-size:12px;font-weight:700;margin-bottom:4px;">1 &nbsp;ANWENDUNGSBEREICH</div>
+    <p style="font-size:12px;margin:4px 0 10px 0;color:#222;">Diese Betriebsanweisung gilt für alle Mitarbeiter, die Seilzugangs- und Positionierungstechniken (SZP / Rope Access) anwenden. SZP kommt zum Einsatz, wenn aufgrund der Gefährdungsbeurteilung andere Zugangsverfahren (Gerüst, Hebebühne) unwirtschaftlich oder nicht möglich sind.</p>
+
+    <div style="background:#1a3a5c;color:#fff;padding:5px 10px;border-radius:4px;font-size:12px;font-weight:700;margin-bottom:4px;">2 &nbsp;GEFAHREN FÜR MENSCH UND UMWELT</div>
+    <ul style="margin:4px 0 10px 16px;padding:0;font-size:12px;">
+      <li>Absturz oder Herausfallen aus der Höhe – tödliche Verletzungsgefahr</li>
+      <li>Pendelsturz – Anprallen an feste Gegenstände beim Abweichen vom Ablot</li>
+      <li>Hängetrauma (orthostatischer Schock) – bereits nach wenigen Minuten lebensbedrohlich</li>
+      <li>Falsche Benutzung des Auffangsystems oder Anschlageinrichtung</li>
+      <li>Versagen von Ankerpunkten – unzureichende Tragfähigkeit oder Prüfung</li>
+      <li>Materialfall: Werkzeuge oder Arbeitsmittel können auf Personen darunter fallen</li>
+    </ul>
+
+    <div style="background:#1a3a5c;color:#fff;padding:5px 10px;border-radius:4px;font-size:12px;font-weight:700;margin-bottom:4px;">3 &nbsp;SCHUTZMASSNAHMEN UND VERHALTENSREGELN</div>
+    <ul style="margin:4px 0 10px 16px;padding:0;font-size:12px;">
+      <li>Personen müssen körperlich und geistig für SZP geeignet sein – ärztliches Attest empfohlen</li>
+      <li>Personen unter Einfluss von Alkohol, Drogen oder Medikamenten dürfen NICHT eingesetzt werden</li>
+      <li>Mind. 2 ausgebildete SZP-Mitarbeiter (Level 1 mind.) auf jeder Baustelle</li>
+      <li>Einsatz durch SZP-Level-3-Aufsichtsführenden überwachen lassen</li>
+      <li>Trag- und Sicherungsseil an je ZWEI voneinander unabhängigen Ankerpunkten anschlagen</li>
+      <li>Ankerpunkte vor Nutzung Sichtprüfung durchführen (Tragkraft mind. 12 kN / 1.200 kg)</li>
+      <li><strong>Buddy-Check</strong> vor jeder Besteigung: Gurt, Knoten, Geräte gegenseitig überprüfen</li>
+      <li>Sicht- und Rufkontakt im Team jederzeit gewährleisten</li>
+      <li>Werkzeuge und Arbeitsmittel gegen Herabfallen sichern (Lanyards, Werkzeugpouches)</li>
+      <li>Schutzhelm + Sicherheitsschuhe S3 Pflicht; Absperrung des Arbeitsbereichs</li>
+      <li>Nur geprüfte, zugelassene Ausrüstung verwenden – Sachkundigenprüfung 1× jährlich</li>
+    </ul>
+
+    <div style="background:#1a3a5c;color:#fff;padding:5px 10px;border-radius:4px;font-size:12px;font-weight:700;margin-bottom:4px;">4 &nbsp;VERHALTEN BEI STÖRUNGEN UND MÄNGELN</div>
+    <ul style="margin:4px 0 10px 16px;padding:0;font-size:12px;">
+      <li>Jeden Mangel an Seilen, Geräten oder Ankerpunkten vor Benutzung dem Vorgesetzten melden</li>
+      <li>Gefahrenbereich sofort verlassen bei erkennbaren Mängeln oder veränderten Bedingungen</li>
+      <li>Ausrüstung NICHT benutzen nach einem Sturz – Sachkundige Prüfung vor Wiederverwendung!</li>
+      <li>Bei Wetteränderung (Wind, Eis, Gewitter): Arbeiten sofort einstellen und sicher abseilen</li>
+    </ul>
+
+    <div style="background:#1a3a5c;color:#fff;padding:5px 10px;border-radius:4px;font-size:12px;font-weight:700;margin-bottom:4px;">5 &nbsp;ERSTE HILFE UND VERHALTEN IM NOTFALL</div>
+    <div style="display:flex;align-items:center;gap:10px;margin:6px 0 6px 0;">
+      <div style="background:#c00;color:#fff;border-radius:6px;padding:4px 14px;font-size:20px;font-weight:900;letter-spacing:2px;">112</div>
+      <span style="font-size:12px;font-weight:700;">NOTRUF</span>
+    </div>
+    <ul style="margin:4px 0 10px 16px;padding:0;font-size:12px;">
+      <li>Ruhe bewahren – Überblick verschaffen – Eigensicherung beachten</li>
+      <li>Rettung gemäß Rettungsplan SZP (Rettung grundsätzlich nach <strong>UNTEN</strong> zum Boden)</li>
+      <li>Notruf <strong>112</strong>: WER? WAS? WO? WIE VIELE?</li>
+      <li>Erste-Hilfe-Maßnahmen einleiten</li>
+      <li>Rettung aus hängender Situation innerhalb <strong>15–20 Minuten</strong> (Hängetrauma!)</li>
+      <li>Auch ohne äußere Verletzungszeichen: <strong>Arzt aufsuchen!</strong></li>
+      <li>Arbeitsunfälle sofort dem Aufsichtsführenden und der BG melden</li>
+    </ul>
+
+    <div style="background:#1a3a5c;color:#fff;padding:5px 10px;border-radius:4px;font-size:12px;font-weight:700;margin-bottom:4px;">6 &nbsp;INSTANDHALTUNG, PRÜFUNG UND UNTERWEISUNG</div>
+    <ul style="margin:4px 0 10px 16px;padding:0;font-size:12px;">
+      <li>Vor, nach und während jeder Benutzung: Sichtprüfung aller Ausrüstungsgegenstände</li>
+      <li>Sachkundigenprüfung nach DGUV Grundsatz 312-906 alle <strong>12 Monate</strong></li>
+      <li>Jeder SZP-Anwender: mind. FISAT Level 1 + gültiger Kursnachweis</li>
+      <li>Aufsichtsführende in SZP: FISAT Level 3 oder gleichwertig</li>
+      <li>Wiederholungsunterweisung gemäß TRBS 2121 Teil 3 und FISAT – alle <strong>12 Monate</strong></li>
+      <li>Jeder Anwender: gültiger Erste-Hilfe-Kurs (mind. 8 Stunden)</li>
+      <li>Unterweisungsnachweise und Prüfprotokolle mind. 2 Jahre aufbewahren</li>
+    </ul>`,
+
+  // ── SZP: Rettungsplan (Tab "rettung" – wird für SZP befüllt mit SZP-spezifischem Inhalt) ──
+  rettung_szp: `
+    <div style="background:#ffeaea;border-left:4px solid #c00;padding:10px 12px;border-radius:4px;margin-bottom:16px;text-align:center;">
+      <div style="font-size:28px;font-weight:900;color:#c00;letter-spacing:2px;">⚠  RETTUNGSPLAN  ⚠</div>
+      <div style="font-size:13px;font-weight:700;color:#1a3a5c;margin-top:4px;">Seilzugangs- und Positionierungstechnik (SZP) – Rettung nach UNTEN</div>
+      <div style="font-size:11px;color:#555;">Gemäß DGUV Vorschrift 1 · DIN EN 363 · FISAT-Richtlinien</div>
+    </div>
+
+    <div style="background:#c00;color:#fff;border-radius:8px;padding:12px 16px;text-align:center;margin-bottom:16px;font-size:22px;font-weight:900;letter-spacing:3px;">
+      112
+    </div>
+
+    <div style="background:#fff3cd;border-left:4px solid #e6a817;padding:8px 12px;border-radius:4px;margin-bottom:14px;font-size:12px;">
+      <strong>⚠ HÄNGETRAUMA-GEFAHR:</strong> Rettung muss innerhalb <strong>15–20 Minuten</strong> erfolgen – auch ohne Sturz, allein durch das Hängen im Gurt lebensbedrohlich!
+    </div>
+
+    <div style="font-size:12px;margin-bottom:10px;"><strong>Gefährdungen &amp; Maßnahmen:</strong></div>
+    <ul style="margin:0 0 12px 16px;padding:0;font-size:12px;">
+      <li>Hängetrauma: Rettung &lt; 20 Min. – gut angepasster Gurt – Beinschlaufen entlasten – Beine bewegen lassen</li>
+      <li>Absturz des Retters: PSA in Rückhaltefunktion, Seillänge kurz halten</li>
+      <li>Ankerpunktversagen bei 2 Personen: geeigneten AP wählen, separaten AP für Rettungsgerät vorsehen</li>
+    </ul>
+
+    <div style="font-size:12px;margin-bottom:6px;"><strong>Erforderliches Rettungsgerät:</strong></div>
+    <ul style="margin:0 0 14px 16px;padding:0;font-size:12px;">
+      <li>Abseilgerät + mitlaufendes Sicherungsgerät (Zulassung 2 Personen)</li>
+      <li>Kantenschutz</li>
+      <li>Erste-Hilfe-Verbandskasten</li>
+      <li>Sachkundigenprüfung durchgeführt</li>
+      <li>Rettung durch Teampartner</li>
+    </ul>
+
+    <div style="background:#1a3a5c;color:#fff;padding:6px 10px;border-radius:4px;font-size:12px;font-weight:700;margin-bottom:10px;">DURCHFÜHRUNG DER RETTUNG – SCHRITT FÜR SCHRITT</div>
+
+    <div style="font-size:12px;">
+      <div style="display:flex;gap:10px;margin-bottom:8px;">
+        <span style="background:#1a3a5c;color:#fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:700;font-size:11px;">1</span>
+        <span>Teampartner (MA 1) sichert sich selbst – Verbindungsmittel kurz einstellen – Kontakt zum Abgestürzten aufnehmen. Verletzungen feststellen, beruhigen!</span>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:8px;">
+        <span style="background:#1a3a5c;color:#fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:700;font-size:11px;">2</span>
+        <span>Notruf <strong>112</strong>: WER? WAS ist passiert? WO genau? WIE VIELE Verletzte? – auf Rückfragen warten</span>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:8px;">
+        <span style="background:#1a3a5c;color:#fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:700;font-size:11px;">3</span>
+        <span>Geeigneten Anschlagpunkt für das Rettungsgerät auswählen (vorzugsweise separat von den Arbeitsseilen).</span>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:8px;">
+        <span style="background:#1a3a5c;color:#fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:700;font-size:11px;">4</span>
+        <span>Kantenschutz anbringen falls notwendig – dabei Eigensicherung beachten!</span>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:8px;">
+        <span style="background:#1a3a5c;color:#fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:700;font-size:11px;">5</span>
+        <span>Verletzte Person so anschlagen (2 Abseilgeräte am Ankerpunkt), dass ein Ablassen möglich ist.</span>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:8px;">
+        <span style="background:#1a3a5c;color:#fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:700;font-size:11px;">6</span>
+        <span>Abgestürzten aus hängender Position kontrolliert <strong>nach UNTEN zum Boden</strong> abseilen.</span>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:8px;">
+        <span style="background:#1a3a5c;color:#fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:700;font-size:11px;">7</span>
+        <span>Vor dem Abseilen: Hindernisse im Abseilweg prüfen!</span>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:8px;">
+        <span style="background:#1a3a5c;color:#fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:700;font-size:11px;">8</span>
+        <span>Übernahme der verletzten Person aus dem geöffneten System (Bodennähe) mit zwei Personen.</span>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:8px;">
+        <span style="background:#1a3a5c;color:#fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:700;font-size:11px;">9</span>
+        <span>Erste-Hilfe-Maßnahmen einleiten – je nach Verletzung handeln. Gerettete Person <strong>flach lagern</strong> (NICHT aufrecht setzen – Hängetraumaschutz).</span>
+      </div>
+      <div style="display:flex;gap:10px;margin-bottom:8px;">
+        <span style="background:#1a3a5c;color:#fff;border-radius:50%;width:22px;height:22px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-weight:700;font-size:11px;">10</span>
+        <span>Auf den Notarzt warten – auch ohne äußere Verletzungszeichen ärztlich untersuchen lassen (Hängetrauma möglich)!</span>
+      </div>
+    </div>
+
+    <div style="margin-top:14px;padding:10px;background:#eef2f7;border-radius:6px;font-size:12px;color:#1a3a5c;">
+      <strong>Ersthelfer:</strong> Alle MA aus SZP &nbsp;·&nbsp; <strong>Verbandskasten:</strong> Am Einsatzort &nbsp;·&nbsp; <strong>Notruf:</strong> 112
+    </div>`,
+
   psaga: `
     <div style="background:#eef2f7;border-left:4px solid #1a3a5c;padding:8px 12px;border-radius:4px;margin-bottom:10px;">
       <strong style="color:#1a3a5c;">BETRIEBSANWEISUNG – PSA GEGEN ABSTURZ (PSAgA)</strong><br>
@@ -1181,10 +1332,20 @@ const BA_INHALTE = {
 let _baAktivTab = 'psaga';
 
 function baModalOeffnen() {
-  _baAktivTab = 'psaga';
-  baTabWechseln('psaga');
+  // Tab-Labels dynamisch je nach Listentyp setzen
+  const isSZP = currentBereich && currentBereich.liste === 'gfb_szp';
+  const tabGlas = document.getElementById('ba-tab-glas');
+  const tabPsaga = document.getElementById('ba-tab-psaga');
+  if (isSZP) {
+    if (tabPsaga) tabPsaga.innerHTML = '⛑ BA PSAgA';
+    if (tabGlas)  tabGlas.innerHTML  = '🧗 BA SZP';
+  } else {
+    if (tabPsaga) tabPsaga.innerHTML = '⛑ PSAgA';
+    if (tabGlas)  tabGlas.innerHTML  = '🪟 Glasreinigung';
+  }
+  _baAktivTab = isSZP ? 'glas' : 'psaga'; // SZP: zuerst BA SZP; Glas: zuerst PSAgA
+  baTabWechseln(_baAktivTab);
   document.getElementById('ba-modal-overlay').style.display = 'block';
-  document.body.style.overflow = 'hidden';
 }
 
 function baModalSchliessen(e) {
@@ -1209,8 +1370,18 @@ function baTabWechseln(tab) {
       btn.style.borderBottom = '3px solid transparent';
     }
   });
+  const isSZP = currentBereich && currentBereich.liste === 'gfb_szp';
   const inhalt = document.getElementById('ba-modal-inhalt');
-  if (inhalt) inhalt.innerHTML = BA_INHALTE[tab] || '';
+  if (inhalt) {
+    if (isSZP) {
+      // SZP: Tab "glas" → BA SZP, Tab "psaga" → BA PSAgA, Tab "rettung" → Rettungsplan SZP
+      if (tab === 'glas') inhalt.innerHTML = BA_INHALTE.szp || '';
+      else if (tab === 'rettung') inhalt.innerHTML = BA_INHALTE.rettung_szp || '';
+      else inhalt.innerHTML = BA_INHALTE[tab] || '';
+    } else {
+      inhalt.innerHTML = BA_INHALTE[tab] || '';
+    }
+  }
 }
 
 // ===== GFB MITARBEITER =====
