@@ -2805,7 +2805,7 @@ async function downloadPdfFromDrive(fileId, filename) {
 async function getDriveToken() {
   // Automatischer Token von GitHub Pages (alle 45 Min erneuert, Base64-kodiert)
   try {
-    const res = await fetch('https://thomasschmoldt1967-cpu.github.io/csc-pruefapp/token.json?t=' + Date.now());
+    const res = await fetch('https://pruefung.sibeda.de/csc-token/token.json?t=' + Date.now());
     if (res.ok) {
       const data = await res.json();
       if (data.t) {
