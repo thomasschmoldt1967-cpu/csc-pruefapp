@@ -265,6 +265,8 @@ function renderHome() {
   // Offline-Queue automatisch hochladen + Sync-Button aktualisieren
   offlineQueueFlush().catch(() => {});
   updateSyncButton();
+  // Beim Home-Screen: rote Warnung wenn PDFs ausstehen
+  checkOfflineQueueWarnung();
 
   // Admin-Button: nur für Thomas & Fabian sichtbar
   const session = JSON.parse(localStorage.getItem(SESSION_KEY) || '{}');
@@ -2963,11 +2965,13 @@ function showResult(success, driveOk, emailTo, errMsg) {
       if (fehlerTyp === 'TOKEN_ABGELAUFEN') {
         sub.innerHTML = `<span style="color:#c00;font-weight:700;">🔴 Google Drive Verbindung abgelaufen!</span><br>
 Das PDF wurde auf diesem Gerät gespeichert (Downloads-Ordner).<br>
-<strong>Bitte Thomas Schmoldt informieren</strong> – der Upload wird automatisch nachgeholt.`;
+<strong>Bitte Thomas Schmoldt informieren</strong> – der Upload wird automatisch nachgeholt.<br><br>
+<button onclick="offlineQueueFlush(true)" style="background:#ef4444;color:#fff;border:none;border-radius:6px;padding:10px 20px;font-size:15px;font-weight:700;cursor:pointer;margin-top:6px;">🔄 Jetzt erneut versuchen</button>`;
       } else {
         sub.innerHTML = `<span style="color:#c00;font-weight:700;">🔴 Kein Internet oder Drive-Fehler!</span><br>
 Das PDF wurde auf diesem Gerät gespeichert (Downloads-Ordner).<br>
-Sobald wieder online: im Home-Screen auf 🔄 tippen zum Nachholen.`;
+Sobald wieder online: auf den Button unten tippen.<br><br>
+<button onclick="offlineQueueFlush(true)" style="background:#ef4444;color:#fff;border:none;border-radius:6px;padding:10px 20px;font-size:15px;font-weight:700;cursor:pointer;margin-top:6px;">🔄 Jetzt erneut versuchen</button>`;
       }
       window._driveUploadFehler = null;
     }
@@ -3133,9 +3137,9 @@ function updateSyncButton() {
   const badge = document.getElementById('sync-badge');
   if (!btn) return;
   if (queue.length > 0) {
-    btn.style.background = '#fef3c7';
-    btn.style.borderColor = '#f59e0b';
-    btn.style.color = '#92400e';
+    btn.style.background = '#fee2e2';
+    btn.style.borderColor = '#ef4444';
+    btn.style.color = '#991b1b';
     if (badge) { badge.textContent = queue.length; badge.style.display = 'inline'; }
   } else {
     btn.style.background = '#f0fdf4';
@@ -3143,6 +3147,36 @@ function updateSyncButton() {
     btn.style.color = '#16a34a';
     if (badge) { badge.textContent = ''; badge.style.display = 'none'; }
   }
+}
+
+function checkOfflineQueueWarnung() {
+  const queue = JSON.parse(localStorage.getItem('offline_queue') || '[]');
+  const existingBanner = document.getElementById('offline-queue-warnung');
+  if (existingBanner) existingBanner.remove();
+  if (queue.length === 0) return;
+
+  const banner = document.createElement('div');
+  banner.id = 'offline-queue-warnung';
+  banner.style.cssText = `
+    background: #fee2e2;
+    border: 2px solid #ef4444;
+    border-radius: 8px;
+    padding: 14px 16px;
+    margin: 12px 0;
+    color: #7f1d1d;
+    font-size: 15px;
+    line-height: 1.5;
+  `;
+  banner.innerHTML = `
+    <strong>⚠️ ${queue.length} Prüf-Protokoll(e) nicht in Google Drive gespeichert!</strong><br>
+    Die PDFs liegen nur auf diesem Gerät. Bitte jetzt auf <strong>🔄 Sync</strong> tippen um sie hochzuladen.
+    <br><br>
+    <button onclick="offlineQueueFlush(true)" style="background:#ef4444;color:#fff;border:none;border-radius:6px;padding:8px 18px;font-size:15px;font-weight:700;cursor:pointer;">🔄 Jetzt synchronisieren</button>
+  `;
+
+  // Vor dem ersten Standort-Card einfügen
+  const container = document.getElementById('standort-container') || document.getElementById('home-screen');
+  if (container) container.insertBefore(banner, container.firstChild);
 }
 
 // ===== DASHBOARD STATISTIK (Home-Screen) =====
