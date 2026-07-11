@@ -1,4 +1,11 @@
 // ============================================================
+// © 2024–2026 CSC GmbH, Petermax-Müller-Straße 3, 30880 Laatzen
+// Alle Rechte vorbehalten. Geistiges Eigentum der CSC GmbH.
+// Unbefugte Vervielfältigung, Weitergabe oder Nutzung dieses
+// Codes ist ohne ausdrückliche schriftliche Genehmigung der
+// CSC GmbH streng untersagt (§§ 69a ff. UrhG).
+// ============================================================
+// ============================================================
 //  CSC Prüf-App — Firebase / Firestore Integration
 //  Fristenüberwachung + Ampel + Mängel-Tracking
 // ============================================================

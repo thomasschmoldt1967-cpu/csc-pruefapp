@@ -1,3 +1,6 @@
+// © 2024–2026 CSC GmbH, Petermax-Müller-Straße 3, 30880 Laatzen
+// Alle Rechte vorbehalten. Geistiges Eigentum der CSC GmbH.
+// Unbefugte Nutzung/Vervielfältigung verboten (§§ 69a ff. UrhG).
 const CACHE_NAME = 'csc-pruef-v80';
 const CACHE = CACHE_NAME;
 const ASSETS = ['./index.html','./style.css','./app.js','./config.js','./manifest.json','./logo.png','./firebase.js','./icon-192.png','./icon-512.png'];
