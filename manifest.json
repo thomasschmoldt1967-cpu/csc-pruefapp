@@ -2,7 +2,7 @@
   "name": "CSC Prüf-App",
   "short_name": "CSC Prüfen",
   "description": "Wartungs- und Prüfchecklisten für CSC Hannover",
-  "start_url": "./index.html",
+  "start_url": "/csc-pruefapp/",
   "display": "standalone",
   "background_color": "#ffffff",
   "theme_color": "#ffffff",
