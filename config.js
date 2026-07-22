@@ -503,3 +503,28 @@ const APP_CONFIG = {
 
   }
 };
+
+// ============================================================
+//  Geräte-Verwaltung — Gerätetypen & Zustände
+// ============================================================
+const GERAETETYPEN = [
+  '🧹 Reinigungsmaschine',
+  '🪜 Leiter / Tritt',
+  '🔧 Werkzeug / Handmaschine',
+  '💡 Beleuchtung / Lampe',
+  '🚗 Fahrzeug / Anhänger',
+  '🧰 Messgerät',
+  '⚙️ Sonstige Maschine',
+  '🦺 PSA / Schutzausrüstung',
+  '🖥️ EDV / Gerät',
+  '🪣 Reinigungsgerät',
+  '📦 Sonstiges',
+];
+
+const GERAET_ZUSTAND = [
+  { value: 'ok',        label: '✅ Einwandfrei',     color: '#16a34a' },
+  { value: 'wartung',   label: '🟡 Wartung fällig',  color: '#d97706' },
+  { value: 'defekt',    label: '🔴 Defekt',           color: '#dc2626' },
+  { value: 'reparatur', label: '🔧 In Reparatur',    color: '#2563eb' },
+  { value: 'ausgemustert', label: '⚫ Ausgemustert', color: '#6b7280' },
+];

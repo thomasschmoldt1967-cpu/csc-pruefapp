@@ -219,6 +219,14 @@
       </button>
     </div>
 
+    <!-- Geräte-Verwaltung Button -->
+    <div style="margin-top:10px;">
+      <button onclick="showGeraeteScreen()"
+        style="width:100%;padding:14px;border-radius:10px;border:1px solid #c8d8f0;background:#fff;color:#1a3a5c;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+        🔧 Geräte &amp; Maschinen
+      </button>
+    </div>
+
     <!-- Drive Sync Button -->
     <div style="margin-top:20px;padding-top:16px;border-top:1px solid #e0e0e0">
       <button id="drive-sync-btn" onclick="offlineQueueFlush(true)"
@@ -467,6 +475,109 @@
     </div>
     <!-- Inhalt -->
     <div id="ba-modal-inhalt" style="padding:16px; font-size:13px; line-height:1.6; color:#222; overflow-y:auto; flex:1 1 auto; -webkit-overflow-scrolling:touch;"></div>
+  </div>
+</div>
+
+<!-- ===== SCREEN: GERÄTE-VERWALTUNG ===== -->
+<div id="screen-geraete" class="screen" style="display:none;">
+  <div class="header">
+    <button class="btn-back" onclick="showScreen('home')">‹ Zurück</button>
+    <div class="header-title">🔧 Geräte &amp; Maschinen</div>
+    <button onclick="geraetNeu()" style="background:#1a3a5c;color:#fff;border:none;border-radius:8px;padding:6px 12px;font-size:13px;font-weight:600;cursor:pointer;">+ Neu</button>
+  </div>
+  <div class="content">
+    <!-- Filter -->
+    <div style="display:flex;gap:8px;margin-bottom:12px;flex-wrap:wrap;">
+      <select id="geraet-filter-objekt" onchange="renderGeraeteListe()" style="flex:1;min-width:120px;padding:8px 10px;border-radius:8px;border:1px solid #c8d8f0;font-size:13px;color:#1a3a5c;">
+        <option value="">📍 Alle Objekte</option>
+      </select>
+      <select id="geraet-filter-typ" onchange="renderGeraeteListe()" style="flex:1;min-width:130px;padding:8px 10px;border-radius:8px;border:1px solid #c8d8f0;font-size:13px;color:#1a3a5c;">
+        <option value="">🔧 Alle Typen</option>
+      </select>
+    </div>
+    <div id="geraet-anzahl" style="font-size:12px;color:#666;margin-bottom:8px;"></div>
+    <!-- Liste -->
+    <div id="geraete-liste"></div>
+  </div>
+</div>
+
+<!-- ===== MODAL: GERÄT ANLEGEN / BEARBEITEN ===== -->
+<div id="geraet-form-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.55);z-index:9000;overflow-y:auto;-webkit-overflow-scrolling:touch;" onclick="geraetFormSchliessen(event)">
+  <div style="position:relative;background:#fff;margin:16px auto;max-width:560px;border-radius:12px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.3);">
+    <div style="background:#1a3a5c;color:#fff;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;">
+      <div id="geraet-form-titel" style="font-size:15px;font-weight:700;">Gerät anlegen</div>
+      <button onclick="geraetFormSchliessen()" style="background:rgba(255,255,255,0.2);border:none;color:#fff;font-size:20px;width:36px;height:36px;border-radius:50%;cursor:pointer;">✕</button>
+    </div>
+    <div style="padding:16px;display:flex;flex-direction:column;gap:12px;">
+      <input type="hidden" id="geraet-edit-id">
+
+      <label style="font-size:13px;font-weight:600;color:#1a3a5c;">Bezeichnung *
+        <input id="geraet-name" type="text" placeholder="z.B. Hochdruckreiniger Kärcher K7" style="display:block;width:100%;margin-top:4px;padding:10px;border:1px solid #c8d8f0;border-radius:8px;font-size:14px;box-sizing:border-box;">
+      </label>
+
+      <label style="font-size:13px;font-weight:600;color:#1a3a5c;">Gerätetyp *
+        <select id="geraet-typ" style="display:block;width:100%;margin-top:4px;padding:10px;border:1px solid #c8d8f0;border-radius:8px;font-size:14px;box-sizing:border-box;"></select>
+      </label>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <label style="font-size:13px;font-weight:600;color:#1a3a5c;">Hersteller
+          <input id="geraet-hersteller" type="text" placeholder="z.B. Kärcher" style="display:block;width:100%;margin-top:4px;padding:10px;border:1px solid #c8d8f0;border-radius:8px;font-size:14px;box-sizing:border-box;">
+        </label>
+        <label style="font-size:13px;font-weight:600;color:#1a3a5c;">Modell
+          <input id="geraet-modell" type="text" placeholder="z.B. K7 Premium" style="display:block;width:100%;margin-top:4px;padding:10px;border:1px solid #c8d8f0;border-radius:8px;font-size:14px;box-sizing:border-box;">
+        </label>
+      </div>
+
+      <label style="font-size:13px;font-weight:600;color:#1a3a5c;">Seriennummer
+        <input id="geraet-seriennr" type="text" placeholder="z.B. SN-12345678" style="display:block;width:100%;margin-top:4px;padding:10px;border:1px solid #c8d8f0;border-radius:8px;font-size:14px;box-sizing:border-box;">
+      </label>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <label style="font-size:13px;font-weight:600;color:#1a3a5c;">Objekt / Standort
+          <input id="geraet-objekt" type="text" placeholder="z.B. Raschplatz 5" style="display:block;width:100%;margin-top:4px;padding:10px;border:1px solid #c8d8f0;border-radius:8px;font-size:14px;box-sizing:border-box;">
+        </label>
+        <label style="font-size:13px;font-weight:600;color:#1a3a5c;">Lagerort / Raum
+          <input id="geraet-lagerort" type="text" placeholder="z.B. Keller / Lager" style="display:block;width:100%;margin-top:4px;padding:10px;border:1px solid #c8d8f0;border-radius:8px;font-size:14px;box-sizing:border-box;">
+        </label>
+      </div>
+
+      <label style="font-size:13px;font-weight:600;color:#1a3a5c;">Zustand
+        <select id="geraet-zustand" style="display:block;width:100%;margin-top:4px;padding:10px;border:1px solid #c8d8f0;border-radius:8px;font-size:14px;box-sizing:border-box;"></select>
+      </label>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+        <label style="font-size:13px;font-weight:600;color:#1a3a5c;">Nächste Prüfung
+          <input id="geraet-naechste-pruefung" type="date" style="display:block;width:100%;margin-top:4px;padding:10px;border:1px solid #c8d8f0;border-radius:8px;font-size:14px;box-sizing:border-box;">
+        </label>
+        <label style="font-size:13px;font-weight:600;color:#1a3a5c;">Anschaffungskosten (€)
+          <input id="geraet-kosten" type="number" min="0" step="0.01" placeholder="0,00" style="display:block;width:100%;margin-top:4px;padding:10px;border:1px solid #c8d8f0;border-radius:8px;font-size:14px;box-sizing:border-box;">
+        </label>
+      </div>
+
+      <label style="font-size:13px;font-weight:600;color:#1a3a5c;">Anschaffungsdatum
+        <input id="geraet-anschaffung" type="date" style="display:block;width:100%;margin-top:4px;padding:10px;border:1px solid #c8d8f0;border-radius:8px;font-size:14px;box-sizing:border-box;">
+      </label>
+
+      <label style="font-size:13px;font-weight:600;color:#1a3a5c;">Bemerkungen
+        <textarea id="geraet-bemerkung" rows="3" placeholder="Weitere Hinweise..." style="display:block;width:100%;margin-top:4px;padding:10px;border:1px solid #c8d8f0;border-radius:8px;font-size:14px;box-sizing:border-box;resize:vertical;"></textarea>
+      </label>
+
+      <div style="display:flex;gap:10px;margin-top:4px;">
+        <button onclick="geraetSpeichern()" style="flex:1;padding:14px;background:#1a3a5c;color:#fff;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;">💾 Speichern</button>
+        <button onclick="geraetFormSchliessen()" style="padding:14px 20px;background:#f0f4f8;color:#1a3a5c;border:none;border-radius:10px;font-size:15px;cursor:pointer;">Abbrechen</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== MODAL: GERÄT DETAIL-ANSICHT ===== -->
+<div id="geraet-detail-overlay" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.55);z-index:9000;overflow-y:auto;-webkit-overflow-scrolling:touch;" onclick="geraetDetailSchliessen(event)">
+  <div style="position:relative;background:#fff;margin:16px auto;max-width:560px;border-radius:12px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,0.3);">
+    <div id="geraet-detail-header" style="background:#1a3a5c;color:#fff;padding:14px 16px;display:flex;align-items:center;justify-content:space-between;">
+      <div id="geraet-detail-titel" style="font-size:15px;font-weight:700;"></div>
+      <button onclick="geraetDetailSchliessen()" style="background:rgba(255,255,255,0.2);border:none;color:#fff;font-size:20px;width:36px;height:36px;border-radius:50%;cursor:pointer;">✕</button>
+    </div>
+    <div id="geraet-detail-inhalt" style="padding:16px;"></div>
   </div>
 </div>
 

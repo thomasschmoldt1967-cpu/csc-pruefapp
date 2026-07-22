@@ -513,3 +513,39 @@ window.fbOnAuthStateChanged = function(callback) {
 window.fbCurrentUser = function() {
   return auth.currentUser;
 };
+
+// ============================================================
+//  Geräte-Verwaltung (Collection: geraete)
+// ============================================================
+
+// Alle Geräte laden
+window.fbGetAlleGeraete = async function() {
+  await authReady;
+  try {
+    const snap = await getDocs(collection(db, 'geraete'));
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch(e) { console.error('fbGetAlleGeraete', e); return []; }
+};
+
+// Einzelnes Gerät laden
+window.fbGetGeraet = async function(geraetId) {
+  await authReady;
+  try {
+    const d = await getDoc(doc(db, 'geraete', geraetId));
+    return d.exists() ? { id: d.id, ...d.data() } : null;
+  } catch(e) { console.error('fbGetGeraet', e); return null; }
+};
+
+// Gerät anlegen oder aktualisieren
+window.fbSaveGeraet = async function(geraetId, daten) {
+  await authReady;
+  const ref = geraetId ? doc(db, 'geraete', geraetId) : doc(collection(db, 'geraete'));
+  await setDoc(ref, { ...daten, updatedAt: new Date().toISOString() }, { merge: true });
+  return ref.id;
+};
+
+// Gerät löschen
+window.fbDeleteGeraet = async function(geraetId) {
+  await authReady;
+  await deleteDoc(doc(db, 'geraete', geraetId));
+};
