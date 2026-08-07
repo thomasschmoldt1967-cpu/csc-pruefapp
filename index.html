@@ -202,47 +202,64 @@
       <span>👤 <span id="home-user-name"></span></span>
       <button onclick="doLogout()" style="background:none;border:1px solid #1a3a5c;border-radius:6px;color:#1a3a5c;padding:4px 10px;font-size:12px;cursor:pointer">Abmelden</button>
     </div>
-    <div class="welcome-text">Standort wählen oder QR-Code scannen</div>
-    <button class="btn-primary btn-qr" onclick="startQRScan()">
-      <span class="icon">📷</span> QR-Code scannen
-    </button>
-    <div class="divider">— oder manuell wählen —</div>
-    <!-- Dashboard Statistik -->
-    <div id="dashboard-stats" class="dashboard-box"></div>
-    <div id="standort-liste"></div>
-
-    <!-- Protokoll-Übersicht Button -->
-    <div style="margin-top:16px;">
-      <button onclick="showAlleProtokolleScreen()"
-        style="width:100%;padding:14px;border-radius:10px;border:1px solid #c8d8f0;background:#fff;color:#1a3a5c;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
-        📋 Alle Protokolle anzeigen
+    <!-- Mobile: QR + Divider nur auf kleinen Screens -->
+    <div id="mobile-only-top" class="mobile-only">
+      <div class="welcome-text">Standort wählen oder QR-Code scannen</div>
+      <button class="btn-primary btn-qr" onclick="startQRScan()">
+        <span class="icon">📷</span> QR-Code scannen
       </button>
+      <div class="divider">— oder manuell wählen —</div>
+    </div>
+  </div>
+
+  <!-- Split-Layout: Sidebar + Detail (Tablet) / Liste (Mobile) -->
+  <div id="home-split">
+
+    <!-- SIDEBAR: Kategorien-Navigation -->
+    <div id="home-sidebar">
+      <!-- QR nur auf Tablet in Sidebar oben -->
+      <div class="tablet-only" style="padding:12px;">
+        <button class="btn-primary btn-qr" onclick="startQRScan()" style="width:100%;justify-content:center;">
+          <span class="icon">📷</span> QR-Code scannen
+        </button>
+      </div>
+      <!-- Dashboard Statistik (kompakt) -->
+      <div id="dashboard-stats" class="dashboard-box"></div>
+      <!-- Kategorien-Liste -->
+      <div id="standort-liste"></div>
+      <!-- Bottom-Buttons in Sidebar -->
+      <div style="padding:12px;border-top:1px solid var(--border);margin-top:8px;display:flex;flex-direction:column;gap:8px;">
+        <button onclick="showAlleProtokolleScreen()"
+          style="width:100%;padding:12px;border-radius:10px;border:1px solid #c8d8f0;background:#fff;color:#1a3a5c;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+          📋 Alle Protokolle
+        </button>
+        <button onclick="showGeraeteScreen()" class="btn-primary"
+          style="width:100%;padding:12px;font-size:14px;display:flex;align-items:center;justify-content:center;gap:8px;">
+          🔧 Geräte &amp; Maschinen
+        </button>
+        <button id="drive-sync-btn" onclick="offlineQueueFlush(true)"
+          style="width:100%;padding:12px;border-radius:10px;border:1px solid #bbf7d0;background:#fff;color:#16a34a;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
+          ☁️ Drive Sync
+          <span id="sync-badge" style="background:#f59e0b;color:#fff;border-radius:10px;padding:1px 8px;font-size:12px;display:none"></span>
+        </button>
+        <div id="sync-status" style="display:none;font-size:13px;text-align:center;padding:6px;border-radius:8px;background:#f9fafb"></div>
+        <div id="admin-editor-btn" style="display:none;">
+          <button class="btn-secondary" style="width:100%;font-size:13px;color:#666" onclick="openEditor()">
+            ⚙️ Checklisten-Editor
+          </button>
+        </div>
+      </div>
     </div>
 
-    <!-- Geräte-Verwaltung Button -->
-    <div style="margin-top:10px;">
-      <button onclick="showGeraeteScreen()" class="btn-primary"
-        style="width:100%;padding:14px;font-size:15px;display:flex;align-items:center;justify-content:center;gap:8px;">
-        🔧 Geräte &amp; Maschinen
-      </button>
+    <!-- DETAIL-PANEL: Bereiche der ausgewählten Kategorie -->
+    <div id="home-detail">
+      <div class="detail-placeholder" id="detail-placeholder">
+        <div class="ph-icon">📋</div>
+        <div>Kategorie links auswählen</div>
+      </div>
+      <div id="detail-content" style="display:none"></div>
     </div>
 
-    <!-- Drive Sync Button -->
-    <div style="margin-top:20px;padding-top:16px;border-top:1px solid #e0e0e0">
-      <button id="drive-sync-btn" onclick="offlineQueueFlush(true)"
-        style="width:100%;padding:14px;border-radius:10px;border:1px solid #bbf7d0;background:#fff;color:#16a34a;font-size:15px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px">
-        ☁️ Protokolle zu Google Drive synchronisieren
-        <span id="sync-badge" style="background:#f59e0b;color:#fff;border-radius:10px;padding:1px 8px;font-size:12px;display:none"></span>
-      </button>
-      <div id="sync-status" style="display:none;margin-top:8px;font-size:13px;text-align:center;padding:8px;border-radius:8px;background:#f9fafb"></div>
-    </div>
-
-    <!-- Admin: Checklisten-Editor (nur Thomas & Fabian) -->
-    <div id="admin-editor-btn" style="display:none;margin-top:24px;padding-top:16px;border-top:1px solid #e0e0e0">
-      <button class="btn-secondary" style="width:100%;font-size:14px;color:#666" onclick="openEditor()">
-        ⚙️ Checklisten-Editor
-      </button>
-    </div>
   </div>
 </div>
 
