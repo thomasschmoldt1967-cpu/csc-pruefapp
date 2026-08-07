@@ -41,12 +41,19 @@ body {
     position: sticky;
     top: 0;
     z-index: 200;
+    max-width: 100%;
+  }
+  #screen-home .content {
+    max-width: 100%;
+    padding: 12px 16px 0;
+    background: var(--card);
+    border-bottom: 1px solid var(--border);
   }
   #home-split {
     display: flex;
     flex: 1;
     min-height: 0;
-    height: calc(100vh - 66px);
+    height: calc(100vh - 130px);
   }
   #home-sidebar {
     width: 280px;
