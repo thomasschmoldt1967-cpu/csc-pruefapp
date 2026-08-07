@@ -36,6 +36,8 @@ body {
   }
   #screen-home {
     flex-direction: column;
+    height: 100vh;
+    overflow: hidden;
   }
   #screen-home .header {
     position: sticky;
@@ -53,7 +55,7 @@ body {
     display: flex;
     flex: 1;
     min-height: 0;
-    height: calc(100vh - 130px);
+    overflow: hidden;
   }
   #home-sidebar {
     width: 280px;
