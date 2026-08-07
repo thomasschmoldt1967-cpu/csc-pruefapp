@@ -111,6 +111,52 @@ body {
 }
 .standort-header:active { opacity: 0.85; }
 
+/* ===== GRUPPEN KACHEL-GRID ===== */
+.gruppen-kachel-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 12px;
+}
+.gruppen-kachel {
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  border-radius: 14px;
+  padding: 16px 10px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  position: relative;
+  min-height: 110px;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.07);
+  transition: background 0.15s, box-shadow 0.15s;
+  text-align: center;
+}
+.gruppen-kachel:active {
+  background: #eef2f7;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+.kachel-ampel {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  font-size: 16px;
+  line-height: 1;
+}
+.kachel-icon {
+  font-size: 2.2rem;
+  line-height: 1;
+}
+.kachel-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.3;
+}
+
 /* ===== BEREICH LISTE ===== */
 .bereich-item {
   display: flex;
