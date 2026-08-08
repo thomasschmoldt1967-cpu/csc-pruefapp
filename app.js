@@ -907,15 +907,37 @@ function renderChecklist() {
   if (isLMRA) {
     document.getElementById('lmra-ma-liste').innerHTML = '';
     lmraMitarbeiter = [];
-    // Datum auf heute vorbelegen
+    // Datum + Uhrzeit auf jetzt vorbelegen
     const today = new Date();
     const yyyy = today.getFullYear();
     const mm = String(today.getMonth()+1).padStart(2,'0');
     const dd = String(today.getDate()).padStart(2,'0');
+    const hh = String(today.getHours()).padStart(2,'0');
+    const min = String(today.getMinutes()).padStart(2,'0');
     const datumInput = document.getElementById('lmra-datum');
+    const uhrzeitInput = document.getElementById('lmra-uhrzeit');
     if (datumInput) datumInput.value = `${yyyy}-${mm}-${dd}`;
-    // Ersten Mitarbeiter direkt hinzufügen
-    setTimeout(() => lmraMaHinzufuegen(), 80);
+    if (uhrzeitInput) uhrzeitInput.value = `${hh}:${min}`;
+    // Wind leeren
+    const windInput = document.getElementById('lmra-wind');
+    if (windInput) windInput.value = '';
+    // Gespeicherte Vorlage automatisch laden
+    const vorlageRaw = localStorage.getItem('csc_lmra_vorlage');
+    if (vorlageRaw) {
+      try {
+        const v = JSON.parse(vorlageRaw);
+        if (document.getElementById('lmra-objekt'))       document.getElementById('lmra-objekt').value       = v.objekt       || '';
+        if (document.getElementById('lmra-adresse'))      document.getElementById('lmra-adresse').value      = v.adresse      || '';
+        if (document.getElementById('lmra-auftraggeber')) document.getElementById('lmra-auftraggeber').value = v.auftraggeber || '';
+      } catch(e) {}
+    }
+    // Dan + einen freien Slot vorausfüllen
+    setTimeout(() => {
+      lmraMaHinzufuegen();
+      const nameInput0 = document.getElementById('lmra-ma-name-0');
+      if (nameInput0) { nameInput0.value = 'Dan'; lmraMitarbeiter[0].name = 'Dan'; }
+      lmraMaHinzufuegen();
+    }, 80);
   }
 
   // GFB Glasreinigung: Dan als vorausgefüllten Mitarbeiter hinzufügen
@@ -1588,10 +1610,34 @@ function gfbMaSigClear(idx) {
   if (canvas) canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
 }
 
+// ===== LMRA VORLAGE SPEICHERN / LADEN =====
+function lmraVorlageSpeichern() {
+  const vorlage = {
+    objekt:       (document.getElementById('lmra-objekt')       || {}).value?.trim() || '',
+    adresse:      (document.getElementById('lmra-adresse')      || {}).value?.trim() || '',
+    auftraggeber: (document.getElementById('lmra-auftraggeber') || {}).value?.trim() || '',
+  };
+  if (!vorlage.objekt) { alert('Bitte zuerst Objekt eintragen.'); return; }
+  localStorage.setItem('csc_lmra_vorlage', JSON.stringify(vorlage));
+  const btn = document.querySelector('#lmra-ma-box .btn-secondary[onclick="lmraVorlageSpeichern()"]');
+  if (btn) { btn.textContent = '✅ Vorlage gespeichert!'; setTimeout(() => { btn.textContent = '💾 Objekt als Vorlage speichern'; }, 2000); }
+}
+
+function lmraVorladeLaden() {
+  const raw = localStorage.getItem('csc_lmra_vorlage');
+  if (!raw) { alert('Keine gespeicherte Vorlage gefunden.'); return; }
+  try {
+    const v = JSON.parse(raw);
+    if (document.getElementById('lmra-objekt'))       document.getElementById('lmra-objekt').value       = v.objekt       || '';
+    if (document.getElementById('lmra-adresse'))      document.getElementById('lmra-adresse').value      = v.adresse      || '';
+    if (document.getElementById('lmra-auftraggeber')) document.getElementById('lmra-auftraggeber').value = v.auftraggeber || '';
+  } catch(e) { alert('Vorlage konnte nicht geladen werden.'); }
+}
+
 // ===== LMRA MITARBEITER =====
 function lmraMaHinzufuegen() {
   const idx = lmraMitarbeiter.length;
-  lmraMitarbeiter.push({ name: '', sigCanvas: null });
+  lmraMitarbeiter.push({ name: '', sigCanvas: null, bedenken: false });
 
   const container = document.getElementById('lmra-ma-liste');
   const div = document.createElement('div');
@@ -1600,7 +1646,12 @@ function lmraMaHinzufuegen() {
   div.innerHTML = `
     <input type="text" id="lmra-ma-name-${idx}" placeholder="Name Mitarbeiter …" autocomplete="name"
       oninput="lmraMitarbeiter[${idx}].name = this.value">
-    <div class="gfb-ma-sig-label">Unterschrift (ich habe die LMRA verstanden):</div>
+    <label style="display:flex;align-items:center;gap:10px;margin:8px 0;padding:10px;background:#f0fdf4;border-radius:8px;border:1px solid #bbf7d0;cursor:pointer">
+      <input type="checkbox" id="lmra-ma-cb-${idx}" style="width:22px;height:22px;cursor:pointer;accent-color:#16a34a"
+        onchange="lmraMitarbeiter[${idx}].bedenken = this.checked">
+      <span style="font-size:14px;font-weight:600;color:#15803d">✅ Ich habe keine Bedenken — die Arbeit ist aus meiner Sicht sicher.</span>
+    </label>
+    <div class="gfb-ma-sig-label">Unterschrift zur Bestätigung:</div>
     <div class="gfb-ma-sig-wrap">
       <canvas id="lmra-ma-canvas-${idx}" height="80"></canvas>
       <button type="button" class="btn-secondary gfb-ma-loeschen" onclick="lmraMaLoeschen(${idx})">✕ Entfernen</button>
@@ -1659,6 +1710,17 @@ async function submitChecklist() {
     if (aktiveMaLMRA.length === 0) {
       alert('Bitte mindestens einen Mitarbeiter mit Name eintragen.');
       return;
+    }
+    // Checkbox-Pflicht
+    const ohneBedenken = aktiveMaLMRA.filter(m => !m.bedenken);
+    if (ohneBedenken.length > 0) {
+      const namen = ohneBedenken.map(m => m.name).join(', ');
+      if (!confirm(`Folgende Mitarbeiter haben "Ich habe keine Bedenken" nicht bestätigt:\n${namen}\n\nTrotzdem fortfahren?`)) return;
+    }
+    // Windwarnung
+    const windVal = parseFloat((document.getElementById('lmra-wind') || {}).value || '0');
+    if (windVal > 12.5) {
+      if (!confirm(`⚠️ Windstärke ${windVal} m/s überschreitet den zulässigen Grenzwert von 12,5 m/s!\n\nDer Einsatz der Hubarbeitsbühne ist bei dieser Windstärke NICHT zulässig.\n\nTrotzdem dokumentieren?`)) return;
     }
   }
   // Leiter-Nr. Pflichtfeld
@@ -1728,7 +1790,9 @@ async function submitChecklist() {
           lmraAdresse:      (document.getElementById('lmra-adresse')      || {}).value?.trim() || '',
           lmraAuftraggeber: (document.getElementById('lmra-auftraggeber') || {}).value?.trim() || '',
           lmraDatum:        (document.getElementById('lmra-datum')        || {}).value?.trim() || '',
-          lmraMitarbeiter:  lmraMitarbeiter.filter(m => m !== null && m.name.trim()).map(m => m.name.trim()),
+          lmraUhrzeit:      (document.getElementById('lmra-uhrzeit')      || {}).value?.trim() || '',
+          lmraWind:         (document.getElementById('lmra-wind')         || {}).value?.trim() || '',
+          lmraMitarbeiter:  lmraMitarbeiter.filter(m => m !== null && m.name.trim()).map(m => ({ name: m.name.trim(), bedenken: !!m.bedenken })),
         } : {}),
       });
 
@@ -2929,6 +2993,8 @@ async function generatePDF() {
     const lmraAdresseVal     = (document.getElementById('lmra-adresse')     || {}).value?.trim() || '';
     const lmraAuftraggeberVal= (document.getElementById('lmra-auftraggeber') || {}).value?.trim() || '';
     const lmraDatumVal       = (document.getElementById('lmra-datum')       || {}).value?.trim() || '';
+    const lmraUhrzeitVal     = (document.getElementById('lmra-uhrzeit')     || {}).value?.trim() || '';
+    const lmraWindVal        = (document.getElementById('lmra-wind')        || {}).value?.trim() || '';
     let lmraDatumAnzeige = lmraDatumVal;
     if (lmraDatumVal.match(/^\d{4}-\d{2}-\d{2}$/)) {
       const [yy, mm2, dd2] = lmraDatumVal.split('-');
@@ -2942,7 +3008,8 @@ async function generatePDF() {
     const lmraFelder = [
       ['Unternehmen:', 'CSC GmbH', 'Aufsichtsführender:', pruefer],
       ['Objekt / Einsatzort:', lmraObjektVal || '—', 'Datum:', lmraDatumAnzeige || formatDatum(now).split(' ')[0]],
-      ['Adresse:', lmraAdresseVal || '—', 'Auftraggeber:', lmraAuftraggeberVal || '—'],
+      ['Adresse:', lmraAdresseVal || '—', 'Uhrzeit:', lmraUhrzeitVal || '—'],
+      ['Auftraggeber:', lmraAuftraggeberVal || '—', 'Windstärke:', lmraWindVal ? `${lmraWindVal} m/s${parseFloat(lmraWindVal) > 12.5 ? ' ⚠️ ÜBERSCHREITUNG' : ' ✓'}` : '—'],
     ];
     lmraFelder.forEach(([l1, v1, l2, v2]) => {
       doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(26, 58, 92);
@@ -2968,10 +3035,15 @@ async function generatePDF() {
 
     const aktiveMaLMRA2 = lmraMitarbeiter.filter(m => m !== null && m.name.trim());
     for (const ma of aktiveMaLMRA2) {
-      if (y > 255) { doc.addPage(); y = PT; }
+      if (y > 250) { doc.addPage(); y = PT; }
       doc.setDrawColor(200, 200, 200); doc.line(PL, y, PL+PW, y); y += 3;
       doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(26, 58, 92);
       doc.text(ma.name, PL, y+5);
+      // Checkbox-Status
+      const cbText = ma.bedenken ? '✓ Keine Bedenken' : '✗ Nicht bestätigt';
+      const cbColor = ma.bedenken ? [22, 163, 74] : [192, 57, 43];
+      doc.setFont('helvetica', 'bold'); doc.setFontSize(8); doc.setTextColor(...cbColor);
+      doc.text(cbText, PL, y+13);
       doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(100, 100, 100);
       doc.text('Unterschrift:', PL+90, y+3);
       // Unterschrift-Canvas
@@ -3041,7 +3113,15 @@ async function uploadToDrive(pdfBlob) {
   if (!token) throw new Error('Kein Google Drive Token.');
 
   const now = new Date();
-  const filename = `${formatDatumISO(now)}_${currentBereich.id}_KW${getKW(now)}.pdf`;
+  // Bei LMRA: Uhrzeit in Dateinamen einbauen (mehrere LMRAs pro Tag möglich)
+  let filename;
+  if (currentBereich && currentBereich.liste === 'lmra_hubarbeitsbuehne') {
+    const hh = String(now.getHours()).padStart(2,'0');
+    const min = String(now.getMinutes()).padStart(2,'0');
+    filename = `${formatDatumISO(now)}_${hh}${min}_${currentBereich.id}.pdf`;
+  } else {
+    filename = `${formatDatumISO(now)}_${currentBereich.id}_KW${getKW(now)}.pdf`;
+  }
 
   const unterordner = APP_CONFIG.googleDriveUnterordner || {};
   const folderId = unterordner[currentBereich.liste] || APP_CONFIG.googleDriveFolderId;
@@ -4501,4 +4581,78 @@ function geraetQrDrucken(geraetId, name, seriennr, objekt, typ) {
     const blob = new Blob([html], { type: 'text/html' });
     window.location.href = URL.createObjectURL(blob);
   }
+}
+
+// ===== LMRA-PROTOKOLL HISTORIE =====
+async function showLmraHistorieScreen() {
+  showScreen('lmra-historie');
+  const inhalt = document.getElementById('lmra-historie-inhalt');
+  inhalt.innerHTML = '<div style="padding:20px;text-align:center;color:#888">Lade LMRA-Protokolle…</div>';
+
+  if (typeof window.fbGetAlleProtokolle !== 'function') {
+    inhalt.innerHTML = '<div style="padding:20px;text-align:center;color:#888">Firebase nicht verfügbar.</div>';
+    return;
+  }
+
+  const alle = await window.fbGetAlleProtokolle();
+  const lmras = alle.filter(p => p.listentyp === 'lmra_hubarbeitsbuehne');
+
+  if (lmras.length === 0) {
+    inhalt.innerHTML = '<div style="padding:20px;text-align:center;color:#888">Noch keine LMRA-Protokolle vorhanden.</div>';
+    return;
+  }
+
+  // Nach Datum sortieren (neueste zuerst)
+  lmras.sort((a, b) => {
+    const da = a.datum?.toDate ? a.datum.toDate() : new Date(a.datum);
+    const db = b.datum?.toDate ? b.datum.toDate() : new Date(b.datum);
+    return db - da;
+  });
+
+  let html = `<div style="padding:12px">
+    <div style="font-size:13px;color:#666;margin-bottom:12px">${lmras.length} LMRA-Protokoll${lmras.length !== 1 ? 'e' : ''} gespeichert</div>`;
+
+  lmras.forEach(p => {
+    const datum = p.datum?.toDate ? p.datum.toDate() : new Date(p.datum);
+    const datumStr = datum.toLocaleDateString('de-DE', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    const zeitStr  = datum.toLocaleTimeString('de-DE', { hour: '2-digit', minute: '2-digit' });
+    const objekt   = p.lmraObjekt || p.standortName || '—';
+    const adresse  = p.lmraAdresse || '';
+    const auftrg   = p.lmraAuftraggeber || '';
+    const uhrzeit  = p.lmraUhrzeit || zeitStr;
+    const wind     = p.lmraWind ? `${p.lmraWind} m/s` : '—';
+    const windWarn = p.lmraWind && parseFloat(p.lmraWind) > 12.5;
+    const maListe  = Array.isArray(p.lmraMitarbeiter) ? p.lmraMitarbeiter : [];
+    const maText   = maListe.map(m => typeof m === 'object' ? `${m.name}${m.bedenken ? ' ✓' : ' ✗'}` : m).join(', ') || '—';
+    const driveLink = p.driveFileId
+      ? `<a href="https://drive.google.com/file/d/${p.driveFileId}/view" target="_blank"
+           style="font-size:12px;color:#1a3a5c;text-decoration:none;border:1px solid #c8d8f0;padding:3px 8px;border-radius:6px">📄 PDF öffnen</a>`
+      : '';
+
+    html += `
+    <div style="background:#fff;border-radius:12px;border:1px solid #e5e7eb;padding:14px;margin-bottom:10px;box-shadow:0 1px 4px rgba(0,0,0,0.06)">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+        <div>
+          <div style="font-weight:700;font-size:15px;color:#1a3a5c">🏗️ ${objekt}</div>
+          ${adresse ? `<div style="font-size:12px;color:#666;margin-top:2px">📍 ${adresse}</div>` : ''}
+          ${auftrg  ? `<div style="font-size:12px;color:#666">🤝 ${auftrg}</div>` : ''}
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <div style="font-size:13px;font-weight:600;color:#374151">${datumStr}</div>
+          <div style="font-size:12px;color:#666">🕐 ${uhrzeit}</div>
+        </div>
+      </div>
+      <div style="margin-top:8px;display:flex;flex-wrap:wrap;gap:6px;font-size:12px">
+        <span style="background:#f3f4f6;padding:3px 8px;border-radius:6px">👤 ${p.pruefer || '—'}</span>
+        <span style="background:${windWarn ? '#fee2e2' : '#f3f4f6'};color:${windWarn ? '#dc2626' : '#374151'};padding:3px 8px;border-radius:6px">💨 ${wind}${windWarn ? ' ⚠️' : ''}</span>
+      </div>
+      <div style="margin-top:6px;font-size:12px;color:#374151">
+        <span style="font-weight:600">Mitarbeiter:</span> ${maText}
+      </div>
+      ${driveLink ? `<div style="margin-top:8px">${driveLink}</div>` : ''}
+    </div>`;
+  });
+
+  html += '</div>';
+  inhalt.innerHTML = html;
 }

@@ -237,6 +237,10 @@
           style="width:100%;padding:12px;border-radius:10px;border:1px solid #c8d8f0;background:#fff;color:#1a3a5c;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
           📋 Alle Protokolle
         </button>
+        <button onclick="showLmraHistorieScreen()"
+          style="width:100%;padding:12px;border-radius:10px;border:1px solid #fde68a;background:#fffbeb;color:#92400e;font-size:14px;font-weight:600;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:8px;">
+          🏗️ LMRA-Protokolle
+        </button>
         <div id="admin-editor-btn" style="display:none;">
           <button class="btn-secondary" style="width:100%;font-size:13px;color:#666" onclick="openEditor()">
             ⚙️ Checklisten-Editor
@@ -366,16 +370,33 @@
     <div id="lmra-ma-box" style="display:none">
       <div class="aufzug-nr-box" style="margin-bottom:0">
         <label>🏢 Objekt / Einsatzort:</label>
-        <input type="text" id="lmra-objekt" placeholder="z. B. Apothekerkammer Hannover">
+        <div style="display:flex;gap:8px;align-items:center">
+          <input type="text" id="lmra-objekt" placeholder="z. B. Apothekerkammer Hannover" style="flex:1">
+          <button type="button" id="lmra-vorlage-laden-btn" class="btn-secondary" style="white-space:nowrap;padding:8px 12px" onclick="lmraVorladeLaden()" title="Gespeicherte Vorlage laden">📋 Vorlage</button>
+        </div>
         <label style="margin-top:10px">📍 Adresse:</label>
         <input type="text" id="lmra-adresse" placeholder="z. B. Raschplatz 5, 30161 Hannover">
         <label style="margin-top:10px">🤝 Auftraggeber / Kunde:</label>
         <input type="text" id="lmra-auftraggeber" placeholder="z. B. Musterfirma GmbH">
-        <label style="margin-top:10px">📅 Datum:</label>
-        <input type="date" id="lmra-datum">
+        <div style="display:flex;gap:10px;margin-top:10px">
+          <div style="flex:1">
+            <label>📅 Datum:</label>
+            <input type="date" id="lmra-datum" style="width:100%">
+          </div>
+          <div style="flex:1">
+            <label>🕐 Uhrzeit:</label>
+            <input type="time" id="lmra-uhrzeit" style="width:100%">
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;margin-top:10px">
+          <label style="margin:0">💨 Windstärke (m/s):</label>
+          <input type="number" id="lmra-wind" min="0" max="20" step="0.1" placeholder="z. B. 5.5" style="width:100px">
+          <span style="align-self:center;font-size:12px;color:#888">(max. 12,5 m/s zulässig)</span>
+        </div>
+        <button type="button" onclick="lmraVorlageSpeichern()" class="btn-secondary" style="margin-top:10px;width:100%">💾 Objekt als Vorlage speichern</button>
       </div>
       <div class="gfb-ma-header" style="margin-top:14px">
-        <label>Mitarbeiter (Name &amp; Unterschrift):</label>
+        <label>Mitarbeiter (Name, Bestätigung &amp; Unterschrift):</label>
         <button type="button" class="btn-secondary btn-ma-add" onclick="lmraMaHinzufuegen()">+ Mitarbeiter hinzufügen</button>
       </div>
       <div id="lmra-ma-liste"></div>
@@ -417,6 +438,17 @@
   </div>
   <div class="content" id="historie-inhalt">
     <div style="padding:20px;text-align:center;color:#888">Lade Protokolle…</div>
+  </div>
+</div>
+
+<!-- ===== SCREEN: LMRA-HISTORIE ===== -->
+<div id="screen-lmra-historie" class="screen">
+  <div class="header">
+    <button class="btn-back" onclick="showScreen('home')">‹ Zurück</button>
+    <div class="header-title">🏗️ LMRA-Protokolle</div>
+  </div>
+  <div class="content" id="lmra-historie-inhalt">
+    <div style="padding:20px;text-align:center;color:#888">Lade LMRA-Protokolle…</div>
   </div>
 </div>
 
