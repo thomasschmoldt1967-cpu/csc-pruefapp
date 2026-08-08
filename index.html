@@ -311,53 +311,18 @@
 
     <!-- BA-Hinweis entfernt – ersetzt durch Modal-Button -->
 
-    <div id="checklist-abschnitte"></div>
-    <div class="aufzug-nr-box" id="standort-box">
-      <label>Standort:</label>
-      <input type="text" id="formular-standort" placeholder="z. B. Raschplatz 5, Hannover ...">
-    </div>
-    <div class="aufzug-nr-box" id="aufzug-nr-box" style="display:none">
-      <label>Aufzug-Nr.:</label>
-      <input type="text" id="aufzug-nr" placeholder="z. B. 1, 2, A, B ...">
-    </div>
-    <div class="aufzug-nr-box" id="leiter-felder-box" style="display:none">
-      <label>Leiter-Nr. <span style="color:#c00">*</span>:</label>
-      <input type="text" id="leiter-nr" placeholder="z. B. L-01, L-02 ..." required>
-      <label style="margin-top:10px">Leiter-Typ / Inventar-Nr.:</label>
-      <input type="text" id="leiter-typ" placeholder="z. B. Stehleiter 3m, Anlegeleiter ...">
-    </div>
-
-    <div class="bemerkung-box">
-      <label>Bemerkungen / Mängel:</label>
-      <textarea id="bemerkung" rows="3" placeholder="Optional: Mängel oder Hinweise eintragen..."></textarea>
-      <div class="foto-bereich">
-        <button class="btn-foto" onclick="fotoAufnehmen()">
-          <span class="icon">📷</span> Foto aufnehmen
-        </button>
-        <input type="file" id="foto-input" accept="image/*" capture="environment" style="display:none" onchange="fotoHinzufuegen(event)">
-        <div id="foto-vorschau" class="foto-vorschau"></div>
-      </div>
-    </div>
-    <!-- LMRA-Mitarbeiterliste — nur bei LMRA — OBEN (vor Aufsichtsführender/Unterschrift) -->
-    <div id="lmra-ma-box" style="display:none">
+    <!-- LMRA Block 1: Einsatzdaten (kommt ganz oben, vor Checkboxen) -->
+    <div id="lmra-einsatz-box" style="display:none">
       <div class="aufzug-nr-box" style="margin-bottom:0">
-
-        <!-- Zeile 1: Objekt + Vorlage-Button -->
         <label>🏢 Objekt / Einsatzort:</label>
         <div style="display:flex;gap:8px;align-items:center">
           <input type="text" id="lmra-objekt" placeholder="z. B. Apothekerkammer Hannover" style="flex:1">
-          <button type="button" class="btn-secondary" style="white-space:nowrap;padding:8px 12px" onclick="lmraVorladeLaden()" title="Gespeicherte Vorlage laden">📋 Vorlage</button>
+          <button type="button" class="btn-secondary" style="white-space:nowrap;padding:8px 12px" onclick="lmraVorladeLaden()" title="Vorlage laden">📋 Vorlage</button>
         </div>
-
-        <!-- Zeile 2: Adresse -->
         <label style="margin-top:10px">📍 Adresse:</label>
         <input type="text" id="lmra-adresse" placeholder="z. B. Raschplatz 5, 30161 Hannover">
-
-        <!-- Zeile 3: Auftraggeber -->
         <label style="margin-top:10px">🤝 Auftraggeber / Kunde:</label>
         <input type="text" id="lmra-auftraggeber" placeholder="z. B. Musterfirma GmbH">
-
-        <!-- Zeile 4: Ansprechpartner + Telefon nebeneinander -->
         <div style="display:flex;gap:10px;margin-top:10px">
           <div style="flex:1">
             <label>👤 Ansprechpartner vor Ort:</label>
@@ -368,8 +333,6 @@
             <input type="tel" id="lmra-telefon" placeholder="z. B. 0511 123456" style="width:100%">
           </div>
         </div>
-
-        <!-- Zeile 5: Datum + Uhrzeit -->
         <div style="display:flex;gap:10px;margin-top:10px">
           <div style="flex:1">
             <label>📅 Datum:</label>
@@ -380,19 +343,10 @@
             <input type="time" id="lmra-uhrzeit" style="width:100%">
           </div>
         </div>
-
-        <!-- Zeile 6: Windstärke -->
-        <!--  entfernt auf Wunsch -->
-
         <button type="button" onclick="lmraVorlageSpeichern()" class="btn-secondary" style="margin-top:10px;width:100%">💾 Objekt als Vorlage speichern</button>
       </div>
-
-      <div class="gfb-ma-header" style="margin-top:14px">
-        <label>Mitarbeiter (Name, Bestätigung &amp; Unterschrift) — max. 8:</label>
-        <button type="button" class="btn-secondary btn-ma-add" onclick="lmraMaHinzufuegen()" id="lmra-ma-add-btn">+ Mitarbeiter</button>
-      </div>
-      <div id="lmra-ma-liste"></div>
     </div>
+
 
     <div class="unterschrift-box" id="unterschrift-label-box">
       <label id="unterschrift-label">Unterschrift Prüfer:</label>
@@ -427,6 +381,42 @@
       <div id="gfb-ma-liste"></div>
     </div>
 
+    <div id="checklist-abschnitte"></div>
+
+    <!-- LMRA Block 2: Mitarbeiter (kommt nach den Checkboxen) -->
+    <div id="lmra-ma-box" style="display:none">
+      <div class="gfb-ma-header" style="margin-top:14px">
+        <label>Mitarbeiter (Name, Bestätigung &amp; Unterschrift) — max. 8:</label>
+        <button type="button" class="btn-secondary btn-ma-add" onclick="lmraMaHinzufuegen()" id="lmra-ma-add-btn">+ Mitarbeiter</button>
+      </div>
+      <div id="lmra-ma-liste"></div>
+    </div>
+    <div class="aufzug-nr-box" id="standort-box">
+      <label>Standort:</label>
+      <input type="text" id="formular-standort" placeholder="z. B. Raschplatz 5, Hannover ...">
+    </div>
+    <div class="aufzug-nr-box" id="aufzug-nr-box" style="display:none">
+      <label>Aufzug-Nr.:</label>
+      <input type="text" id="aufzug-nr" placeholder="z. B. 1, 2, A, B ...">
+    </div>
+    <div class="aufzug-nr-box" id="leiter-felder-box" style="display:none">
+      <label>Leiter-Nr. <span style="color:#c00">*</span>:</label>
+      <input type="text" id="leiter-nr" placeholder="z. B. L-01, L-02 ..." required>
+      <label style="margin-top:10px">Leiter-Typ / Inventar-Nr.:</label>
+      <input type="text" id="leiter-typ" placeholder="z. B. Stehleiter 3m, Anlegeleiter ...">
+    </div>
+
+    <div class="bemerkung-box">
+      <label>Bemerkungen / Mängel:</label>
+      <textarea id="bemerkung" rows="3" placeholder="Optional: Mängel oder Hinweise eintragen..."></textarea>
+      <div class="foto-bereich">
+        <button class="btn-foto" onclick="fotoAufnehmen()">
+          <span class="icon">📷</span> Foto aufnehmen
+        </button>
+        <input type="file" id="foto-input" accept="image/*" capture="environment" style="display:none" onchange="fotoHinzufuegen(event)">
+        <div id="foto-vorschau" class="foto-vorschau"></div>
+      </div>
+    </div>
     <!-- LMRA: Aufsichtsführender Unterschrift (nur bei LMRA sichtbar) -->
     <div id="lmra-aufsfuehr-sig-box" style="display:none;background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.1);padding:16px;margin-bottom:12px;border:2px solid #1a3a5c;">
       <div style="background:#1a3a5c;color:#fff;border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:13px;line-height:1.5">
