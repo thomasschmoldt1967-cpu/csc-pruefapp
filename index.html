@@ -338,40 +338,7 @@
         <div id="foto-vorschau" class="foto-vorschau"></div>
       </div>
     </div>
-    <div class="unterschrift-box" id="unterschrift-label-box">
-      <label id="unterschrift-label">Unterschrift Prüfer:</label>
-      <div id="sig-container">
-        <canvas id="sig-canvas"></canvas>
-        <button class="btn-secondary btn-sig-clear" onclick="clearSignature()">✕ Löschen</button>
-      </div>
-    </div>
-    <div class="pruefer-box">
-      <label id="pruefer-label">Name Prüfer:</label>
-      <div class="pruefer-buttons">
-        <button type="button" class="btn-pruefer" onclick="selectPruefer('Thomas Schmoldt')">Thomas Schmoldt</button>
-        <button type="button" class="btn-pruefer" onclick="selectPruefer('Klaus Strack')">Klaus Strack</button>
-        <button type="button" class="btn-pruefer" onclick="selectPruefer('Katharina Schmoldt')">Katharina Schmoldt</button>
-        <button type="button" class="btn-pruefer" onclick="selectPruefer('Fabian Romeike')">Fabian Romeike</button>
-      </div>
-      <input type="text" id="pruefer-name" placeholder="Oder Namen eingeben…" autocomplete="name">
-    </div>
-    <!-- BA-Button: nur bei GFB Glasreinigung -->
-    <div id="gfb-ba-btn-box" style="display:none; margin:14px 0 6px 0;">
-      <button type="button" onclick="baModalOeffnen()" style="width:100%; padding:13px 16px; background:#1a3a5c; color:#fff; border:none; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 2px 8px rgba(26,58,92,0.18);">
-        <span style="font-size:18px;">📄</span> Betriebsanweisungen &amp; Rettungsplan lesen
-      </button>
-    </div>
-
-    <!-- Mitarbeiterliste — nur bei GFB -->
-    <div id="gfb-ma-box" style="display:none">
-      <div class="gfb-ma-header">
-        <label>Mitarbeiter-Unterschriften:</label>
-        <button type="button" class="btn-secondary btn-ma-add" onclick="gfbMaHinzufuegen()">+ Mitarbeiter hinzufügen</button>
-      </div>
-      <div id="gfb-ma-liste"></div>
-    </div>
-
-    <!-- LMRA-Mitarbeiterliste — nur bei LMRA -->
+    <!-- LMRA-Mitarbeiterliste — nur bei LMRA — OBEN (vor Aufsichtsführender/Unterschrift) -->
     <div id="lmra-ma-box" style="display:none">
       <div class="aufzug-nr-box" style="margin-bottom:0">
 
@@ -425,6 +392,39 @@
         <button type="button" class="btn-secondary btn-ma-add" onclick="lmraMaHinzufuegen()" id="lmra-ma-add-btn">+ Mitarbeiter</button>
       </div>
       <div id="lmra-ma-liste"></div>
+    </div>
+
+    <div class="unterschrift-box" id="unterschrift-label-box">
+      <label id="unterschrift-label">Unterschrift Prüfer:</label>
+      <div id="sig-container">
+        <canvas id="sig-canvas"></canvas>
+        <button class="btn-secondary btn-sig-clear" onclick="clearSignature()">✕ Löschen</button>
+      </div>
+    </div>
+    <div class="pruefer-box">
+      <label id="pruefer-label">Name Prüfer:</label>
+      <div class="pruefer-buttons">
+        <button type="button" class="btn-pruefer" onclick="selectPruefer('Thomas Schmoldt')">Thomas Schmoldt</button>
+        <button type="button" class="btn-pruefer" onclick="selectPruefer('Klaus Strack')">Klaus Strack</button>
+        <button type="button" class="btn-pruefer" onclick="selectPruefer('Katharina Schmoldt')">Katharina Schmoldt</button>
+        <button type="button" class="btn-pruefer" onclick="selectPruefer('Fabian Romeike')">Fabian Romeike</button>
+      </div>
+      <input type="text" id="pruefer-name" placeholder="Oder Namen eingeben…" autocomplete="name">
+    </div>
+    <!-- BA-Button: nur bei GFB Glasreinigung -->
+    <div id="gfb-ba-btn-box" style="display:none; margin:14px 0 6px 0;">
+      <button type="button" onclick="baModalOeffnen()" style="width:100%; padding:13px 16px; background:#1a3a5c; color:#fff; border:none; border-radius:10px; font-size:14px; font-weight:700; cursor:pointer; display:flex; align-items:center; justify-content:center; gap:8px; box-shadow:0 2px 8px rgba(26,58,92,0.18);">
+        <span style="font-size:18px;">📄</span> Betriebsanweisungen &amp; Rettungsplan lesen
+      </button>
+    </div>
+
+    <!-- Mitarbeiterliste — nur bei GFB -->
+    <div id="gfb-ma-box" style="display:none">
+      <div class="gfb-ma-header">
+        <label>Mitarbeiter-Unterschriften:</label>
+        <button type="button" class="btn-secondary btn-ma-add" onclick="gfbMaHinzufuegen()">+ Mitarbeiter hinzufügen</button>
+      </div>
+      <div id="gfb-ma-liste"></div>
     </div>
 
     <!-- LMRA: Aufsichtsführender Unterschrift (nur bei LMRA sichtbar) -->
