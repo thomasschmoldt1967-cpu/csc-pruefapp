@@ -516,7 +516,7 @@ const APP_CONFIG = {
       intervall: "Je Einsatz",
       abschnitte: [
         {
-          titel: "🔴 Schritt 1: BEURTEILEN — Gefahren am Arbeitsplatz erkennen",
+          titel: "1. BEURTEILEN - Gefahren am Arbeitsplatz erkennen",
           punkte: [
             { id: "lmra_1_1", text: "Arbeitsplatz-Sicherheit: Ist der Arbeitsplatz aktuell geprüft und als sicher eingestuft?" },
             { id: "lmra_1_2", text: "Untergrund: Ist der Boden eben und für die Stützen der Arbeitsbühne tragfähig?" },
@@ -525,7 +525,7 @@ const APP_CONFIG = {
           ]
         },
         {
-          titel: "🟡 Schritt 2: VERSTEHEN — Aufgabe & Schutzmaßnahmen prüfen",
+          titel: "2. VERSTEHEN - Aufgabe & Schutzmassnahmen pruefen",
           punkte: [
             { id: "lmra_2_1", text: "Klare Aufgabe: Ist meine Arbeitsaufgabe bekannt und habe ich sie komplett verstanden?" },
             { id: "lmra_2_2", text: "Material-Check: Sind alle Arbeitsmaterialien (Werkzeuge, Chemie, Leitern) einsatzbereit und sicher?" },
@@ -535,14 +535,14 @@ const APP_CONFIG = {
           ]
         },
         {
-          titel: "🟢 Schritt 3: HANDELN — Entscheidung treffen",
+          titel: "3. HANDELN - Entscheidung treffen",
           punkte: [
             { id: "lmra_3_1", text: "ALLES SICHER? → Arbeit starten." },
             { id: "lmra_3_2", text: "EIN RISIKO GEFUNDEN? STOPP! Keine Improvisation. Vorgesetzten oder Objektleiter informieren, bis die Gefahr beseitigt ist." },
           ]
         },
         {
-          titel: "⚠️ Wichtige BG BAU Regeln im Gewerk",
+          titel: "4. BG BAU Regeln",
           punkte: [
             { id: "lmra_bg_1", text: "Kein Übersteigen: Niemals aus dem angehobenen Korb auf Fassaden oder Dächer übersteigen!" },
             { id: "lmra_bg_2", text: "Kein Kranersatz: Die Arbeitsbühne darf nicht als Hebezeug für schwere Lasten missbraucht werden." },
