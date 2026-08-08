@@ -103,7 +103,7 @@ const APP_CONFIG = {
         },
         {
           id: "lmra_hub",
-          name: "LMRA – Hubarbeitsbühne",
+          name: "LMRA",
           icon: "🏗️",
           bereiche: [
             { id: "lmra_hub_neu", name: "LMRA durchführen", liste: "lmra_hubarbeitsbuehne" },
@@ -511,7 +511,7 @@ const APP_CONFIG = {
 
     // ===== LMRA: Last-Minute-Risikoanalyse Hubarbeitsbühne =====
     lmra_hubarbeitsbuehne: {
-      titel: "LMRA – Glas- & Fassadenreinigung mit Hubarbeitsbühne",
+      titel: "LMRA – Glas- & Fassadenreinigung",
       untertitel: "STOPP! Erst denken, dann handeln! Unmittelbar vor Arbeitsbeginn am Einsatzort durchführen.",
       intervall: "Je Einsatz",
       abschnitte: [
