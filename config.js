@@ -18,7 +18,7 @@ const APP_CONFIG = {
     leiterkontrolle:  "1iwyyDvyFTl0Jz2wTlfNQkgNRqDHt1oZ-",
     gfb_szp:            "1z58qrJWXWHQF4KQe3VUHMbS4nc2Zt761",  // GFU/SZP
     gfb_glasreinigung:  "14NjHFg8ekBHJ85Hiava1hlPhZn5Se7XVa",  // GFU/Glasreinigung
-    lmra_hubarbeitsbuehne: "14NjHFg8ekBHJ85Hiava1hlPhZn5Se7XVa",  // LMRA (gleicher Ordner wie Glasreinigung)
+    lmra_hubarbeitsbuehne: "1igu0h-vglhWEfzeZPBDvvlDjWKWVfdl7",  // LMRA → 70_AMS / 5 Ermittlung und Beurteilung / Glasreinigung
     fusswegreinigung:   "1PendBTPwGultV9MzKcRoBoKfqUYXBVn3",  // Fußweg-Reinigung (Hauptordner, bis eigener Ordner angelegt)
   },
 
