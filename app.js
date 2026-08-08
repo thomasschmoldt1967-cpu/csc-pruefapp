@@ -890,7 +890,7 @@ function renderChecklist() {
 
   // Labels Unterschrift / Name je nach Typ anpassen
   document.getElementById('unterschrift-label').textContent = isGFB ? 'Unterschrift Aufsichtsführender:' : 'Unterschrift Prüfer:';
-  document.getElementById('pruefer-label').textContent = isGFB ? 'Name Aufsichtsführender:' : (isLMRA ? 'Name Vorgesetzter / Aufsichtsführender:' : 'Name Prüfer:');
+  document.getElementById('pruefer-label').textContent = isGFB ? 'Name Aufsichtsführender:' : (isLMRA ? 'Aufsichtsführender vor Ort:' : 'Name Prüfer:');
   document.getElementById('pruefer-name').placeholder = isGFB ? 'Name Aufsichtsführender …' : (isLMRA ? 'Name Aufsichtsführender …' : 'Oder Namen eingeben …');
 
   // Unterschrift-Box bei GFB ausblenden (Unterschrift kommt auf Seite 12 der Unterweisungsliste)
@@ -926,21 +926,23 @@ function renderChecklist() {
     if (vorlageRaw) {
       try {
         const v = JSON.parse(vorlageRaw);
-        if (document.getElementById('lmra-objekt'))       document.getElementById('lmra-objekt').value       = v.objekt       || '';
-        if (document.getElementById('lmra-adresse'))      document.getElementById('lmra-adresse').value      = v.adresse      || '';
-        if (document.getElementById('lmra-auftraggeber')) document.getElementById('lmra-auftraggeber').value = v.auftraggeber || '';
+        if (document.getElementById('lmra-objekt'))          document.getElementById('lmra-objekt').value          = v.objekt          || '';
+        if (document.getElementById('lmra-adresse'))         document.getElementById('lmra-adresse').value         = v.adresse         || '';
+        if (document.getElementById('lmra-auftraggeber'))    document.getElementById('lmra-auftraggeber').value    = v.auftraggeber    || '';
+        if (document.getElementById('lmra-ansprechpartner')) document.getElementById('lmra-ansprechpartner').value = v.ansprechpartner || '';
+        if (document.getElementById('lmra-telefon'))         document.getElementById('lmra-telefon').value         = v.telefon         || '';
       } catch(e) {}
     }
-    // Dan + einen freien Slot vorausfüllen
+    // Zwei leere Mitarbeiter-Slots vorausfüllen (wird vor Ort eingetragen)
     setTimeout(() => {
       lmraMaHinzufuegen();
-      const nameInput0 = document.getElementById('lmra-ma-name-0');
-      if (nameInput0) { nameInput0.value = 'Dan'; lmraMitarbeiter[0].name = 'Dan'; }
       lmraMaHinzufuegen();
     }, 80);
   }
 
-  // GFB Glasreinigung: Dan als vorausgefüllten Mitarbeiter hinzufügen
+  // Standort-Box: bei LMRA ausblenden (Objekt/Adresse ersetzt Standort)
+  const standortBox = document.getElementById('standort-box');
+  if (standortBox) standortBox.style.display = isLMRA ? 'none' : 'block';
   if (currentBereich && currentBereich.liste === 'gfb_glasreinigung') {
     setTimeout(() => {
       gfbMaHinzufuegen();
@@ -954,7 +956,12 @@ function renderChecklist() {
 
   // Prüfer-Buttons je nach Typ anpassen
   const prueferButtons = document.querySelector('.pruefer-buttons');
-  if (isGFB || isLMRA) {
+  if (isLMRA) {
+    // LMRA: Keine Vorauswahl — Aufsichtsführender wird vor Ort eingetragen
+    prueferButtons.innerHTML = '';
+    document.getElementById('pruefer-name').value = '';
+    document.getElementById('pruefer-name').placeholder = 'Name Aufsichtsführender eintragen …';
+  } else if (isGFB) {
     prueferButtons.innerHTML = `
       <button type="button" class="btn-pruefer" onclick="selectPruefer('Thomas Schmoldt')">Thomas Schmoldt</button>
       <button type="button" class="btn-pruefer" onclick="selectPruefer('Fabian Romeike')">Fabian Romeike</button>
@@ -1613,9 +1620,11 @@ function gfbMaSigClear(idx) {
 // ===== LMRA VORLAGE SPEICHERN / LADEN =====
 function lmraVorlageSpeichern() {
   const vorlage = {
-    objekt:       (document.getElementById('lmra-objekt')       || {}).value?.trim() || '',
-    adresse:      (document.getElementById('lmra-adresse')      || {}).value?.trim() || '',
-    auftraggeber: (document.getElementById('lmra-auftraggeber') || {}).value?.trim() || '',
+    objekt:          (document.getElementById('lmra-objekt')          || {}).value?.trim() || '',
+    adresse:         (document.getElementById('lmra-adresse')         || {}).value?.trim() || '',
+    auftraggeber:    (document.getElementById('lmra-auftraggeber')    || {}).value?.trim() || '',
+    ansprechpartner: (document.getElementById('lmra-ansprechpartner') || {}).value?.trim() || '',
+    telefon:         (document.getElementById('lmra-telefon')         || {}).value?.trim() || '',
   };
   if (!vorlage.objekt) { alert('Bitte zuerst Objekt eintragen.'); return; }
   localStorage.setItem('csc_lmra_vorlage', JSON.stringify(vorlage));
@@ -1628,16 +1637,29 @@ function lmraVorladeLaden() {
   if (!raw) { alert('Keine gespeicherte Vorlage gefunden.'); return; }
   try {
     const v = JSON.parse(raw);
-    if (document.getElementById('lmra-objekt'))       document.getElementById('lmra-objekt').value       = v.objekt       || '';
-    if (document.getElementById('lmra-adresse'))      document.getElementById('lmra-adresse').value      = v.adresse      || '';
-    if (document.getElementById('lmra-auftraggeber')) document.getElementById('lmra-auftraggeber').value = v.auftraggeber || '';
+    if (document.getElementById('lmra-objekt'))          document.getElementById('lmra-objekt').value          = v.objekt          || '';
+    if (document.getElementById('lmra-adresse'))         document.getElementById('lmra-adresse').value         = v.adresse         || '';
+    if (document.getElementById('lmra-auftraggeber'))    document.getElementById('lmra-auftraggeber').value    = v.auftraggeber    || '';
+    if (document.getElementById('lmra-ansprechpartner')) document.getElementById('lmra-ansprechpartner').value = v.ansprechpartner || '';
+    if (document.getElementById('lmra-telefon'))         document.getElementById('lmra-telefon').value         = v.telefon         || '';
   } catch(e) { alert('Vorlage konnte nicht geladen werden.'); }
 }
 
 // ===== LMRA MITARBEITER =====
 function lmraMaHinzufuegen() {
+  const aktive = lmraMitarbeiter.filter(m => m !== null).length;
+  if (aktive >= 7) {
+    alert('Maximal 7 Mitarbeiter möglich.');
+    return;
+  }
   const idx = lmraMitarbeiter.length;
   lmraMitarbeiter.push({ name: '', sigCanvas: null, bedenken: false });
+
+  // Add-Button ausblenden wenn 7 erreicht
+  const addBtn = document.getElementById('lmra-ma-add-btn');
+  if (addBtn && lmraMitarbeiter.filter(m => m !== null).length >= 7) {
+    addBtn.style.display = 'none';
+  }
 
   const container = document.getElementById('lmra-ma-liste');
   const div = document.createElement('div');
@@ -1685,6 +1707,9 @@ function lmraMaLoeschen(idx) {
   lmraMitarbeiter[idx] = null;
   const el = document.getElementById('lmra-ma-' + idx);
   if (el) el.remove();
+  // Add-Button wieder einblenden wenn unter 7
+  const addBtn = document.getElementById('lmra-ma-add-btn');
+  if (addBtn) addBtn.style.display = '';
 }
 
 function lmraMaSigClear(idx) {
@@ -1786,13 +1811,15 @@ async function submitChecklist() {
         driveFileId: driveFileId,
         // LMRA-spezifische Zusatzfelder
         ...(currentBereich.liste === 'lmra_hubarbeitsbuehne' ? {
-          lmraObjekt:       (document.getElementById('lmra-objekt')       || {}).value?.trim() || '',
-          lmraAdresse:      (document.getElementById('lmra-adresse')      || {}).value?.trim() || '',
-          lmraAuftraggeber: (document.getElementById('lmra-auftraggeber') || {}).value?.trim() || '',
-          lmraDatum:        (document.getElementById('lmra-datum')        || {}).value?.trim() || '',
-          lmraUhrzeit:      (document.getElementById('lmra-uhrzeit')      || {}).value?.trim() || '',
-          lmraWind:         (document.getElementById('lmra-wind')         || {}).value?.trim() || '',
-          lmraMitarbeiter:  lmraMitarbeiter.filter(m => m !== null && m.name.trim()).map(m => ({ name: m.name.trim(), bedenken: !!m.bedenken })),
+          lmraObjekt:          (document.getElementById('lmra-objekt')          || {}).value?.trim() || '',
+          lmraAdresse:         (document.getElementById('lmra-adresse')         || {}).value?.trim() || '',
+          lmraAuftraggeber:    (document.getElementById('lmra-auftraggeber')    || {}).value?.trim() || '',
+          lmraAnsprechpartner: (document.getElementById('lmra-ansprechpartner') || {}).value?.trim() || '',
+          lmraTelefon:         (document.getElementById('lmra-telefon')         || {}).value?.trim() || '',
+          lmraDatum:           (document.getElementById('lmra-datum')           || {}).value?.trim() || '',
+          lmraUhrzeit:         (document.getElementById('lmra-uhrzeit')         || {}).value?.trim() || '',
+          lmraWind:            (document.getElementById('lmra-wind')            || {}).value?.trim() || '',
+          lmraMitarbeiter:     lmraMitarbeiter.filter(m => m !== null && m.name.trim()).map(m => ({ name: m.name.trim(), bedenken: !!m.bedenken })),
         } : {}),
       });
 
@@ -2989,12 +3016,14 @@ async function generatePDF() {
     doc.setTextColor(0); y = 28;
 
     // Einsatzdaten
-    const lmraObjektVal      = (document.getElementById('lmra-objekt')      || {}).value?.trim() || '';
-    const lmraAdresseVal     = (document.getElementById('lmra-adresse')     || {}).value?.trim() || '';
-    const lmraAuftraggeberVal= (document.getElementById('lmra-auftraggeber') || {}).value?.trim() || '';
-    const lmraDatumVal       = (document.getElementById('lmra-datum')       || {}).value?.trim() || '';
-    const lmraUhrzeitVal     = (document.getElementById('lmra-uhrzeit')     || {}).value?.trim() || '';
-    const lmraWindVal        = (document.getElementById('lmra-wind')        || {}).value?.trim() || '';
+    const lmraObjektVal         = (document.getElementById('lmra-objekt')          || {}).value?.trim() || '';
+    const lmraAdresseVal        = (document.getElementById('lmra-adresse')         || {}).value?.trim() || '';
+    const lmraAuftraggeberVal   = (document.getElementById('lmra-auftraggeber')    || {}).value?.trim() || '';
+    const lmraAnsprechpartnerVal= (document.getElementById('lmra-ansprechpartner') || {}).value?.trim() || '';
+    const lmraTelefonVal        = (document.getElementById('lmra-telefon')         || {}).value?.trim() || '';
+    const lmraDatumVal          = (document.getElementById('lmra-datum')           || {}).value?.trim() || '';
+    const lmraUhrzeitVal        = (document.getElementById('lmra-uhrzeit')         || {}).value?.trim() || '';
+    const lmraWindVal           = (document.getElementById('lmra-wind')            || {}).value?.trim() || '';
     let lmraDatumAnzeige = lmraDatumVal;
     if (lmraDatumVal.match(/^\d{4}-\d{2}-\d{2}$/)) {
       const [yy, mm2, dd2] = lmraDatumVal.split('-');
@@ -3006,10 +3035,11 @@ async function generatePDF() {
     doc.text('EINSATZDATEN', PL+2, y+3); y += 12; doc.setTextColor(0);
 
     const lmraFelder = [
-      ['Unternehmen:', 'CSC GmbH', 'Aufsichtsführender:', pruefer],
-      ['Objekt / Einsatzort:', lmraObjektVal || '—', 'Datum:', lmraDatumAnzeige || formatDatum(now).split(' ')[0]],
-      ['Adresse:', lmraAdresseVal || '—', 'Uhrzeit:', lmraUhrzeitVal || '—'],
-      ['Auftraggeber:', lmraAuftraggeberVal || '—', 'Windstärke:', lmraWindVal ? `${lmraWindVal} m/s${parseFloat(lmraWindVal) > 12.5 ? ' ⚠️ ÜBERSCHREITUNG' : ' ✓'}` : '—'],
+      ['Unternehmen:', 'CSC GmbH',                                       'Aufsichtsführender:', pruefer],
+      ['Objekt / Einsatzort:', lmraObjektVal || '—',                     'Datum:', lmraDatumAnzeige || formatDatum(now).split(' ')[0]],
+      ['Adresse:', lmraAdresseVal || '—',                                'Uhrzeit:', lmraUhrzeitVal || '—'],
+      ['Auftraggeber:', lmraAuftraggeberVal || '—',                      'Windstärke:', lmraWindVal ? `${lmraWindVal} m/s${parseFloat(lmraWindVal) > 12.5 ? ' ⚠️ ÜBERSCHREITUNG' : ' ✓'}` : '—'],
+      ['Ansprechpartner:', lmraAnsprechpartnerVal || '—',                'Telefon:', lmraTelefonVal || '—'],
     ];
     lmraFelder.forEach(([l1, v1, l2, v2]) => {
       doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(26, 58, 92);
