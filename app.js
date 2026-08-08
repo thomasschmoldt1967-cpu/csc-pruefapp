@@ -3595,19 +3595,25 @@ async function renderDashboard() {
   }
   const geprüft = gruen + gelb + rot;
   el.innerHTML = `
-    <div class="dashboard-row">
-      <span>📋 Bereiche gesamt</span><strong>${total}</strong>
+    <div class="dashboard-stats-grid">
+      <div class="dashboard-stat-kachel">
+        <div class="stat-wert stat-blau">${total}</div>
+        <div class="stat-label">📋 Bereiche gesamt</div>
+      </div>
+      <div class="dashboard-stat-kachel">
+        <div class="stat-wert stat-gruen">${gruen}</div>
+        <div class="stat-label">✅ Aktuell geprüft</div>
+      </div>
+      <div class="dashboard-stat-kachel">
+        <div class="stat-wert stat-gelb">${gelb}</div>
+        <div class="stat-label">🟡 Bald fällig</div>
+      </div>
+      <div class="dashboard-stat-kachel">
+        <div class="stat-wert stat-rot">${rot}</div>
+        <div class="stat-label">🔴 Überfällig</div>
+      </div>
     </div>
-    <div class="dashboard-row">
-      <span>✅ Aktuell</span><strong style="color:#2a9d2a">${gruen}</strong>
-    </div>
-    <div class="dashboard-row">
-      <span>🟡 Bald fällig</span><strong style="color:#e6a817">${gelb}</strong>
-    </div>
-    <div class="dashboard-row">
-      <span>🔴 Überfällig</span><strong style="color:#c0392b">${rot}</strong>
-    </div>
-    <div class="dashboard-row" style="border-top:1px solid #ddd;margin-top:4px;padding-top:6px">
+    <div class="dashboard-row" style="border-top:1px solid #ddd;padding-top:6px">
       <span>📊 Geprüft diesen Monat</span><strong>${geprüft} / ${total}</strong>
     </div>
   `;
