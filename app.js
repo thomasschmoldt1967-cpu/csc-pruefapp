@@ -918,7 +918,7 @@ function renderChecklist() {
     const uhrzeitInput = document.getElementById('lmra-uhrzeit');
     if (datumInput) datumInput.value = `${yyyy}-${mm}-${dd}`;
     if (uhrzeitInput) uhrzeitInput.value = `${hh}:${min}`;
-    // Wind leeren
+    // Wind leeren — Feld entfernt, nur Safety
     const windInput = document.getElementById('lmra-wind');
     if (windInput) windInput.value = '';
     // Gespeicherte Vorlage automatisch laden
@@ -1742,11 +1742,6 @@ async function submitChecklist() {
       const namen = ohneBedenken.map(m => m.name).join(', ');
       if (!confirm(`Folgende Mitarbeiter haben "Ich habe keine Bedenken" nicht bestätigt:\n${namen}\n\nTrotzdem fortfahren?`)) return;
     }
-    // Windwarnung
-    const windVal = parseFloat((document.getElementById('lmra-wind') || {}).value || '0');
-    if (windVal > 12.5) {
-      if (!confirm(`⚠️ Windstärke ${windVal} m/s überschreitet den zulässigen Grenzwert von 12,5 m/s!\n\nDer Einsatz der Hubarbeitsbühne ist bei dieser Windstärke NICHT zulässig.\n\nTrotzdem dokumentieren?`)) return;
-    }
   }
   // Leiter-Nr. Pflichtfeld
   if (currentBereich.liste === 'leiterkontrolle') {
@@ -1818,7 +1813,6 @@ async function submitChecklist() {
           lmraTelefon:         (document.getElementById('lmra-telefon')         || {}).value?.trim() || '',
           lmraDatum:           (document.getElementById('lmra-datum')           || {}).value?.trim() || '',
           lmraUhrzeit:         (document.getElementById('lmra-uhrzeit')         || {}).value?.trim() || '',
-          lmraWind:            (document.getElementById('lmra-wind')            || {}).value?.trim() || '',
           lmraMitarbeiter:     lmraMitarbeiter.filter(m => m !== null && m.name.trim()).map(m => ({ name: m.name.trim(), bedenken: !!m.bedenken })),
         } : {}),
       });
@@ -3023,7 +3017,6 @@ async function generatePDF() {
     const lmraTelefonVal        = (document.getElementById('lmra-telefon')         || {}).value?.trim() || '';
     const lmraDatumVal          = (document.getElementById('lmra-datum')           || {}).value?.trim() || '';
     const lmraUhrzeitVal        = (document.getElementById('lmra-uhrzeit')         || {}).value?.trim() || '';
-    const lmraWindVal           = (document.getElementById('lmra-wind')            || {}).value?.trim() || '';
     let lmraDatumAnzeige = lmraDatumVal;
     if (lmraDatumVal.match(/^\d{4}-\d{2}-\d{2}$/)) {
       const [yy, mm2, dd2] = lmraDatumVal.split('-');
@@ -3035,11 +3028,11 @@ async function generatePDF() {
     doc.text('EINSATZDATEN', PL+2, y+3); y += 12; doc.setTextColor(0);
 
     const lmraFelder = [
-      ['Unternehmen:', 'CSC GmbH',                                       'Aufsichtsführender:', pruefer],
-      ['Objekt / Einsatzort:', lmraObjektVal || '—',                     'Datum:', lmraDatumAnzeige || formatDatum(now).split(' ')[0]],
-      ['Adresse:', lmraAdresseVal || '—',                                'Uhrzeit:', lmraUhrzeitVal || '—'],
-      ['Auftraggeber:', lmraAuftraggeberVal || '—',                      'Windstärke:', lmraWindVal ? `${lmraWindVal} m/s${parseFloat(lmraWindVal) > 12.5 ? ' ⚠️ ÜBERSCHREITUNG' : ' ✓'}` : '—'],
-      ['Ansprechpartner:', lmraAnsprechpartnerVal || '—',                'Telefon:', lmraTelefonVal || '—'],
+      ['Unternehmen:', 'CSC GmbH',                    'Aufsichtsführender:', pruefer],
+      ['Objekt / Einsatzort:', lmraObjektVal || '—',  'Datum:', lmraDatumAnzeige || formatDatum(now).split(' ')[0]],
+      ['Adresse:', lmraAdresseVal || '—',             'Uhrzeit:', lmraUhrzeitVal || '—'],
+      ['Auftraggeber:', lmraAuftraggeberVal || '—',   'Ansprechpartner:', lmraAnsprechpartnerVal || '—'],
+      ['Telefon:', lmraTelefonVal || '—',             '', ''],
     ];
     lmraFelder.forEach(([l1, v1, l2, v2]) => {
       doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(26, 58, 92);
