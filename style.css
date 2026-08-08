@@ -507,6 +507,7 @@ input, select, textarea {
 }
 .toggle-btn.ok-btn.active  { background: var(--success); border-color: var(--success); color: white; }
 .toggle-btn.nok-btn.active { background: var(--danger);  border-color: var(--danger);  color: white; }
+.toggle-btn.na-btn.active  { background: #6b7280; border-color: #6b7280; color: white; }
 .toggle-btn:active { transform: scale(0.93); }
 
 /* ===== FOTO-BUTTON ===== */

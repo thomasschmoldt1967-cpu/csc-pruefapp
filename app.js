@@ -876,6 +876,7 @@ function renderChecklist() {
         <div class="toggle-group">
           <button class="toggle-btn ok-btn"  onclick="setPruefung('${punkt.id}','ok')"  title="i.O.">✓</button>
           <button class="toggle-btn nok-btn" onclick="setPruefung('${punkt.id}','nok')" title="n.i.O.">✗</button>
+          <button class="toggle-btn na-btn"  onclick="setPruefung('${punkt.id}','na')"  title="n.z.">–</button>
         </div>
       `;
       div.appendChild(item);
@@ -1068,12 +1069,14 @@ function fotoLoeschen(idx) {
 function setPruefung(id, wert) {
   pruefErgebnisse[id] = wert;
   const item = document.getElementById('item-' + id);
-  item.classList.remove('checked', 'nok');
+  item.classList.remove('checked', 'nok', 'na');
   if (wert === 'ok')  item.classList.add('checked');
   if (wert === 'nok') item.classList.add('nok');
+  if (wert === 'na')  item.classList.add('na');
   const btns = item.querySelectorAll('.toggle-btn');
   btns[0].classList.toggle('active', wert === 'ok');
   btns[1].classList.toggle('active', wert === 'nok');
+  btns[2].classList.toggle('active', wert === 'na');
 }
 
 // ===== UNTERSCHRIFT PAD =====
@@ -1790,7 +1793,7 @@ function lmraAufSigIsEmpty() {
 
 // ===== PRÜFUNG ABSCHLIESSEN =====
 async function submitChecklist() {
-  const offene = Object.values(pruefErgebnisse).filter(v => v === null).length;
+  const offene = Object.values(pruefErgebnisse).filter(v => v === null).length;  // 'na' gilt als bewertet
   if (offene > 0) {
     if (!confirm(`${offene} Prüfpunkt(e) noch nicht bewertet. Trotzdem fortfahren?`)) return; // confirm() bleibt (kein LMRA-spezifisch)
   }
@@ -2065,11 +2068,13 @@ async function generatePDF() {
       const ergebnis = pruefErgebnisse[punkt.id];
       const ok  = ergebnis === 'ok';
       const nok = ergebnis === 'nok';
+      const na  = ergebnis === 'na';
 
       if (y > 265) { doc.addPage(); y = PT; }
 
       if (nok) { doc.setFillColor(255, 235, 235); doc.rect(PL, y - 4, PW, 8, 'F'); }
       if (ok)  { doc.setFillColor(241, 248, 241); doc.rect(PL, y - 4, PW, 8, 'F'); }
+      if (na)  { doc.setFillColor(240, 240, 240); doc.rect(PL, y - 4, PW, 8, 'F'); }
 
       doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(0);
       const lines = doc.splitTextToSize(punkt.text, PW - 24);
@@ -2084,6 +2089,10 @@ async function generatePDF() {
         doc.setFillColor(198, 40, 40); doc.roundedRect(statusX, y - 4, 18, 7, 2, 2, 'F');
         doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(255, 255, 255);
         doc.text('n.i.O.', statusX + 2, y + 1);
+      } else if (na) {
+        doc.setFillColor(107, 114, 128); doc.roundedRect(statusX, y - 4, 18, 7, 2, 2, 'F');
+        doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(255, 255, 255);
+        doc.text('n.z.', statusX + 4, y + 1);
       } else {
         doc.setDrawColor(180, 180, 180); doc.roundedRect(statusX, y - 4, 18, 7, 2, 2);
         doc.setFont('helvetica', 'normal'); doc.setFontSize(8); doc.setTextColor(150, 150, 150);
