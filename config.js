@@ -547,6 +547,8 @@ const APP_CONFIG = {
             { id: "lmra_bg_1", text: "Kein Übersteigen: Niemals aus dem angehobenen Korb auf Fassaden oder Dächer übersteigen!" },
             { id: "lmra_bg_2", text: "Kein Kranersatz: Die Arbeitsbühne darf nicht als Hebezeug für schwere Lasten missbraucht werden." },
             { id: "lmra_bg_3", text: "Leitern-Limit: Arbeiten auf Leitern über 2 m Standhöhe sind auf maximal 2 Stunden pro Schicht begrenzt. Eine Hand bleibt beim Aufstieg immer frei!" },
+            { id: "lmra_bg_4", text: "Niemals ungesichert (PSAgA) aus dem Fenster lehnen." },
+            { id: "lmra_bg_5", text: "Anlegen und Arbeiten im absturzgefährdeten Bereich nur mit geprüfter PSAgA." },
           ]
         },
       ]
