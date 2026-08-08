@@ -427,6 +427,20 @@
       <div id="lmra-ma-liste"></div>
     </div>
 
+    <!-- LMRA: Aufsichtsführender Unterschrift (nur bei LMRA sichtbar) -->
+    <div id="lmra-aufsfuehr-sig-box" style="display:none;background:#fff;border-radius:12px;box-shadow:0 2px 8px rgba(0,0,0,0.1);padding:16px;margin-bottom:12px;border:2px solid #1a3a5c;">
+      <div style="background:#1a3a5c;color:#fff;border-radius:8px;padding:12px 14px;margin-bottom:14px;font-size:13px;line-height:1.5">
+        <strong style="font-size:14px">✍️ Bestätigung Aufsichtsführender</strong><br>
+        Ich bestätige hiermit, dass ich die Last-Minute-Risikoanalyse (LMRA) mit allen oben genannten Mitarbeitern gemeinsam durchgeführt und besprochen habe. Alle Gefährdungen wurden erkannt und die erforderlichen Schutzmaßnahmen wurden eingeleitet.
+      </div>
+      <label style="display:block;font-weight:600;font-size:14px;color:#1a3a5c;margin-bottom:8px">Unterschrift Aufsichtsführender:</label>
+      <div id="lmra-auf-sig-container" style="position:relative;border:2px solid #dde3ea;border-radius:8px;overflow:hidden;background:#fafafa;touch-action:none;user-select:none;-webkit-user-select:none;">
+        <canvas id="lmra-auf-canvas" style="width:100%;height:140px;display:block;touch-action:none;cursor:crosshair;user-select:none;-webkit-user-select:none;"></canvas>
+        <button class="btn-secondary btn-sig-clear" onclick="lmraAufSigClear()" style="position:absolute;top:6px;right:6px;padding:4px 10px;font-size:12px;">✕ Löschen</button>
+      </div>
+      <div style="margin-top:8px;font-size:13px;color:#666;text-align:center" id="lmra-auf-name-anzeige"></div>
+    </div>
+
     <button class="btn-primary btn-submit" onclick="submitChecklist()">
       <span class="icon">✅</span> Prüfung abschließen &amp; PDF speichern
     </button>

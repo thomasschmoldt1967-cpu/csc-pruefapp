@@ -940,6 +940,27 @@ function renderChecklist() {
     }, 80);
   }
 
+  // LMRA: Aufsichtsführender-Unterschrift-Box ein/ausblenden
+  const lmraAufBox = document.getElementById('lmra-aufsfuehr-sig-box');
+  if (lmraAufBox) {
+    lmraAufBox.style.display = isLMRA ? 'block' : 'none';
+    if (isLMRA) {
+      lmraAufCanvas = null; // Reset damit init neu läuft
+      setTimeout(() => {
+        lmraAufSigInit();
+        lmraAufSigClear();
+        // Namen-Anzeige aktuell halten wenn Prüfer-Feld geändert wird
+        const prueferInput = document.getElementById('pruefer-name');
+        const nameAnzeige = document.getElementById('lmra-auf-name-anzeige');
+        if (prueferInput && nameAnzeige) {
+          const updateName = () => { nameAnzeige.textContent = prueferInput.value.trim() ? prueferInput.value.trim() : ''; };
+          prueferInput.removeEventListener('input', updateName);
+          prueferInput.addEventListener('input', updateName);
+        }
+      }, 120);
+    }
+  }
+
   // Standort-Box: bei LMRA ausblenden (Objekt/Adresse ersetzt Standort)
   const standortBox = document.getElementById('standort-box');
   if (standortBox) standortBox.style.display = isLMRA ? 'none' : 'block';
@@ -1717,6 +1738,56 @@ function lmraMaSigClear(idx) {
   if (canvas) canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
 }
 
+// ===== LMRA AUFSICHTSFÜHRENDER UNTERSCHRIFT =====
+let lmraAufCanvas = null;
+let lmraAufCtx = null;
+
+function lmraAufSigInit() {
+  const canvas = document.getElementById('lmra-auf-canvas');
+  if (!canvas || lmraAufCanvas === canvas) return;
+  lmraAufCanvas = canvas;
+  const dpr = window.devicePixelRatio || 1;
+  canvas.width  = canvas.offsetWidth  * dpr;
+  canvas.height = 140 * dpr;
+  lmraAufCtx = canvas.getContext('2d');
+  lmraAufCtx.scale(dpr, dpr);
+
+  let drawing = false, lx = 0, ly = 0;
+  function getP(e) {
+    const r = canvas.getBoundingClientRect();
+    const src = e.touches ? e.touches[0] : e;
+    return { x: src.clientX - r.left, y: src.clientY - r.top };
+  }
+  function draw(p) {
+    lmraAufCtx.beginPath();
+    lmraAufCtx.moveTo(lx, ly);
+    lmraAufCtx.lineTo(p.x, p.y);
+    lmraAufCtx.strokeStyle = '#1a3a5c';
+    lmraAufCtx.lineWidth = 2.5;
+    lmraAufCtx.lineCap = 'round';
+    lmraAufCtx.stroke();
+    lx = p.x; ly = p.y;
+  }
+  canvas.addEventListener('mousedown',  e => { drawing = true; const p = getP(e); lx = p.x; ly = p.y; });
+  canvas.addEventListener('mousemove',  e => { if (!drawing) return; draw(getP(e)); });
+  canvas.addEventListener('mouseup',    () => drawing = false);
+  canvas.addEventListener('touchstart', e => { e.preventDefault(); e.stopPropagation(); drawing = true; const p = getP(e); lx = p.x; ly = p.y; }, { passive: false });
+  canvas.addEventListener('touchmove',  e => { e.preventDefault(); e.stopPropagation(); if (!drawing) return; draw(getP(e)); }, { passive: false });
+  canvas.addEventListener('touchend',   e => { e.stopPropagation(); drawing = false; });
+}
+
+function lmraAufSigClear() {
+  if (lmraAufCanvas) lmraAufCtx.clearRect(0, 0, lmraAufCanvas.width, lmraAufCanvas.height);
+}
+
+function lmraAufSigIsEmpty() {
+  if (!lmraAufCanvas) return true;
+  const empty = document.createElement('canvas');
+  empty.width = lmraAufCanvas.width;
+  empty.height = lmraAufCanvas.height;
+  return lmraAufCanvas.toDataURL() === empty.toDataURL();
+}
+
 // ===== PRÜFUNG ABSCHLIESSEN =====
 async function submitChecklist() {
   const offene = Object.values(pruefErgebnisse).filter(v => v === null).length;
@@ -1741,6 +1812,12 @@ async function submitChecklist() {
     if (ohneBedenken.length > 0) {
       const namen = ohneBedenken.map(m => m.name).join(', ');
       if (!confirm(`Folgende Mitarbeiter haben "Ich habe keine Bedenken" nicht bestätigt:\n${namen}\n\nTrotzdem fortfahren?`)) return;
+    }
+    // Aufsichtsführender-Unterschrift Pflicht
+    if (lmraAufSigIsEmpty()) {
+      alert('Bitte Unterschrift des Aufsichtsführenden eintragen.');
+      document.getElementById('lmra-auf-sig-container')?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
     }
   }
   // Leiter-Nr. Pflichtfeld
@@ -3084,17 +3161,26 @@ async function generatePDF() {
       y += 28;
     }
 
-    // Aufsichtsführender-Unterschrift am Ende
-    if (y > 240) { doc.addPage(); y = PT; }
+    // Aufsichtsführender-Unterschrift am Ende (eigener Canvas)
+    if (y > 230) { doc.addPage(); y = PT; }
     doc.setDrawColor(200, 200, 200); doc.line(PL, y, PL+PW, y); y += 6;
+
+    // Bestätigungstext
+    doc.setFillColor(26, 58, 92); doc.rect(PL, y, PW, 16, 'F');
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(9); doc.setTextColor(255, 255, 255);
+    doc.text('BESTÄTIGUNG AUFSICHTSFÜHRENDER', PL+2, y+6);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(8);
+    doc.text('Ich bestätige, die LMRA mit allen Mitarbeitern durchgeführt zu haben. Alle Gefährdungen wurden besprochen.', PL+2, y+13);
+    doc.setTextColor(0); y += 22;
+
     doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(26, 58, 92);
-    doc.text('AUFSICHTSFÜHRENDER', PL, y); y += 4;
-    doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(0);
-    if (!isSignatureEmpty()) {
-      const sigDataAuf = sigPad.canvas.toDataURL('image/png');
-      doc.addImage(sigDataAuf, 'PNG', PL, y, 80, 25); y += 28;
+    doc.text('Unterschrift Aufsichtsführender:', PL, y); y += 4;
+    doc.setTextColor(0);
+    if (!lmraAufSigIsEmpty()) {
+      const sigDataAuf = lmraAufCanvas.toDataURL('image/png');
+      doc.addImage(sigDataAuf, 'PNG', PL, y, 90, 28); y += 32;
     } else {
-      doc.setDrawColor(100); doc.line(PL, y+20, PL+80, y+20); y += 28;
+      doc.setDrawColor(100); doc.line(PL, y+24, PL+90, y+24); y += 32;
     }
     doc.setFont('helvetica', 'normal'); doc.setFontSize(10); doc.setTextColor(0);
     doc.text(pruefer || '___________________________', PL, y); y += 10;
