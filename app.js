@@ -698,6 +698,22 @@ async function showHistorieScreen(bereichId, bereichName, listentyp) {
       const eintraege = gruppen[nr];
       inhalt.appendChild(renderHistorieGruppe(`Leiter ${nr}`, eintraege));
     });
+  } else if (listentyp === 'gfb_szp' || listentyp === 'gfb_glasreinigung' || listentyp === 'lmra_hubarbeitsbuehne') {
+    // GFB/LMRA: nach Objekt gruppieren
+    const gruppen = {};
+    const UNBEKANNT = '— Kein Objekt angegeben —';
+    protokolle.forEach(p => {
+      const obj = p.gfbObjekt || UNBEKANNT;
+      if (!gruppen[obj]) gruppen[obj] = [];
+      gruppen[obj].push(p);
+    });
+
+    // Sortierung: Objekte mit neuesten Protokollen zuerst
+    Object.keys(gruppen)
+      .sort((a, b) => new Date(gruppen[b][0].datum) - new Date(gruppen[a][0].datum))
+      .forEach(obj => {
+        inhalt.appendChild(renderHistorieGruppe(obj, gruppen[obj]));
+      });
   } else {
     // Alle anderen Bereiche: einfache Liste ohne Untergruppierung
     inhalt.appendChild(renderHistorieGruppe(bereichName, protokolle));
@@ -897,6 +913,11 @@ function renderChecklist() {
   const isGFB = (currentBereich.liste === 'gfb_szp' || currentBereich.liste === 'gfb_glasreinigung');
   const isLMRA = (currentBereich.liste === 'lmra_hubarbeitsbuehne');
   gfbFelderBox.style.display = isGFB ? 'block' : 'none';
+
+  // GFB: Gespeicherte Objekte asynchron laden (Dropdown)
+  if (isGFB) {
+    setTimeout(() => gfbObjekteLaden(), 300);
+  }
 
   // BA-Button bei GFB SZP und GFB Glasreinigung
   const baBtnBox = document.getElementById('gfb-ba-btn-box');
@@ -1641,32 +1662,165 @@ function gfbMaSigClear(idx) {
   if (canvas) canvas.getContext('2d').clearRect(0, 0, canvas.width, canvas.height);
 }
 
-// ===== LMRA VORLAGE SPEICHERN / LADEN =====
-function lmraVorlageSpeichern() {
+// ===== GFB OBJEKTE-GEDÄCHTNIS (SZP + Glasreinigung) =====
+
+// Gespeicherte Objekte laden und Dropdown befüllen
+async function gfbObjekteLaden() {
+  if (!currentBereich) return;
+  const listentyp = currentBereich.liste; // gfb_szp oder gfb_glasreinigung
+  const box = document.getElementById('gfb-objekte-gespeichert');
+  const sel = document.getElementById('gfb-objekte-select');
+  if (!box || !sel) return;
+
+  let objekte = [];
+  if (typeof window.fbGetSavedObjekte === 'function') {
+    objekte = await window.fbGetSavedObjekte(listentyp);
+  }
+  // Fallback: aus pruefHistory extrahieren
+  if (objekte.length === 0 && typeof window.fbGetObjekteFromHistorie === 'function') {
+    const fromHist = await window.fbGetObjekteFromHistorie(listentyp);
+    objekte = fromHist.map(o => ({ name: o.name, adresse: '', ansprechpartner: '', telefon: '' }));
+  }
+
+  if (objekte.length === 0) { box.style.display = 'none'; return; }
+
+  sel.innerHTML = '<option value="">— gespeicherte Objekte —</option>';
+  objekte.forEach((o, i) => {
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = o.name;
+    opt.dataset.daten = JSON.stringify(o);
+    sel.appendChild(opt);
+  });
+  box.style.display = 'block';
+}
+
+// Objekt aus Dropdown übernehmen
+function gfbObjektWaehlen(val) {
+  if (!val) return;
+  const sel = document.getElementById('gfb-objekte-select');
+  const opt = sel.options[sel.selectedIndex];
+  if (!opt || !opt.dataset.daten) return;
+  try {
+    const daten = JSON.parse(opt.dataset.daten);
+    const el = id => document.getElementById(id);
+    if (el('gfb-objekt'))         el('gfb-objekt').value         = daten.name            || '';
+    if (el('gfb-auftraggeber'))   el('gfb-auftraggeber').value   = daten.adresse         || '';
+    if (el('gfb-ansprechpartner'))el('gfb-ansprechpartner').value = daten.ansprechpartner || '';
+  } catch(e) {}
+}
+
+// Aktuelles GFB-Objekt in Firebase speichern
+async function gfbObjekteSpeichernUndLaden() {
+  if (!currentBereich) return;
+  const listentyp = currentBereich.liste;
+  const name = (document.getElementById('gfb-objekt') || {}).value?.trim();
+  if (!name) {
+    // Kein Name → nur Dropdown öffnen/laden
+    await gfbObjekteLaden();
+    return;
+  }
+  const daten = {
+    name,
+    adresse:         (document.getElementById('gfb-auftraggeber')    || {}).value?.trim() || '',
+    ansprechpartner: (document.getElementById('gfb-ansprechpartner') || {}).value?.trim() || '',
+    telefon: ''
+  };
+  if (typeof window.fbSaveObjekt === 'function') {
+    await window.fbSaveObjekt(listentyp, daten);
+  }
+  // Tooltip-Feedback
+  const btn = document.querySelector('#gfb-felder-box button[onclick="gfbObjekteSpeichernUndLaden()"]');
+  if (btn) { btn.textContent = '✅'; setTimeout(() => { btn.textContent = '💾'; }, 2000); }
+  await gfbObjekteLaden();
+}
+
+// ===== LMRA VORLAGE SPEICHERN / LADEN (erweitert mit Firebase-Gedächtnis) =====
+async function lmraVorlageSpeichern() {
   const vorlage = {
-    objekt:          (document.getElementById('lmra-objekt')          || {}).value?.trim() || '',
+    name:            (document.getElementById('lmra-objekt')          || {}).value?.trim() || '',
     adresse:         (document.getElementById('lmra-adresse')         || {}).value?.trim() || '',
     auftraggeber:    (document.getElementById('lmra-auftraggeber')    || {}).value?.trim() || '',
     ansprechpartner: (document.getElementById('lmra-ansprechpartner') || {}).value?.trim() || '',
     telefon:         (document.getElementById('lmra-telefon')         || {}).value?.trim() || '',
   };
-  if (!vorlage.objekt) { alert('Bitte zuerst Objekt eintragen.'); return; }
+  if (!vorlage.name) { window._showToast?.('Bitte zuerst Objekt eintragen.') || alert('Bitte zuerst Objekt eintragen.'); return; }
+
+  // In Firebase speichern (geräteübergreifend)
+  if (typeof window.fbSaveObjekt === 'function') {
+    await window.fbSaveObjekt('lmra_hubarbeitsbuehne', vorlage);
+  }
+  // Zusätzlich lokal als letzte Vorlage (Schnell-Laden)
   localStorage.setItem('csc_lmra_vorlage', JSON.stringify(vorlage));
+
   const btn = document.querySelector('#lmra-ma-box .btn-secondary[onclick="lmraVorlageSpeichern()"]');
-  if (btn) { btn.textContent = '✅ Vorlage gespeichert!'; setTimeout(() => { btn.textContent = '💾 Objekt als Vorlage speichern'; }, 2000); }
+  if (btn) { btn.textContent = '✅ Gespeichert!'; setTimeout(() => { btn.textContent = '💾 Objekt speichern'; }, 2000); }
+
+  // Dropdown aktualisieren
+  await lmraObjekteLaden();
 }
 
-function lmraVorladeLaden() {
+async function lmraVorladeLaden() {
+  // Zuerst Dropdown zeigen mit Firebase-Objekten
+  await lmraObjekteLaden();
+
+  // Letzte lokale Vorlage als Vorausfüllung
   const raw = localStorage.getItem('csc_lmra_vorlage');
-  if (!raw) { alert('Keine gespeicherte Vorlage gefunden.'); return; }
+  if (!raw) return;
   try {
     const v = JSON.parse(raw);
-    if (document.getElementById('lmra-objekt'))          document.getElementById('lmra-objekt').value          = v.objekt          || '';
+    if (document.getElementById('lmra-objekt'))          document.getElementById('lmra-objekt').value          = v.name            || v.objekt     || '';
     if (document.getElementById('lmra-adresse'))         document.getElementById('lmra-adresse').value         = v.adresse         || '';
     if (document.getElementById('lmra-auftraggeber'))    document.getElementById('lmra-auftraggeber').value    = v.auftraggeber    || '';
     if (document.getElementById('lmra-ansprechpartner')) document.getElementById('lmra-ansprechpartner').value = v.ansprechpartner || '';
     if (document.getElementById('lmra-telefon'))         document.getElementById('lmra-telefon').value         = v.telefon         || '';
-  } catch(e) { alert('Vorlage konnte nicht geladen werden.'); }
+  } catch(e) {}
+}
+
+// Gespeicherte LMRA-Objekte aus Firebase laden und Dropdown anzeigen
+async function lmraObjekteLaden() {
+  const box = document.getElementById('lmra-objekte-gespeichert');
+  const sel = document.getElementById('lmra-objekte-select');
+  if (!box || !sel) return;
+
+  let objekte = [];
+  if (typeof window.fbGetSavedObjekte === 'function') {
+    objekte = await window.fbGetSavedObjekte('lmra_hubarbeitsbuehne');
+  }
+  if (objekte.length === 0 && typeof window.fbGetObjekteFromHistorie === 'function') {
+    const fromHist = await window.fbGetObjekteFromHistorie('lmra_hubarbeitsbuehne');
+    objekte = fromHist.map(o => ({ name: o.name, adresse: '', ansprechpartner: '', telefon: '' }));
+  }
+
+  if (objekte.length === 0) { box.style.display = 'none'; return; }
+
+  sel.innerHTML = '<option value="">— gespeicherte Objekte —</option>';
+  objekte.forEach((o, i) => {
+    const opt = document.createElement('option');
+    opt.value = i;
+    opt.textContent = o.name;
+    opt.dataset.daten = JSON.stringify(o);
+    sel.appendChild(opt);
+  });
+  box.style.display = 'block';
+}
+
+// LMRA-Objekt aus Dropdown übernehmen
+function lmraObjektWaehlen(val) {
+  if (!val) return;
+  const sel = document.getElementById('lmra-objekte-select');
+  const opt = sel?.options[sel.selectedIndex];
+  if (!opt || !opt.dataset.daten) return;
+  try {
+    const v = JSON.parse(opt.dataset.daten);
+    if (document.getElementById('lmra-objekt'))          document.getElementById('lmra-objekt').value          = v.name            || '';
+    if (document.getElementById('lmra-adresse'))         document.getElementById('lmra-adresse').value         = v.adresse         || '';
+    if (document.getElementById('lmra-auftraggeber'))    document.getElementById('lmra-auftraggeber').value    = v.auftraggeber    || '';
+    if (document.getElementById('lmra-ansprechpartner')) document.getElementById('lmra-ansprechpartner').value = v.ansprechpartner || '';
+    if (document.getElementById('lmra-telefon'))         document.getElementById('lmra-telefon').value         = v.telefon         || '';
+    // Als neue lokale Vorlage merken
+    localStorage.setItem('csc_lmra_vorlage', JSON.stringify(v));
+  } catch(e) {}
 }
 
 // ===== LMRA MITARBEITER =====
@@ -1895,6 +2049,10 @@ async function submitChecklist() {
         hatMaengel:  bemerkungText.length > 0,
         maengelText: bemerkungText,
         driveFileId: driveFileId,
+        // GFB SZP / Glasreinigung: gfbObjekt für Historie
+        ...((currentBereich.liste === 'gfb_szp' || currentBereich.liste === 'gfb_glasreinigung') ? {
+          gfbObjekt: (document.getElementById('gfb-objekt') || {}).value?.trim() || '',
+        } : {}),
         // LMRA-spezifische Zusatzfelder
         ...(currentBereich.liste === 'lmra_hubarbeitsbuehne' ? {
           lmraObjekt:          (document.getElementById('lmra-objekt')          || {}).value?.trim() || '',
@@ -1905,6 +2063,8 @@ async function submitChecklist() {
           lmraDatum:           (document.getElementById('lmra-datum')           || {}).value?.trim() || '',
           lmraUhrzeit:         (document.getElementById('lmra-uhrzeit')         || {}).value?.trim() || '',
           lmraMitarbeiter:     lmraMitarbeiter.filter(m => m !== null && m.name.trim()).map(m => ({ name: m.name.trim(), bedenken: !!m.bedenken })),
+          // gfbObjekt-Kompatibilität: lmra-objekt auch als gfbObjekt speichern
+          gfbObjekt: (document.getElementById('lmra-objekt') || {}).value?.trim() || '',
         } : {}),
       });
 

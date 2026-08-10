@@ -302,7 +302,15 @@
     <!-- GFB-Felder: Objekt / Auftraggeber / Ansprechpartner — ganz oben -->
     <div class="aufzug-nr-box" id="gfb-felder-box" style="display:none">
       <label>Objekt / Einsatzort:</label>
-      <input type="text" id="gfb-objekt" placeholder="z. B. Musterstraße 1, Hannover">
+      <div style="display:flex;gap:8px;align-items:center">
+        <input type="text" id="gfb-objekt" placeholder="z. B. Musterstraße 1, Hannover" style="flex:1">
+        <button type="button" class="btn-secondary" style="white-space:nowrap;padding:8px 12px" onclick="gfbObjekteSpeichernUndLaden()" title="Objekt speichern">💾</button>
+      </div>
+      <div id="gfb-objekte-gespeichert" style="display:none;margin:6px 0;">
+        <select id="gfb-objekte-select" style="width:100%;padding:8px;border-radius:8px;border:1px solid #ccc;font-size:14px;" onchange="gfbObjektWaehlen(this.value)">
+          <option value="">— gespeicherte Objekte —</option>
+        </select>
+      </div>
       <label style="margin-top:10px">Auftraggeber / Kunde:</label>
       <input type="text" id="gfb-auftraggeber" placeholder="z. B. Musterfirma GmbH">
       <label style="margin-top:10px">Ansprechpartner vor Ort:</label>
@@ -317,7 +325,13 @@
         <label>🏢 Objekt / Einsatzort:</label>
         <div style="display:flex;gap:8px;align-items:center">
           <input type="text" id="lmra-objekt" placeholder="z. B. Apothekerkammer Hannover" style="flex:1">
-          <button type="button" class="btn-secondary" style="white-space:nowrap;padding:8px 12px" onclick="lmraVorladeLaden()" title="Vorlage laden">📋 Vorlage</button>
+          <button type="button" class="btn-secondary" style="white-space:nowrap;padding:8px 12px" onclick="lmraVorlageSpeichern()" title="Objekt speichern">💾</button>
+          <button type="button" class="btn-secondary" style="white-space:nowrap;padding:8px 12px" onclick="lmraVorladeLaden()" title="Vorlage laden">📋</button>
+        </div>
+        <div id="lmra-objekte-gespeichert" style="display:none;margin:6px 0;">
+          <select id="lmra-objekte-select" style="width:100%;padding:8px;border-radius:8px;border:1px solid #ccc;font-size:14px;" onchange="lmraObjektWaehlen(this.value)">
+            <option value="">— gespeicherte Objekte —</option>
+          </select>
         </div>
         <label style="margin-top:10px">📍 Adresse:</label>
         <input type="text" id="lmra-adresse" placeholder="z. B. Raschplatz 5, 30161 Hannover">

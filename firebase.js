@@ -60,16 +60,20 @@ const INTERVALLE = {
 // ============================================================
 window.fbSavePruefung = async function({
   bereichId, standortId, standortName, bereichName, listentyp,
-  pruefer, datum, hatMaengel, maengelText, driveFileId
+  pruefer, datum, hatMaengel, maengelText, driveFileId,
+  gfbObjekt, lmraObjekt
 }) {
   try {
     const now = new Date();
+    const objektFeld = gfbObjekt || lmraObjekt || '';
+
     // Letzte Prüfung pro Bereich (überschreibt sich selbst → immer aktuell)
     const letzteRef = doc(db, 'letztePruefung', bereichId);
     await setDoc(letzteRef, {
       bereichId, standortId, standortName, bereichName, listentyp,
       pruefer, datum: datum.toISOString(), timestamp: serverTimestamp(),
-      driveFileId: driveFileId || null
+      driveFileId: driveFileId || null,
+      gfbObjekt: objektFeld
     });
 
     // Prüfungs-Verlauf (History-Eintrag mit eindeutigem Timestamp-Key)
@@ -80,6 +84,7 @@ window.fbSavePruefung = async function({
       pruefer, datum: datum.toISOString(),
       hatMaengel: !!hatMaengel,
       maengelText: maengelText || '',
+      gfbObjekt: objektFeld,
       driveFileId: driveFileId || null,
       timestamp: serverTimestamp()
     });
@@ -287,7 +292,8 @@ window.fbGetHistorieBereich = async function(bereichId) {
         datum:       data.datum       || '',
         hatMaengel:  !!data.hatMaengel,
         maengelText: data.maengelText || '',
-        driveFileId: data.driveFileId || null
+        driveFileId: data.driveFileId || null,
+        gfbObjekt:   data.gfbObjekt   || ''
       });
     });
     liste.sort((a, b) => new Date(b.datum) - new Date(a.datum));
@@ -549,3 +555,66 @@ window.fbDeleteGeraet = async function(geraetId) {
   await authReady;
   await deleteDoc(doc(db, 'geraete', geraetId));
 };
+
+// ============================================================
+//  OBJEKTE-GEDÄCHTNIS: Gespeicherte Objekte für GFB/LMRA
+//  Sammlung: 'savedObjekte' mit Docs je listentyp
+//  (gfb_szp, gfb_glasreinigung, lmra_hubarbeitsbuehne)
+// ============================================================
+
+// Alle gespeicherten Objekte für einen listentyp laden
+window.fbGetSavedObjekte = async function(listentyp) {
+  try {
+    await authReady;
+    const snap = await getDocs(
+      query(collection(db, 'savedObjekte'), where('listentyp', '==', listentyp), orderBy('updatedAt', 'desc'))
+    );
+    return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch(e) {
+    console.warn('[Firebase] fbGetSavedObjekte fehlgeschlagen:', e.message);
+    return [];
+  }
+};
+
+// Objekt speichern (upsert nach name+listentyp)
+window.fbSaveObjekt = async function(listentyp, daten) {
+  // daten = { name, adresse, ansprechpartner, telefon, ... }
+  try {
+    await authReady;
+    const key = `${listentyp}_${(daten.name || 'unbekannt').replace(/\s+/g,'_').toLowerCase()}`;
+    const ref = doc(db, 'savedObjekte', key);
+    await setDoc(ref, {
+      listentyp,
+      name:            daten.name            || '',
+      adresse:         daten.adresse         || '',
+      ansprechpartner: daten.ansprechpartner || '',
+      telefon:         daten.telefon         || '',
+      updatedAt:       new Date().toISOString()
+    }, { merge: true });
+    return key;
+  } catch(e) {
+    console.warn('[Firebase] fbSaveObjekt fehlgeschlagen:', e.message);
+  }
+};
+
+// Gespeicherte Objekte aus der pruefHistory extrahieren (Fallback)
+window.fbGetObjekteFromHistorie = async function(listentyp) {
+  try {
+    await authReady;
+    const snap = await getDocs(collection(db, 'pruefHistory'));
+    const objekte = new Map();
+    snap.docs.forEach(d => {
+      const data = d.data();
+      if (data.listentyp !== listentyp && data.bereichId !== listentyp) return;
+      const obj = data.gfbObjekt || '';
+      if (obj && !objekte.has(obj)) {
+        objekte.set(obj, { name: obj, datum: data.datum });
+      }
+    });
+    return [...objekte.values()].sort((a,b) => new Date(b.datum) - new Date(a.datum));
+  } catch(e) {
+    console.warn('[Firebase] fbGetObjekteFromHistorie fehlgeschlagen:', e.message);
+    return [];
+  }
+};
+
