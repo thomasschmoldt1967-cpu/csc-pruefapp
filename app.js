@@ -3412,9 +3412,21 @@ async function emailPDF(toAddress) {
     const token = await getDriveToken();
     if (!token) throw new Error('Kein Token');
 
-    const pdfBase64 = await blobToBase64(currentPdfBlob);
+    // PDF als ArrayBuffer → Base64 (robust, ohne btoa-Limit)
+    const pdfBuffer = await currentPdfBlob.arrayBuffer();
+    const pdfBytes = new Uint8Array(pdfBuffer);
+    let pdfBase64 = '';
+    const chunk = 8192;
+    for (let i = 0; i < pdfBytes.length; i += chunk) {
+      pdfBase64 += String.fromCharCode(...pdfBytes.subarray(i, i + chunk));
+    }
+    pdfBase64 = btoa(pdfBase64);
+
     const boundary = 'csc_boundary_' + Date.now();
-    const emailLines = [
+
+    // MIME-Nachricht als Uint8Array aufbauen (verhindert btoa-Probleme mit Umlauten)
+    const encoder = new TextEncoder();
+    const headerPart = [
       `From: me`,
       `To: ${toAddress}`,
       `Subject: =?UTF-8?B?${btoa(unescape(encodeURIComponent(subject)))}?=`,
@@ -3423,21 +3435,28 @@ async function emailPDF(toAddress) {
       ``,
       `--${boundary}`,
       `Content-Type: text/plain; charset=UTF-8`,
+      `Content-Transfer-Encoding: quoted-printable`,
       ``,
-      body,
+      body.replace(/[^\x20-\x7E]/g, c => '=' + c.charCodeAt(0).toString(16).toUpperCase().padStart(2,'0')),
       ``,
       `--${boundary}`,
       `Content-Type: application/pdf; name="${filename}"`,
       `Content-Transfer-Encoding: base64`,
       `Content-Disposition: attachment; filename="${filename}"`,
       ``,
-      pdfBase64.replace(/^data:application\/pdf;base64,/, ''),
-      ``,
-      `--${boundary}--`
     ].join('\r\n');
 
-    const emailB64 = btoa(unescape(encodeURIComponent(emailLines)))
-      .replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+    const footer = `\r\n--${boundary}--`;
+
+    // Base64-URL kodierung der gesamten MIME-Nachricht
+    const mimeText = headerPart + pdfBase64 + footer;
+    const mimeBytes = encoder.encode(mimeText);
+    // Chunk-basiertes btoa
+    let rawB64 = '';
+    for (let i = 0; i < mimeBytes.length; i += chunk) {
+      rawB64 += String.fromCharCode(...mimeBytes.subarray(i, i + chunk));
+    }
+    const emailB64 = btoa(rawB64).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 
     const res = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/send', {
       method: 'POST',
@@ -3449,20 +3468,23 @@ async function emailPDF(toAddress) {
     });
 
     if (res.ok) {
-      alert(`✅ E-Mail mit PDF-Anhang wurde an ${toAddress} gesendet!`);
+      showToast(`✅ E-Mail mit PDF-Anhang an ${toAddress} gesendet!`);
     } else {
       const err = await res.json();
       throw new Error(err.error?.message || 'Gmail-Fehler');
     }
   } catch(e) {
     console.warn('[Gmail] E-Mail senden fehlgeschlagen:', e.message);
-    // Fallback: lokaler Download + mailto
+    // Fallback: PDF lokal speichern + mailto ohne Anhang
     const url = URL.createObjectURL(currentPdfBlob);
-    const a = document.createElement('a');
-    a.href = url; a.download = filename; a.click();
+    const link = document.createElement('a');
+    link.href = url; link.download = filename;
+    document.body.appendChild(link); link.click(); document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(url), 3000);
     const subjEnc = encodeURIComponent(subject);
-    const bodyEnc = encodeURIComponent(body + '\n\n(PDF bitte manuell anhängen)');
-    setTimeout(() => { window.location.href = `mailto:${toAddress}?subject=${subjEnc}&body=${bodyEnc}`; }, 800);
+    const bodyEnc = encodeURIComponent(body + '\n\n(PDF wurde lokal gespeichert – bitte manuell anhängen)');
+    setTimeout(() => { window.open(`mailto:${toAddress}?subject=${subjEnc}&body=${bodyEnc}`, '_blank'); }, 1000);
+    showToast('⚠️ PDF gespeichert – Gmail fehlgeschlagen: ' + e.message);
   }
 }
 
